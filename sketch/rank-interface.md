@@ -55,6 +55,18 @@ $ rank promote
 
 $ rank goals
   - Brew some tea
+
+$ rank all
+Current Tasks:
+  - Brew some tea
+Next up:
+  - Drink some tea
+3rd up:
+  - Write more code
+4th up:
+  - Take over the world
+5th up:
+  - Schedule a vacation
 ```
 
 # Data structure
