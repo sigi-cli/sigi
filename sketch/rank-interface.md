@@ -67,9 +67,9 @@ Next up:
   - Schedule a vacation
 ```
 
-# Data structure
+## Data structure
 
-## Rank
+### Rank
 
 {
 	"name": "Drink some tea",
@@ -82,7 +82,7 @@ Next up:
 	"done": "2021-02-25T04:56:19Z"
 }
 
-# Storage
+## Storage
 
 TODO: Should this be (e.g.) yml or toml? (To allow append-write instead of something more fiddly)
 
@@ -102,8 +102,7 @@ TODO: Should this be (e.g.) yml or toml? (To allow append-write instead of somet
 
 # Out of scope
 
-The goals of `rank` are purposefully focused and minimal. Here are some features that were considered and will not be introduced:
+The goals of `rank` are purposefully focused and minimal. Here are some features that have been considered and have no plan to be introduced:
 
 - Undo/redo
 - Backup/restore
-
