@@ -10,6 +10,11 @@ struct Rank {
     done: Option<DateTime<Local>>
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct Ranks {
+    ranks: Vec<Rank>
+}
+
 const RANK_DATA_PATH: [&str; 4] = [".local", "share", "rank", "test.json"];
 
 fn main() {
