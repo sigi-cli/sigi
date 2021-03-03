@@ -1,4 +1,14 @@
+use chrono::{NaiveDate, NaiveDateTime};
 use clap::{App, Arg, SubCommand};
+use serde::{Serialize, Deserialize};
+use std::{env, fs, ops::Add};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Rank {
+    name: String,
+    created: NaiveDateTime,
+    done: Option<NaiveDateTime>
+}
 
 fn main() {
     let matches = App::new("rank")
@@ -36,4 +46,8 @@ fn main() {
         .get_matches();
 
     println!("Matches: {:?}", matches);
+
+    if let Ok(contents) = fs::read_to_string(env::var("HOME").unwrap().add("/.local/share/rank/test.json")) {
+        println!("Contents: {:?}", serde_json::from_str::<Rank>(&contents));
+    }
 }
