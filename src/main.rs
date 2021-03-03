@@ -1,14 +1,16 @@
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{DateTime, Local};
 use clap::{App, Arg, SubCommand};
 use serde::{Serialize, Deserialize};
-use std::{env, fs, ops::Add};
+use std::{env, fs, iter};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Rank {
     name: String,
-    created: NaiveDateTime,
-    done: Option<NaiveDateTime>
+    created: DateTime<Local>,
+    done: Option<DateTime<Local>>
 }
+
+const RANK_DATA_PATH: [&str; 4] = [".local", "share", "rank", "test.json"];
 
 fn main() {
     let matches = App::new("rank")
@@ -47,7 +49,18 @@ fn main() {
 
     println!("Matches: {:?}", matches);
 
-    if let Ok(contents) = fs::read_to_string(env::var("HOME").unwrap().add("/.local/share/rank/test.json")) {
+    let data_path: String = iter::once(env::var("HOME").unwrap())
+        .chain(RANK_DATA_PATH.iter().map(|s| s.to_string()))
+        .collect::<Vec<_>>()
+        .join(&std::path::MAIN_SEPARATOR.to_string());
+
+    let rank: Rank = Rank { name: String::from("John Cena"), created: Local::now(), done: None } ;
+
+    if let Ok(Ok(something)) = serde_json::to_string(&rank).map(|s| fs::write(data_path.clone(), s)) {
+        println!("Wrote something: {:?}", something);
+    }
+
+    if let Ok(contents) = fs::read_to_string(data_path) {
         println!("Contents: {:?}", serde_json::from_str::<Rank>(&contents));
     }
 }
