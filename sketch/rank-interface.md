@@ -20,7 +20,6 @@ Next up:
   - Write more code
 3rd up:
   - Take over the world
-4th up:
   - Schedule a vacation
 
 $ rank
@@ -65,7 +64,6 @@ Next up:
   - Write more code
 4th up:
   - Take over the world
-5th up:
   - Schedule a vacation
 ```
 
