@@ -10,12 +10,9 @@ struct Rank {
     done: Option<DateTime<Local>>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Ranks {
-    ranks: Vec<Rank>
-}
+type Ranks = Vec<Rank>;
 
-const RANK_DATA_PATH: [&str; 4] = [".local", "share", "rank", "test.json"];
+const RANK_DATA_PATH: [&str; 3] = [".local", "share", "rank"];
 
 fn main() {
     let matches = App::new("rank")
@@ -54,18 +51,23 @@ fn main() {
 
     println!("Matches: {:?}", matches);
 
-    let data_path: String = iter::once(env::var("HOME").unwrap())
-        .chain(RANK_DATA_PATH.iter().map(|s| s.to_string()))
-        .collect::<Vec<_>>()
-        .join(&std::path::MAIN_SEPARATOR.to_string());
+    let data_path: String = rank_data_file("test.json");
 
-    let rank: Rank = Rank { name: String::from("John Cena"), created: Local::now(), done: None } ;
+    let ranks: Ranks = vec![Rank { name: String::from("John Cena"), created: Local::now(), done: None }];
 
-    if let Ok(Ok(something)) = serde_json::to_string(&rank).map(|s| fs::write(data_path.clone(), s)) {
+    if let Ok(Ok(something)) = serde_json::to_string(&ranks).map(|s| fs::write(data_path.clone(), s)) {
         println!("Wrote something: {:?}", something);
     }
 
     if let Ok(contents) = fs::read_to_string(data_path) {
-        println!("Contents: {:?}", serde_json::from_str::<Rank>(&contents));
+        println!("Contents: {:?}", serde_json::from_str::<Ranks>(&contents));
     }
+}
+
+fn rank_data_file(filename: impl Into<String>) -> String {
+    iter::once(env::var("HOME").or(env::var("HOMEPATH")).unwrap())
+        .chain(RANK_DATA_PATH.iter().map(|s| s.to_string()))
+        .chain(iter::once(filename.into()))
+        .collect::<Vec<_>>()
+        .join(&std::path::MAIN_SEPARATOR.to_string())
 }
