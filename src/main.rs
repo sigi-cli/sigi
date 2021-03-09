@@ -4,13 +4,13 @@ use serde::{Serialize, Deserialize};
 use std::{env, fs, iter};
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Task {
+struct Item {
     name: String,
     created: DateTime<Local>,
     done: Option<DateTime<Local>>
 }
 
-type Tasks = Vec<Task>;
+type Items = Vec<Item>;
 
 const RANK_DATA_PATH: [&str; 3] = [".local", "share", "sigi"];
 
@@ -19,11 +19,11 @@ fn main() {
         .version("1.0")
         .about("An organizational tool")
         .arg(
-            Arg::with_name("config")
-                .short("c")
-                .long("config")
-                .value_name("FILE")
-                .help("Sets a custom config file")
+            Arg::with_name("topic")
+                .short("t")
+                .long("topic")
+                .value_name("TOPIC")
+                .help("Manage items in a specific topic.")
                 .takes_value(true),
         )
         .arg(
@@ -54,14 +54,14 @@ fn main() {
 
     let data_path: String = sigi_data_file("test.json");
 
-    let tasks: Tasks = vec![Task { name: String::from("John Cena"), created: Local::now(), done: None }];
+    let items: Items = vec![Item { name: String::from("John Cena"), created: Local::now(), done: None }];
 
-    if let Ok(Ok(something)) = serde_json::to_string(&tasks).map(|s| fs::write(data_path.clone(), s)) {
+    if let Ok(Ok(something)) = serde_json::to_string(&items).map(|s| fs::write(data_path.clone(), s)) {
         println!("Wrote something: {:?}", something);
     }
 
     if let Ok(contents) = fs::read_to_string(data_path) {
-        println!("Contents: {:?}", serde_json::from_str::<Tasks>(&contents));
+        println!("Contents: {:?}", serde_json::from_str::<Items>(&contents));
     }
 }
 
