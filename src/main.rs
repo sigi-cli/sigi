@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local};
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, ArgMatches, SubCommand};
 use serde::{Serialize, Deserialize};
 use std::{env, fs, iter};
 
@@ -19,17 +19,17 @@ const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
 const DELETE_ALIASES: [&str; 3] = ["drop", "abandon", "retire"];
 
 fn main() {
-    let matches = App::new("sigi")
+    let matches: ArgMatches = App::new("sigi")
         .version("1.0")
         .about("An organizational tool")
-        .args(vec![
+        .arg(
             Arg::with_name("topic")
                 .short("t")
                 .long("topic")
                 .value_name("TOPIC")
                 .help("Manage items in a specific topic.")
                 .takes_value(true),
-        ])
+        )
         .subcommands(vec![
             SubCommand::with_name("create")
                 .about("Creates a new item.")
