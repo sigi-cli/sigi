@@ -34,7 +34,7 @@ fn main() {
             SubCommand::with_name("create")
                 .about("Creates a new item.")
                 .aliases(&CREATE_ALIASES)
-                .arg(Arg::with_name("ITEM").required(true).multiple(true)),
+                .arg(Arg::with_name("ITEM").required(true)),
             SubCommand::with_name("complete")
                 .about("Marks the current item as successfully completed.")
                 .aliases(&COMPLETE_ALIASES),
