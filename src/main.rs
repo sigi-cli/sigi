@@ -34,7 +34,7 @@ fn main() {
             SubCommand::with_name("create")
                 .about("Creates a new item.")
                 .aliases(&CREATE_ALIASES)
-                .arg(Arg::with_name("ITEM").required(true)),
+                .arg(Arg::with_name("item").value_name("ITEM").required(true)),
             SubCommand::with_name("complete")
                 .about("Marks the current item as successfully completed.")
                 .aliases(&COMPLETE_ALIASES),
@@ -43,6 +43,23 @@ fn main() {
                 .aliases(&DELETE_ALIASES)
         ])
         .get_matches();
+
+    if let Some(matches) = matches.subcommand_matches("create") {
+        if let Some(item) = matches.value_of("item") {
+            println!("Creating: {:?}", item);
+            return
+        }
+    }
+
+    if let Some(_) = matches.subcommand_matches("complete") {
+        println!("Good done.");
+        return
+    }
+
+    if let Some(_) = matches.subcommand_matches("delete") {
+        println!("Bad done.");
+        return
+    }
 
     println!("Matches: {:?}", matches);
 
