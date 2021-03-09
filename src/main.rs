@@ -4,18 +4,18 @@ use serde::{Serialize, Deserialize};
 use std::{env, fs, iter};
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Rank {
+struct Task {
     name: String,
     created: DateTime<Local>,
     done: Option<DateTime<Local>>
 }
 
-type Ranks = Vec<Rank>;
+type Tasks = Vec<Task>;
 
-const RANK_DATA_PATH: [&str; 3] = [".local", "share", "rank"];
+const RANK_DATA_PATH: [&str; 3] = [".local", "share", "sigi"];
 
 fn main() {
-    let matches = App::new("rank")
+    let matches = App::new("sigi")
         .version("1.0")
         .about("An organizational tool")
         .arg(
@@ -32,12 +32,6 @@ fn main() {
                 .multiple(true)
                 .help("Sets the level of verbosity"),
         )
-        .arg(
-            Arg::with_name("INPUT")
-                .help("Sets the input file to use")
-                .required(true)
-                .index(1),
-        )
         .subcommand(
             SubCommand::with_name("test")
                 .about("controls testing features")
@@ -47,27 +41,35 @@ fn main() {
                         .help("print debug information verbosely"),
                 ),
         )
+        .arg(
+            Arg::with_name("INPUT")
+                .help("Sets the input file to use")
+                .required(true)
+                .multiple(true)
+                .index(1),
+        )
         .get_matches();
 
     println!("Matches: {:?}", matches);
 
-    let data_path: String = rank_data_file("test.json");
+    let data_path: String = sigi_data_file("test.json");
 
-    let ranks: Ranks = vec![Rank { name: String::from("John Cena"), created: Local::now(), done: None }];
+    let tasks: Tasks = vec![Task { name: String::from("John Cena"), created: Local::now(), done: None }];
 
-    if let Ok(Ok(something)) = serde_json::to_string(&ranks).map(|s| fs::write(data_path.clone(), s)) {
+    if let Ok(Ok(something)) = serde_json::to_string(&tasks).map(|s| fs::write(data_path.clone(), s)) {
         println!("Wrote something: {:?}", something);
     }
 
     if let Ok(contents) = fs::read_to_string(data_path) {
-        println!("Contents: {:?}", serde_json::from_str::<Ranks>(&contents));
+        println!("Contents: {:?}", serde_json::from_str::<Tasks>(&contents));
     }
 }
 
-fn rank_data_file(filename: impl Into<String>) -> String {
+fn sigi_data_file(filename: impl Into<String>) -> String {
     iter::once(env::var("HOME").or(env::var("HOMEPATH")).unwrap())
         .chain(RANK_DATA_PATH.iter().map(|s| s.to_string()))
         .chain(iter::once(filename.into()))
         .collect::<Vec<_>>()
         .join(&std::path::MAIN_SEPARATOR.to_string())
 }
+

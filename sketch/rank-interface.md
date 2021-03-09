@@ -1,18 +1,18 @@
 # In scope
 
 ```
-$ rank
+$ sigi
 Write some code
 
-$ rank rename Check out the package
+$ sigi rename Check out the package
 Goal "Write some code" is now "Check out the package"
 
-$ rank goals
+$ sigi goals
 Current Tasks:
   - Write some code
   - Brew some tea
 
-$ rank all
+$ sigi all
 Current Tasks:
   - Write some code
   - Drink some tea
@@ -22,40 +22,40 @@ Next up:
   - Take over the world
   - Schedule a vacation
 
-$ rank
+$ sigi
 Write some code
 
-$ rank done
+$ sigi done
 ☑ Write some code
 Next: Drink some tea
 
-$ rank
+$ sigi
 Drink some tea
 
-$ rank push Brew some coffee
+$ sigi push Brew some coffee
 
-$ rank
+$ sigi
 Brew some coffee
 
-$ rank goals
+$ sigi goals
   - Brew some coffee
   - Drink some tea
 
-$ rank drop
+$ sigi drop
 Goal "Brew some coffee" destroyed
 
-$ rank push Brew some tea
+$ sigi push Brew some tea
 
-$ rank goals
+$ sigi goals
   - Brew some tea
   - Drink some tea
 
-$ rank promote
+$ sigi promote
 
-$ rank goals
+$ sigi goals
   - Brew some tea
 
-$ rank all
+$ sigi all
 Current Tasks:
   - Brew some tea
 Next up:
@@ -69,7 +69,7 @@ Next up:
 
 ## Data structure
 
-### Rank
+### Sigi
 
 {
 	"name": "Drink some tea",
@@ -86,9 +86,9 @@ Next up:
 
 TODO: Should this be (e.g.) yml or toml? (To allow append-write instead of something more fiddly)
 
-/etc/rank
+/etc/sigi
 ├── goals
-|   ├── rank.json
+|   ├── sigi.json
 │   ├── uuid-1.json
 │   └── uuid-2.json
 └── history
@@ -102,7 +102,7 @@ TODO: Should this be (e.g.) yml or toml? (To allow append-write instead of somet
 
 # Out of scope
 
-The goals of `rank` are purposefully focused and minimal. Here are some features that have been considered and have no plan to be introduced:
+The goals of `sigi` are purposefully focused and minimal. Here are some features that have been considered and have no plan to be introduced:
 
 - Undo/redo
 - Backup/restore
