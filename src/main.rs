@@ -2,7 +2,7 @@ use chrono::{DateTime, Local};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
-use std::{env, fs, iter};
+use std::{env, fs};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Item {
@@ -14,7 +14,8 @@ struct Item {
 
 type Items = Vec<Item>;
 
-const RANK_DATA_PATH: [&str; 3] = [".local", "share", "sigi"];
+// TODO: For non-unixy systems, need to use std::path::MAIN_SEPARATOR
+const SIGI_DATA_PATH: &str = ".local/share/sigi";
 
 const CREATE_ALIASES: [&str; 3] = ["do", "start", "new"];
 const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
@@ -90,7 +91,7 @@ fn main() {
 
     println!("Matches: {:?}", matches);
 
-    let data_path: String = sigi_data_path("test.json");
+    let data_path: String = sigi_data_file("test.json");
 
     let items: Items = vec![Item {
         name: String::from("John Cena"),
@@ -111,16 +112,12 @@ fn main() {
 }
 
 fn sigi_save(items: Items) -> Result<(), impl Error> {
-    let data_path: String = sigi_data_path("sigi.json");
+    let data_path: String = sigi_data_file("sigi.json");
     let json: String = serde_json::to_string(&items)?;
-    // TODO: Create data directory if it doesn't exist.
     fs::write(data_path.clone(), json)
 }
 
-fn sigi_data_path(filename: impl Into<String>) -> String {
-    iter::once(env::var("HOME").or(env::var("HOMEPATH")).unwrap())
-        .chain(RANK_DATA_PATH.iter().map(|s| s.to_string()))
-        .chain(iter::once(filename.into()))
-        .collect::<Vec<_>>()
-        .join(&std::path::MAIN_SEPARATOR.to_string())
+fn sigi_data_file(filename: &str) -> String {
+    // TODO: Create data directory if it doesn't exist.
+    format!("{}/{}/{}", env::var("HOME").unwrap(), SIGI_DATA_PATH, filename)
 }
