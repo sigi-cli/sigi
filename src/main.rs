@@ -113,6 +113,7 @@ fn main() {
 fn sigi_save(items: Items) -> Result<(), impl Error> {
     let data_path: String = sigi_data_path("sigi.json");
     let json: String = serde_json::to_string(&items)?;
+    // TODO: Create data directory if it doesn't exist.
     fs::write(data_path.clone(), json)
 }
 
