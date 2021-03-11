@@ -56,15 +56,21 @@ fn main() {
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("create") {
-        if let Some(item) = matches.value_of("item") {
-            println!("Creating: {:?}", item);
-            let items: Items = vec![Item {
-                name: String::from(item),
+        if let Some(item_name) = matches.value_of("item") {
+            println!("Creating: {:?}", item_name);
+            let item = Item {
+                name: String::from(item_name),
                 created: Local::now(),
                 succeeded: None,
                 failed: None,
-            }];
-            sigi_save(items).unwrap();
+            };
+            if let Ok(items) = sigi_load() {
+                let mut items = items;
+                items.push(item);
+                sigi_save(items).unwrap();
+            } else {
+            sigi_save(vec![item]).unwrap();
+            }
             return;
         }
     }
@@ -113,11 +119,19 @@ fn main() {
 
 fn sigi_save(items: Items) -> Result<(), impl Error> {
     let data_path: String = sigi_data_file("sigi.json");
-    let json: String = serde_json::to_string(&items)?;
+    let json: String = serde_json::to_string(&items).unwrap();
     fs::write(data_path.clone(), json)
+}
+
+fn sigi_load() -> Result<Items, impl Error> {
+    let data_path: String = sigi_data_file("sigi.json");
+    let json: String = fs::read_to_string(data_path).unwrap();
+    serde_json::from_str(&json)
 }
 
 fn sigi_data_file(filename: &str) -> String {
     // TODO: Create data directory if it doesn't exist.
     format!("{}/{}/{}", env::var("HOME").unwrap(), SIGI_DATA_PATH, filename)
 }
+
+
