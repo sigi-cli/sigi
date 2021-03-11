@@ -1,6 +1,6 @@
 use chrono::{DateTime, Local};
 use clap::{App, Arg, ArgMatches, SubCommand};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{env, fs, iter};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -8,12 +8,13 @@ struct Item {
     name: String,
     created: DateTime<Local>,
     succeeded: Option<DateTime<Local>>,
-    failed: Option<DateTime<Local>>
+    failed: Option<DateTime<Local>>,
 }
 
 type Items = Vec<Item>;
 
 const RANK_DATA_PATH: [&str; 3] = [".local", "share", "sigi"];
+
 const CREATE_ALIASES: [&str; 3] = ["do", "start", "new"];
 const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
 const DELETE_ALIASES: [&str; 3] = ["drop", "abandon", "retire"];
@@ -40,34 +41,41 @@ fn main() {
                 .aliases(&COMPLETE_ALIASES),
             SubCommand::with_name("delete")
                 .about("Marks the current item as unsuccessfully completed.")
-                .aliases(&DELETE_ALIASES)
+                .aliases(&DELETE_ALIASES),
         ])
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("create") {
         if let Some(item) = matches.value_of("item") {
             println!("Creating: {:?}", item);
-            return
+            return;
         }
     }
 
     if let Some(_) = matches.subcommand_matches("complete") {
         println!("Good done.");
-        return
+        return;
     }
 
     if let Some(_) = matches.subcommand_matches("delete") {
         println!("Bad done.");
-        return
+        return;
     }
 
     println!("Matches: {:?}", matches);
 
     let data_path: String = sigi_data_file("test.json");
 
-    let items: Items = vec![Item { name: String::from("John Cena"), created: Local::now(), succeeded: None, failed: None }];
+    let items: Items = vec![Item {
+        name: String::from("John Cena"),
+        created: Local::now(),
+        succeeded: None,
+        failed: None,
+    }];
 
-    if let Ok(Ok(something)) = serde_json::to_string(&items).map(|s| fs::write(data_path.clone(), s)) {
+    if let Ok(Ok(something)) =
+        serde_json::to_string(&items).map(|s| fs::write(data_path.clone(), s))
+    {
         println!("Wrote something: {:?}", something);
     }
 
