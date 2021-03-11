@@ -52,12 +52,12 @@ fn main() {
         }
     }
 
-    if let Some(_) = matches.subcommand_matches("complete") {
+    if matches.subcommand_matches("complete").is_some() {
         println!("Good done.");
         return;
     }
 
-    if let Some(_) = matches.subcommand_matches("delete") {
+    if matches.subcommand_matches("delete").is_some() {
         println!("Bad done.");
         return;
     }
