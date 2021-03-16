@@ -81,7 +81,13 @@ fn main() {
     }
 
     if matches.subcommand_matches("delete").is_some() {
-        println!("Bad done.");
+        if let Ok(items) = sigi_load() {
+            let mut items = items;
+            if let Some(maybe_deleted) = items.pop() {
+                println!("Deleted: {:?}", maybe_deleted);
+            }
+            sigi_save(items).unwrap();
+        }
         return;
     }
 
