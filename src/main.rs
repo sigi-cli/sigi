@@ -126,7 +126,7 @@ fn main() {
 fn sigi_save(items: Items) -> Result<(), impl Error> {
     let data_path: String = sigi_data_file("sigi.json");
     let json: String = serde_json::to_string(&items).unwrap();
-    fs::write(data_path.clone(), json)
+    fs::write(data_path, json)
 }
 
 fn sigi_load() -> Result<Items, impl Error> {
