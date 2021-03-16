@@ -24,6 +24,7 @@ const LIST_ALIASES: [&str; 1] = ["show"];
 const ALL_ALIASES: [&str; 0] = [];
 
 fn main() {
+    // TODO: Make some middle layer between clap ideas and the core logic
     let matches: ArgMatches = App::new("sigi")
         .version("1.0")
         .about("An organizational tool.")
@@ -57,6 +58,10 @@ fn main() {
             SubCommand::with_name("all")
                 .about("Lists all items")
                 .aliases(&ALL_ALIASES),
+            // TODO: Need an idea of "organize" or "re-order"
+            // TODO: Forthisms for near-top actions like swap/rot would be awesome
+            // TODO: Need an idea of "later" or "back of the line"
+            // TODO: Need support for stack-of-stack management
         ])
         .get_matches();
 
@@ -142,6 +147,11 @@ fn main() {
         }
     }
 }
+
+// TODO: Move data management to its own lib file
+// TODO: Allow an idea of "stack of stacks"
+// TODO: Allow namespaces
+// TODO: Figure out a good naming algorithm (maybe numeric?)
 
 fn sigi_save(items: Items) -> Result<(), impl Error> {
     let data_path: String = sigi_data_file("sigi.json");
