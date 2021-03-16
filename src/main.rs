@@ -84,7 +84,15 @@ fn main() {
 
     // Complete
     if matches.subcommand_matches("complete").is_some() {
-        println!("Good done.");
+        if let Ok(items) = sigi_load() {
+            let mut items = items;
+            if let Some(completed) = items.pop() {
+                println!("Completed: {}", completed.name);
+                // TODO: Archive instead of delete. (update, save somewhere recoverable)
+                // TODO: Might be nice to have a "history" command for viewing these.
+            }
+            sigi_save(items).unwrap();
+        }
         return;
     }
 
@@ -92,10 +100,11 @@ fn main() {
     if matches.subcommand_matches("delete").is_some() {
         if let Ok(items) = sigi_load() {
             let mut items = items;
-            if let Some(maybe_deleted) = items.pop() {
-                println!("Deleted: {}", maybe_deleted.name);
+            if let Some(deleted) = items.pop() {
+                println!("Deleted: {}", deleted.name);
                 // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
                 // Might allow an easy "undo" or "undelete"; would need a "purge" idea
+                // TODO: Might be nice to have a "history" command for viewing these
             }
             sigi_save(items).unwrap();
         }
@@ -116,7 +125,13 @@ fn main() {
 
     // All
     if matches.subcommand_matches("all").is_some() {
-        println!("ALL!");
+        if let Ok(items) = sigi_load() {
+            if !items.is_empty() {
+                let mut items = items;
+                items.reverse();
+                items.iter().for_each(|item| println!("- {}", item.name));
+            }
+        }
         return;
     }
 
