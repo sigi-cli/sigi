@@ -39,7 +39,12 @@ fn main() {
             SubCommand::with_name("create")
                 .about("Creates a new item")
                 .aliases(&CREATE_ALIASES)
-                .arg(Arg::with_name("item").value_name("ITEM").required(true)),
+                .arg(
+                    Arg::with_name("name")
+                        .value_name("NAME")
+                        .required(true)
+                        .multiple(true),
+                ),
             SubCommand::with_name("complete")
                 .about("Marks the current item as successfully completed")
                 .aliases(&COMPLETE_ALIASES),
@@ -55,11 +60,13 @@ fn main() {
         ])
         .get_matches();
 
+    // Create
     if let Some(matches) = matches.subcommand_matches("create") {
-        if let Some(item_name) = matches.value_of("item") {
-            println!("Creating: {}", item_name);
+        if let Some(name_bits) = matches.values_of("name") {
+            let name = name_bits.collect::<Vec<_>>().join(" ");
+            println!("Creating: {}", name);
             let item = Item {
-                name: String::from(item_name),
+                name,
                 created: Local::now(),
                 succeeded: None,
                 failed: None,
@@ -75,11 +82,13 @@ fn main() {
         }
     }
 
+    // Complete
     if matches.subcommand_matches("complete").is_some() {
         println!("Good done.");
         return;
     }
 
+    // Delete
     if matches.subcommand_matches("delete").is_some() {
         if let Ok(items) = sigi_load() {
             let mut items = items;
@@ -93,42 +102,29 @@ fn main() {
         return;
     }
 
+    // List
     if matches.subcommand_matches("list").is_some() {
         if let Ok(items) = sigi_load() {
-            let mut items = items;
-            items.reverse();
-            items
-                .iter()
-                .enumerate()
-                .for_each(|(n, item)| println!("{}: {}", n, item.name));
+            if !items.is_empty() {
+                let mut items = items;
+                items.reverse();
+                items.iter().for_each(|item| println!("- {}", item.name));
+            }
         }
         return;
     }
 
+    // All
     if matches.subcommand_matches("all").is_some() {
         println!("ALL!");
         return;
     }
 
-    println!("Matches: {:?}", matches);
-
-    let data_path: String = sigi_data_file("test.json");
-
-    let items: Items = vec![Item {
-        name: String::from("John Cena"),
-        created: Local::now(),
-        succeeded: None,
-        failed: None,
-    }];
-
-    if let Ok(Ok(something)) =
-        serde_json::to_string(&items).map(|s| fs::write(data_path.clone(), s))
-    {
-        println!("Wrote something: {:?}", something);
-    }
-
-    if let Ok(contents) = fs::read_to_string(data_path) {
-        println!("Contents: {:?}", serde_json::from_str::<Items>(&contents));
+    // No args
+    if let Ok(items) = sigi_load() {
+        if !items.is_empty() {
+            println!("{}", items.last().unwrap().name)
+        }
     }
 }
 
