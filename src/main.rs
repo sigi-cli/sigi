@@ -44,7 +44,7 @@ fn main() {
                 .about("Marks the current item as successfully completed")
                 .aliases(&COMPLETE_ALIASES),
             SubCommand::with_name("delete")
-                .about("Marks the current item as unsuccessfully completed")
+                .about("Removes the current item")
                 .aliases(&DELETE_ALIASES),
             SubCommand::with_name("list")
                 .about("Lists the current priority items")
