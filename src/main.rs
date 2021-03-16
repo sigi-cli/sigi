@@ -17,10 +17,10 @@ type Items = Vec<Item>;
 // TODO: For non-unixy systems, need to use std::path::MAIN_SEPARATOR
 const SIGI_DATA_PATH: &str = ".local/share/sigi";
 
-const CREATE_ALIASES: [&str; 3] = ["do", "start", "new"];
+const CREATE_ALIASES: [&str; 4] = ["add", "do", "start", "new"];
 const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
-const DELETE_ALIASES: [&str; 3] = ["drop", "abandon", "retire"];
-const LIST_ALIASES: [&str; 0] = [];
+const DELETE_ALIASES: [&str; 5] = ["remove", "cancel", "drop", "abandon", "retire"];
+const LIST_ALIASES: [&str; 1] = ["show"];
 const ALL_ALIASES: [&str; 0] = [];
 
 fn main() {
