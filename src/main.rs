@@ -69,7 +69,7 @@ fn main() {
                 items.push(item);
                 sigi_save(items).unwrap();
             } else {
-            sigi_save(vec![item]).unwrap();
+                sigi_save(vec![item]).unwrap();
             }
             return;
         }
@@ -131,7 +131,10 @@ fn sigi_load() -> Result<Items, impl Error> {
 
 fn sigi_data_file(filename: &str) -> String {
     // TODO: Create data directory if it doesn't exist.
-    format!("{}/{}/{}", env::var("HOME").unwrap(), SIGI_DATA_PATH, filename)
+    format!(
+        "{}/{}/{}",
+        env::var("HOME").unwrap(),
+        SIGI_DATA_PATH,
+        filename
+    )
 }
-
-
