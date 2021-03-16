@@ -94,7 +94,14 @@ fn main() {
     }
 
     if matches.subcommand_matches("list").is_some() {
-        println!("Listing.");
+        if let Ok(items) = sigi_load() {
+            let mut items = items;
+            items.reverse();
+            items
+                .iter()
+                .enumerate()
+                .for_each(|(n, item)| println!("{}: {}", n, item.name));
+        }
         return;
     }
 
