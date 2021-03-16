@@ -57,7 +57,7 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("create") {
         if let Some(item_name) = matches.value_of("item") {
-            println!("Creating: {:?}", item_name);
+            println!("Creating: {}", item_name);
             let item = Item {
                 name: String::from(item_name),
                 created: Local::now(),
@@ -84,7 +84,9 @@ fn main() {
         if let Ok(items) = sigi_load() {
             let mut items = items;
             if let Some(maybe_deleted) = items.pop() {
-                println!("Deleted: {:?}", maybe_deleted);
+                println!("Deleted: {}", maybe_deleted.name);
+                // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
+                // Might allow an easy "undo" or "undelete"; would need a "purge" idea
             }
             sigi_save(items).unwrap();
         }
