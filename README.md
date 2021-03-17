@@ -1,6 +1,6 @@
 # Sigi
 
-Sigi is an organizational tool.
+Sigi is a tool for organizing.
 
 It's primarily intended for you to use as extra memory. Use it to organize your
 tasks, groceries, or the next board games you want to play.
