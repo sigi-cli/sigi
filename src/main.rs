@@ -154,23 +154,34 @@ fn main() {
 // TODO: Figure out a good naming algorithm (maybe numeric?)
 
 fn sigi_save(items: Items) -> Result<(), impl Error> {
-    let data_path: String = sigi_data_file("sigi.json");
+    let data_path: String = sigi_file("sigi.json");
     let json: String = serde_json::to_string(&items).unwrap();
-    fs::write(data_path, json)
+    let result = fs::write(&data_path, &json);
+    if result.is_err() && result.as_ref().unwrap_err().kind() == std::io::ErrorKind::NotFound {
+        fs::create_dir_all(sigi_path()).unwrap();
+        fs::write(data_path, json)
+    } else {
+        result
+    }
 }
 
 fn sigi_load() -> Result<Items, impl Error> {
-    let data_path: String = sigi_data_file("sigi.json");
-    let json: String = fs::read_to_string(data_path).unwrap();
-    serde_json::from_str(&json)
+    let data_path: String = sigi_file("sigi.json");
+    let read_result = fs::read_to_string(data_path);
+    if read_result.is_err()
+        && read_result.as_ref().unwrap_err().kind() == std::io::ErrorKind::NotFound
+    {
+        Ok(vec![])
+    } else {
+        let json = read_result.unwrap();
+        serde_json::from_str(&json)
+    }
 }
 
-fn sigi_data_file(filename: &str) -> String {
-    // TODO: Create data directory if it doesn't exist.
-    format!(
-        "{}/{}/{}",
-        env::var("HOME").unwrap(),
-        SIGI_DATA_PATH,
-        filename
-    )
+fn sigi_path() -> String {
+    format!("{}/{}", env::var("HOME").unwrap(), SIGI_DATA_PATH)
+}
+
+fn sigi_file(filename: &str) -> String {
+    format!("{}/{}", sigi_path(), filename)
 }
