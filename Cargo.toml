@@ -3,6 +3,14 @@ name = "sigi"
 version = "0.1.0"
 authors = ["♪ hiljusti 🎮 <hiljusti@pm.me>"]
 edition = "2018"
+license = "GPL3"
+description = "Sigi: a prioritization tool"
+readme = "README.md"
+homepage = "https://github.com/hiljusti/sigi"
+repository = "https://github.com/hiljusti/sigi"
+documentation = "https://github.com/hiljusti/sigi"
+keywords = ["organize", "organization", "planner", "planning", "stack", "todo"]
+categories = ["command-line-interface", "database-implementations"]
 
 [profile.release]
 codegen-units = 1
