@@ -16,7 +16,7 @@ pub fn run() {
     // TODO: Make some middle layer between clap ideas and the core logic
     let matches: ArgMatches = App::new("sigi")
         // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-        .version("0.1.2")
+        .version("0.1.3")
         .about("An organizational tool.")
         .arg(
             Arg::with_name("topic")
