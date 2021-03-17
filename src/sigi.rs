@@ -57,85 +57,87 @@ pub fn run() {
 
     let topic = matches.value_of("topic").unwrap_or("sigi");
 
-    // Create
-    if let Some(matches) = matches.subcommand_matches("create") {
-        if let Some(name_bits) = matches.values_of("name") {
-            let name = name_bits.collect::<Vec<_>>().join(" ");
-            println!("Creating: {}", name);
-            let item = Item {
-                name,
-                created: Local::now(),
-                succeeded: None,
-                failed: None,
-            };
-            if let Ok(items) = data::load(topic) {
-                let mut items = items;
-                items.push(item);
-                data::save(topic, items).unwrap();
-            } else {
-                data::save(topic, vec![item]).unwrap();
-            }
-            return;
-        }
-    }
+    let command = |name: &str| matches.subcommand_matches(name);
+    let command_is = |name: &str| command(name).is_some();
 
-    // Complete
-    if matches.subcommand_matches("complete").is_some() {
-        if let Ok(items) = data::load(topic) {
-            let mut items = items;
-            if let Some(completed) = items.pop() {
-                println!("Completed: {}", completed.name);
-                // TODO: Archive instead of delete. (update, save somewhere recoverable)
-                // TODO: Might be nice to have a "history" command for viewing these.
-            }
-            data::save(topic, items).unwrap();
-        }
-        return;
-    }
-
-    // Delete
-    if matches.subcommand_matches("delete").is_some() {
-        if let Ok(items) = data::load(topic) {
-            let mut items = items;
-            if let Some(deleted) = items.pop() {
-                println!("Deleted: {}", deleted.name);
-                // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
-                // Might allow an easy "undo" or "undelete"; would need a "purge" idea
-                // TODO: Might be nice to have a "history" command for viewing these
-            }
-            data::save(topic, items).unwrap();
-        }
-        return;
-    }
-
-    // List
-    if matches.subcommand_matches("list").is_some() {
-        if let Ok(items) = data::load(topic) {
-            if !items.is_empty() {
-                let mut items = items;
-                items.reverse();
-                items.iter().for_each(|item| println!("- {}", item.name));
-            }
-        }
-        return;
-    }
-
-    // All
-    if matches.subcommand_matches("all").is_some() {
-        if let Ok(items) = data::load(topic) {
-            if !items.is_empty() {
-                let mut items = items;
-                items.reverse();
-                items.iter().for_each(|item| println!("- {}", item.name));
-            }
-        }
-        return;
-    }
-
-    // No args
-    if let Ok(items) = data::load(topic) {
+    if let Some(matches) = command("create") {
+        create(topic, matches)
+    } else if command_is("complete") {
+        complete(topic)
+    } else if command_is("delete") {
+        delete(topic)
+    } else if command_is("list") {
+        list(topic)
+    } else if command_is("all") {
+        all(topic)
+    } else if let Ok(items) = data::load(topic) {
         if !items.is_empty() {
             println!("{}", items.last().unwrap().name)
         }
     }
+}
+
+// TODO: Refactor. The repetition in function signatures suggests struct { &str, Option<ArgMatches> }
+// TODO: Return Result<(), Error> - some error cases are not covered (e.g. create with no content)
+
+fn create(topic: &str, matches: &ArgMatches) {
+    if let Some(name_bits) = matches.values_of("name") {
+        let name = name_bits.collect::<Vec<_>>().join(" ");
+        println!("Creating: {}", name);
+        let item = Item {
+            name,
+            created: Local::now(),
+            succeeded: None,
+            failed: None,
+        };
+        if let Ok(items) = data::load(topic) {
+            let mut items = items;
+            items.push(item);
+            data::save(topic, items).unwrap();
+        } else {
+            data::save(topic, vec![item]).unwrap();
+        }
+    }
+}
+
+fn complete(topic: &str) {
+    if let Ok(items) = data::load(topic) {
+        let mut items = items;
+        if let Some(completed) = items.pop() {
+            println!("Completed: {}", completed.name);
+            // TODO: Archive instead of delete. (update, save somewhere recoverable)
+            // TODO: Might be nice to have a "history" command for viewing these.
+        }
+        data::save(topic, items).unwrap();
+    }
+}
+
+fn delete(topic: &str) {
+    if let Ok(items) = data::load(topic) {
+        let mut items = items;
+        if let Some(deleted) = items.pop() {
+            println!("Deleted: {}", deleted.name);
+            // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
+            // Might allow an easy "undo" or "undelete"; would need a "purge" idea
+            // TODO: Might be nice to have a "history" command for viewing these
+        }
+        data::save(topic, items).unwrap();
+    }
+}
+
+fn list(topic: &str) {
+    // TODO: Think on this. This limits practical size, but needs a change to the
+    // save/load format and/or algorithms to scale.
+    if let Ok(items) = data::load(topic) {
+        if !items.is_empty() {
+            let mut items = items;
+            items.reverse();
+            items.iter().for_each(|item| println!("- {}", item.name));
+        }
+    }
+}
+
+fn all(topic: &str) {
+    // TODO: In a stacks-of-stacks world, this should do more.
+    list(topic)
 }
