@@ -9,7 +9,7 @@ readme = "README.md"
 homepage = "https://github.com/hiljusti/sigi"
 repository = "https://github.com/hiljusti/sigi"
 documentation = "https://github.com/hiljusti/sigi"
-keywords = ["organize", "organization", "planner", "planning", "stack", "todo"]
+keywords = ["organization", "planning", "stack", "todo", "cli"]
 categories = ["command-line-interface", "database-implementations"]
 
 [profile.release]
