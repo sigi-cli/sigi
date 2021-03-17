@@ -66,6 +66,8 @@ fn main() {
         ])
         .get_matches();
 
+    let topic = matches.value_of("topic").unwrap_or("sigi");
+
     // Create
     if let Some(matches) = matches.subcommand_matches("create") {
         if let Some(name_bits) = matches.values_of("name") {
@@ -77,12 +79,12 @@ fn main() {
                 succeeded: None,
                 failed: None,
             };
-            if let Ok(items) = sigi_load() {
+            if let Ok(items) = sigi_load(topic) {
                 let mut items = items;
                 items.push(item);
-                sigi_save(items).unwrap();
+                sigi_save(topic, items).unwrap();
             } else {
-                sigi_save(vec![item]).unwrap();
+                sigi_save(topic, vec![item]).unwrap();
             }
             return;
         }
@@ -90,21 +92,21 @@ fn main() {
 
     // Complete
     if matches.subcommand_matches("complete").is_some() {
-        if let Ok(items) = sigi_load() {
+        if let Ok(items) = sigi_load(topic) {
             let mut items = items;
             if let Some(completed) = items.pop() {
                 println!("Completed: {}", completed.name);
                 // TODO: Archive instead of delete. (update, save somewhere recoverable)
                 // TODO: Might be nice to have a "history" command for viewing these.
             }
-            sigi_save(items).unwrap();
+            sigi_save(topic, items).unwrap();
         }
         return;
     }
 
     // Delete
     if matches.subcommand_matches("delete").is_some() {
-        if let Ok(items) = sigi_load() {
+        if let Ok(items) = sigi_load(topic) {
             let mut items = items;
             if let Some(deleted) = items.pop() {
                 println!("Deleted: {}", deleted.name);
@@ -112,14 +114,14 @@ fn main() {
                 // Might allow an easy "undo" or "undelete"; would need a "purge" idea
                 // TODO: Might be nice to have a "history" command for viewing these
             }
-            sigi_save(items).unwrap();
+            sigi_save(topic, items).unwrap();
         }
         return;
     }
 
     // List
     if matches.subcommand_matches("list").is_some() {
-        if let Ok(items) = sigi_load() {
+        if let Ok(items) = sigi_load(topic) {
             if !items.is_empty() {
                 let mut items = items;
                 items.reverse();
@@ -131,7 +133,7 @@ fn main() {
 
     // All
     if matches.subcommand_matches("all").is_some() {
-        if let Ok(items) = sigi_load() {
+        if let Ok(items) = sigi_load(topic) {
             if !items.is_empty() {
                 let mut items = items;
                 items.reverse();
@@ -142,7 +144,7 @@ fn main() {
     }
 
     // No args
-    if let Ok(items) = sigi_load() {
+    if let Ok(items) = sigi_load(topic) {
         if !items.is_empty() {
             println!("{}", items.last().unwrap().name)
         }
@@ -154,8 +156,8 @@ fn main() {
 // TODO: Allow namespaces
 // TODO: Figure out a good naming algorithm (maybe numeric?)
 
-fn sigi_save(items: Items) -> Result<(), impl Error> {
-    let data_path: String = sigi_file("sigi.json");
+fn sigi_save(topic: &str, items: Items) -> Result<(), impl Error> {
+    let data_path: String = sigi_file(topic);
     let json: String = serde_json::to_string(&items).unwrap();
     let result = fs::write(&data_path, &json);
     if result.is_err() && result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
@@ -166,8 +168,8 @@ fn sigi_save(items: Items) -> Result<(), impl Error> {
     }
 }
 
-fn sigi_load() -> Result<Items, impl Error> {
-    let data_path: String = sigi_file("sigi.json");
+fn sigi_load(topic: &str) -> Result<Items, impl Error> {
+    let data_path: String = sigi_file(topic);
     let read_result = fs::read_to_string(data_path);
     if read_result.is_err() && read_result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
         Ok(vec![])
@@ -182,5 +184,5 @@ fn sigi_path() -> String {
 }
 
 fn sigi_file(filename: &str) -> String {
-    format!("{}/{}", sigi_path(), filename)
+    format!("{}/{}.json", sigi_path(), filename)
 }
