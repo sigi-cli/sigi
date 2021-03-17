@@ -2,6 +2,7 @@ use chrono::{DateTime, Local};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
+use std::io::ErrorKind;
 use std::{env, fs};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -157,7 +158,7 @@ fn sigi_save(items: Items) -> Result<(), impl Error> {
     let data_path: String = sigi_file("sigi.json");
     let json: String = serde_json::to_string(&items).unwrap();
     let result = fs::write(&data_path, &json);
-    if result.is_err() && result.as_ref().unwrap_err().kind() == std::io::ErrorKind::NotFound {
+    if result.is_err() && result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
         fs::create_dir_all(sigi_path()).unwrap();
         fs::write(data_path, json)
     } else {
@@ -168,9 +169,7 @@ fn sigi_save(items: Items) -> Result<(), impl Error> {
 fn sigi_load() -> Result<Items, impl Error> {
     let data_path: String = sigi_file("sigi.json");
     let read_result = fs::read_to_string(data_path);
-    if read_result.is_err()
-        && read_result.as_ref().unwrap_err().kind() == std::io::ErrorKind::NotFound
-    {
+    if read_result.is_err() && read_result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
         Ok(vec![])
     } else {
         let json = read_result.unwrap();
