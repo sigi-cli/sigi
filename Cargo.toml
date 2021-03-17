@@ -12,6 +12,9 @@ documentation = "https://github.com/hiljusti/sigi"
 keywords = ["organization", "planning", "stack", "todo", "cli"]
 categories = ["command-line-interface", "database-implementations"]
 
+[badges]
+maintenance = { status = "experimental" }
+
 [profile.release]
 codegen-units = 1
 lto = true
