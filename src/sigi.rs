@@ -11,6 +11,9 @@ const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
 const DELETE_ALIASES: [&str; 5] = ["remove", "cancel", "drop", "abandon", "retire"];
 const LIST_ALIASES: [&str; 1] = ["show"];
 const ALL_ALIASES: [&str; 0] = [];
+const NEXT_ALIASES: [&str; 3] = ["later", "punt", "bury"];
+const SWAP_ALIASES: [&str; 0] = [];
+const ROT_ALIASES: [&str; 1] = ["rotate"];
 
 pub fn run() {
     // TODO: Make some middle layer between clap ideas and the core logic
@@ -48,9 +51,20 @@ pub fn run() {
             SubCommand::with_name("all")
                 .about("Lists all items")
                 .aliases(&ALL_ALIASES),
+            SubCommand::with_name("next")
+                .about("Moves the next item to current, and moves current to last.")
+                .aliases(&NEXT_ALIASES),
+            SubCommand::with_name("swap")
+                .about("Swaps the two most current items.")
+                .aliases(&SWAP_ALIASES),
+            SubCommand::with_name("rot")
+                .about("Rotates the three most current items.")
+                .aliases(&ROT_ALIASES),
+            SubCommand::with_name("peek")
+                .about("Peek at the current item. (This is the default behavior if no command is given)")
+                .aliases(&NEXT_ALIASES),
             // TODO: Need an idea of "organize" or "re-order"
             // TODO: Forthisms for near-top actions like swap/rot would be awesome
-            // TODO: Need an idea of "later" or "back of the line"
             // TODO: Need support for stack-of-stack management
         ])
         .get_matches();
@@ -70,10 +84,14 @@ pub fn run() {
         list(topic)
     } else if command_is("all") {
         all(topic)
-    } else if let Ok(items) = data::load(topic) {
-        if !items.is_empty() {
-            println!("{}", items.last().unwrap().name)
-        }
+    } else if command_is("next") {
+        next(topic)
+    } else if command_is("swap") {
+        swap(topic)
+    } else if command_is("rot") {
+        rot(topic)
+    } else {
+        peek(topic)
     }
 }
 
@@ -140,4 +158,58 @@ fn list(topic: &str) {
 fn all(topic: &str) {
     // TODO: In a stacks-of-stacks world, this should do more.
     list(topic)
+}
+
+fn peek(topic: &str) {
+    if let Ok(items) = data::load(topic) {
+        if !items.is_empty() {
+            println!("{}", items.last().unwrap().name)
+        }
+    }
+}
+
+fn swap(topic: &str) {
+    if let Ok(items) = data::load(topic) {
+        let mut items = items;
+        if items.len() < 2 {
+            return;
+        }
+        let a = items.pop().unwrap();
+        let b = items.pop().unwrap();
+        items.push(a);
+        items.push(b);
+
+        data::save(topic, items).unwrap();
+    }
+}
+
+fn rot(topic: &str) {
+    if let Ok(items) = data::load(topic) {
+        let mut items = items;
+        if items.len() < 3 {
+            swap(topic);
+            return;
+        }
+        let a = items.pop().unwrap();
+        let b = items.pop().unwrap();
+        let c = items.pop().unwrap();
+        items.push(a);
+        items.push(c);
+        items.push(b);
+
+        data::save(topic, items).unwrap();
+    }
+}
+
+fn next(topic: &str) {
+    if let Ok(items) = data::load(topic) {
+        let mut items = items;
+        if items.is_empty() {
+            return;
+        }
+        let to_the_back = items.pop().unwrap();
+        items.insert(0, to_the_back);
+
+        data::save(topic, items).unwrap();
+    }
 }
