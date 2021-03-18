@@ -180,6 +180,7 @@ fn swap(topic: &str) {
         items.push(b);
 
         data::save(topic, items).unwrap();
+        peek(topic)
     }
 }
 
@@ -198,6 +199,7 @@ fn rot(topic: &str) {
         items.push(b);
 
         data::save(topic, items).unwrap();
+        peek(topic)
     }
 }
 
@@ -211,5 +213,6 @@ fn next(topic: &str) {
         items.insert(0, to_the_back);
 
         data::save(topic, items).unwrap();
+        peek(topic)
     }
 }
