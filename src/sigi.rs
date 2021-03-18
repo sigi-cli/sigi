@@ -1,3 +1,7 @@
+/// Sigi, a tool for organizing.
+///
+/// TODO: Add guidance on using sigi as a library.
+///
 use chrono::Local;
 use clap::{App, Arg, ArgMatches, SubCommand};
 
@@ -5,6 +9,9 @@ mod data;
 mod items;
 
 use items::Item;
+
+// TODO: Get the version from Cargo.toml? (If possible, at compile time)
+pub const SIGI_VERSION: &str = "0.1.4";
 
 const CREATE_ALIASES: [&str; 4] = ["add", "do", "start", "new"];
 const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
@@ -18,8 +25,7 @@ const ROT_ALIASES: [&str; 1] = ["rotate"];
 pub fn run() {
     // TODO: Make some middle layer between clap ideas and the core logic
     let matches: ArgMatches = App::new("sigi")
-        // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-        .version("0.1.3")
+        .version(SIGI_VERSION)
         .about("An organizational tool.")
         .arg(
             Arg::with_name("topic")
