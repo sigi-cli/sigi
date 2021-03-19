@@ -88,7 +88,7 @@ pub fn run() {
 
     let mode = Mode {
         topic: matches.value_of("topic").unwrap_or("sigi"),
-        quiet: matches.value_of("quiet").is_some(),
+        quiet: matches.is_present("quiet"),
     };
 
     let command = |name: &str| matches.subcommand_matches(name);
