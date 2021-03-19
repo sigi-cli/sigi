@@ -16,7 +16,7 @@ struct Mode<'a> {
 }
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-pub const SIGI_VERSION: &str = "0.1.5";
+pub const SIGI_VERSION: &str = "0.1.6";
 
 const CREATE_ALIASES: [&str; 5] = ["push", "add", "do", "start", "new"];
 const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
