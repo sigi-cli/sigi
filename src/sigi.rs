@@ -10,12 +10,17 @@ mod items;
 
 use items::Item;
 
+struct Mode<'a> {
+    topic: &'a str,
+    quiet: bool,
+}
+
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
 pub const SIGI_VERSION: &str = "0.1.4";
 
-const CREATE_ALIASES: [&str; 4] = ["add", "do", "start", "new"];
+const CREATE_ALIASES: [&str; 5] = ["push", "add", "do", "start", "new"];
 const COMPLETE_ALIASES: [&str; 3] = ["done", "finish", "fulfill"];
-const DELETE_ALIASES: [&str; 5] = ["remove", "cancel", "drop", "abandon", "retire"];
+const DELETE_ALIASES: [&str; 6] = ["pop", "remove", "cancel", "drop", "abandon", "retire"];
 const LIST_ALIASES: [&str; 1] = ["show"];
 const ALL_ALIASES: [&str; 0] = [];
 const NEXT_ALIASES: [&str; 3] = ["later", "punt", "bury"];
@@ -34,6 +39,12 @@ pub fn run() {
                 .value_name("TOPIC")
                 .help("Manage items in a specific topic")
                 .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("quiet")
+                .short("q")
+                .long("quiet")
+                .help("Omit any leading labels or symbols. Recommended for use in shell scripts")
         )
         .subcommands(vec![
             SubCommand::with_name("create")
@@ -75,107 +86,131 @@ pub fn run() {
         ])
         .get_matches();
 
-    let topic = matches.value_of("topic").unwrap_or("sigi");
+    let mode = Mode {
+        topic: matches.value_of("topic").unwrap_or("sigi"),
+        quiet: matches.value_of("quiet").is_some(),
+    };
 
     let command = |name: &str| matches.subcommand_matches(name);
     let command_is = |name: &str| command(name).is_some();
 
     if let Some(matches) = command("create") {
-        create(topic, matches)
+        create(&mode, matches)
     } else if command_is("complete") {
-        complete(topic)
+        complete(&mode)
     } else if command_is("delete") {
-        delete(topic)
+        delete(&mode)
     } else if command_is("list") {
-        list(topic)
+        list(&mode)
     } else if command_is("all") {
-        all(topic)
+        all(&mode)
     } else if command_is("next") {
-        next(topic)
+        next(&mode)
     } else if command_is("swap") {
-        swap(topic)
+        swap(&mode)
     } else if command_is("rot") {
-        rot(topic)
+        rot(&mode)
     } else {
-        peek(topic)
+        peek(&mode)
     }
 }
 
 // TODO: Refactor. The repetition in function signatures suggests struct { &str, Option<ArgMatches> }
 // TODO: Return Result<(), Error> - some error cases are not covered (e.g. create with no content)
 
-fn create(topic: &str, matches: &ArgMatches) {
+fn create(mode: &Mode, matches: &ArgMatches) {
     if let Some(name_bits) = matches.values_of("name") {
         let name = name_bits.collect::<Vec<_>>().join(" ");
-        println!("Creating: {}", name);
+        println!("{}{}", if mode.quiet { "" } else { "Creating: " }, name);
         let item = Item {
             name,
             created: Local::now(),
             succeeded: None,
             failed: None,
         };
-        if let Ok(items) = data::load(topic) {
+        if let Ok(items) = data::load(mode.topic) {
             let mut items = items;
             items.push(item);
-            data::save(topic, items).unwrap();
+            data::save(mode.topic, items).unwrap();
         } else {
-            data::save(topic, vec![item]).unwrap();
+            data::save(mode.topic, vec![item]).unwrap();
         }
     }
 }
 
-fn complete(topic: &str) {
-    if let Ok(items) = data::load(topic) {
+fn complete(mode: &Mode) {
+    if let Ok(items) = data::load(mode.topic) {
         let mut items = items;
         if let Some(completed) = items.pop() {
-            println!("Completed: {}", completed.name);
+            println!(
+                "{}{}",
+                if mode.quiet { "" } else { "Completed: " },
+                completed.name
+            );
             // TODO: Archive instead of delete. (update, save somewhere recoverable)
             // TODO: Might be nice to have a "history" command for viewing these.
         }
-        data::save(topic, items).unwrap();
+        data::save(mode.topic, items).unwrap();
     }
 }
 
-fn delete(topic: &str) {
-    if let Ok(items) = data::load(topic) {
+fn delete(mode: &Mode) {
+    if let Ok(items) = data::load(mode.topic) {
         let mut items = items;
         if let Some(deleted) = items.pop() {
-            println!("Deleted: {}", deleted.name);
+            println!(
+                "{}{}",
+                if mode.quiet { "" } else { "Deleted: " },
+                deleted.name
+            );
             // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
             // Might allow an easy "undo" or "undelete"; would need a "purge" idea
             // TODO: Might be nice to have a "history" command for viewing these
         }
-        data::save(topic, items).unwrap();
+        data::save(mode.topic, items).unwrap();
     }
 }
 
-fn list(topic: &str) {
+fn list(mode: &Mode) {
     // TODO: Think on this. This limits practical size, but needs a change to the
     // save/load format and/or algorithms to scale.
-    if let Ok(items) = data::load(topic) {
+    if let Ok(items) = data::load(mode.topic) {
         if !items.is_empty() {
             let mut items = items;
             items.reverse();
-            items.iter().for_each(|item| println!("- {}", item.name));
+            if mode.quiet {
+                items.iter().for_each(|item| println!("{}", item.name))
+            } else {
+                println!("Curr: {}", items[0].name);
+                items
+                    .iter()
+                    .enumerate()
+                    .skip(1)
+                    .for_each(|(n, item)| println!("{: >4}: {}", n, item.name))
+            }
         }
     }
 }
 
-fn all(topic: &str) {
+fn all(mode: &Mode) {
     // TODO: In a stacks-of-stacks world, this should do more.
-    list(topic)
+    list(mode)
 }
 
-fn peek(topic: &str) {
-    if let Ok(items) = data::load(topic) {
+fn peek(mode: &Mode) {
+    if let Ok(items) = data::load(mode.topic) {
         if !items.is_empty() {
-            println!("{}", items.last().unwrap().name)
+            println!(
+                "{}{}",
+                if mode.quiet { "" } else { "Curr: " },
+                items.last().unwrap().name
+            )
         }
     }
 }
 
-fn swap(topic: &str) {
-    if let Ok(items) = data::load(topic) {
+fn swap(mode: &Mode) {
+    if let Ok(items) = data::load(mode.topic) {
         let mut items = items;
         if items.len() < 2 {
             return;
@@ -185,16 +220,16 @@ fn swap(topic: &str) {
         items.push(a);
         items.push(b);
 
-        data::save(topic, items).unwrap();
-        peek(topic)
+        data::save(mode.topic, items).unwrap();
+        peek(mode)
     }
 }
 
-fn rot(topic: &str) {
-    if let Ok(items) = data::load(topic) {
+fn rot(mode: &Mode) {
+    if let Ok(items) = data::load(mode.topic) {
         let mut items = items;
         if items.len() < 3 {
-            swap(topic);
+            swap(mode);
             return;
         }
         let a = items.pop().unwrap();
@@ -204,13 +239,13 @@ fn rot(topic: &str) {
         items.push(c);
         items.push(b);
 
-        data::save(topic, items).unwrap();
-        peek(topic)
+        data::save(mode.topic, items).unwrap();
+        peek(mode)
     }
 }
 
-fn next(topic: &str) {
-    if let Ok(items) = data::load(topic) {
+fn next(mode: &Mode) {
+    if let Ok(items) = data::load(mode.topic) {
         let mut items = items;
         if items.is_empty() {
             return;
@@ -218,7 +253,7 @@ fn next(topic: &str) {
         let to_the_back = items.pop().unwrap();
         items.insert(0, to_the_back);
 
-        data::save(topic, items).unwrap();
-        peek(topic)
+        data::save(mode.topic, items).unwrap();
+        peek(mode)
     }
 }
