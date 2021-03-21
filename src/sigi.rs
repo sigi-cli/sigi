@@ -16,6 +16,7 @@ struct Mode<'a> {
 }
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
+/// The current version (0.1.6) of sigi.
 pub const SIGI_VERSION: &str = "0.1.6";
 
 const CREATE_ALIASES: [&str; 5] = ["push", "add", "do", "start", "new"];
