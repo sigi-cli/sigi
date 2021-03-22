@@ -2,15 +2,15 @@ use crate::sigi::actions::Action;
 use crate::sigi::items::Items;
 use std::error::Error;
 use std::io::ErrorKind;
-use std::{env, fs};
+use std::{env, fs, path::Path};
 
-// TODO: For non-unixy systems, need to use std::path::MAIN_SEPARATOR
-const SIGI_DATA_PATH: &str = ".local/share/sigi";
-
+// TODO: Alternate backends? Right now it's just JSON files. Maybe SQLite? PilaDB?
+//       Something new? Daemon(s) could prevent many loads and handle locking.
+// TODO: Configurable data location?
 // TODO: Allow an idea of "stack of stacks"
-// TODO: Allow namespaces
 // TODO: Figure out a good naming algorithm (maybe numeric?)
 
+// TODO: Custom error. This is returning raw filesystem errors.
 pub fn save(action: &Action, items: Items) -> Result<(), impl Error> {
     let data_path: String = sigi_file(&action.topic);
     let json: String = serde_json::to_string(&items).unwrap();
@@ -23,6 +23,7 @@ pub fn save(action: &Action, items: Items) -> Result<(), impl Error> {
     }
 }
 
+// TODO: Custom error. This is returning raw serialization errors.
 pub fn load(action: &Action) -> Result<Items, impl Error> {
     let data_path: String = sigi_file(&action.topic);
     let read_result = fs::read_to_string(data_path);
@@ -35,9 +36,12 @@ pub fn load(action: &Action) -> Result<Items, impl Error> {
 }
 
 fn sigi_path() -> String {
-    format!("{}/{}", env::var("HOME").unwrap(), SIGI_DATA_PATH)
+    let home = env::var("HOME").or_else(|_| env::var("HOMEDRIVE")).unwrap();
+    let path = format!("{}/.local/share/sigi", home);
+    Path::new(&path).to_string_lossy().to_string()
 }
 
 fn sigi_file(filename: &str) -> String {
-    format!("{}/{}.json", sigi_path(), filename)
+    let path = format!("{}/{}.json", sigi_path(), filename);
+    Path::new(&path).to_string_lossy().to_string()
 }
