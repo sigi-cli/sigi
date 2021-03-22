@@ -1,4 +1,4 @@
-use crate::sigi::actions::Action;
+use crate::sigi::actions::Command;
 use crate::sigi::items::Items;
 use std::error::Error;
 use std::io::ErrorKind;
@@ -11,8 +11,8 @@ use std::{env, fs, path::Path};
 // TODO: Figure out a good naming algorithm (maybe numeric?)
 
 // TODO: Custom error. This is returning raw filesystem errors.
-pub fn save(action: &Action, items: Items) -> Result<(), impl Error> {
-    let data_path: String = sigi_file(&action.topic);
+pub fn save(command: &Command, items: Items) -> Result<(), impl Error> {
+    let data_path: String = sigi_file(&command.topic);
     let json: String = serde_json::to_string(&items).unwrap();
     let result = fs::write(&data_path, &json);
     if result.is_err() && result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
@@ -24,8 +24,8 @@ pub fn save(action: &Action, items: Items) -> Result<(), impl Error> {
 }
 
 // TODO: Custom error. This is returning raw serialization errors.
-pub fn load(action: &Action) -> Result<Items, impl Error> {
-    let data_path: String = sigi_file(&action.topic);
+pub fn load(command: &Command) -> Result<Items, impl Error> {
+    let data_path: String = sigi_file(&command.topic);
     let read_result = fs::read_to_string(data_path);
     if read_result.is_err() && read_result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
         Ok(vec![])

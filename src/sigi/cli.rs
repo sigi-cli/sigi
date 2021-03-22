@@ -1,5 +1,6 @@
 use crate::sigi::actions::{Action, Command};
 use clap::{App, Arg, ArgMatches, SubCommand};
+use Action::*;
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
 /// The current version (0.1.7) of sigi.
@@ -48,7 +49,7 @@ fn rot_aliases<'a>() -> Vec<&'a str> {
     vec!["rotate"]
 }
 
-pub fn get_action() -> Action {
+pub fn get_action() -> Command {
     let create_aliases = create_aliases();
     let complete_aliases = complete_aliases();
     let delete_aliases = delete_aliases();
@@ -130,42 +131,42 @@ pub fn get_action() -> Action {
     let to_command = |name: &str| matches.subcommand_matches(name);
     let command_is = |name: &str| to_command(name).is_some();
 
-    let command: Command = if let Some(matches) = to_command("create") {
+    let action: Action = if let Some(matches) = to_command("create") {
         if let Some(name_bits) = matches.values_of("name") {
             let name = name_bits.collect::<Vec<_>>().join(" ");
-            Command::Create(name)
+            Create(name)
         } else {
             error_no_command("create")
         }
     } else if command_is("complete") {
-        Command::Complete
+        Complete
     } else if command_is("delete") {
-        Command::Delete
+        Delete
     } else if command_is("delete-all") {
-        Command::DeleteAll
+        DeleteAll
     } else if command_is("list") {
-        Command::List
+        List
     } else if command_is("all") {
-        Command::ListAll
+        ListAll
     } else if command_is("length") {
-        Command::Length
+        Length
     } else if command_is("is-empty") {
-        Command::IsEmpty
+        IsEmpty
     } else if command_is("next") {
-        Command::Next
+        Next
     } else if command_is("swap") {
-        Command::Swap
+        Swap
     } else if command_is("rot") {
-        Command::Rot
+        Rot
     } else {
-        Command::Peek
+        Peek
     };
 
     let topic = matches.value_of("topic").unwrap_or("sigi").to_owned();
     let quiet = matches.is_present("quiet");
 
-    Action {
-        command,
+    Command {
+        action,
         topic,
         quiet,
     }
@@ -179,7 +180,7 @@ fn usage_message(aliases: &[&str], text: &str) -> String {
     }
 }
 
-fn error_no_command(name: &str) -> Command {
+fn error_no_command(name: &str) -> Action {
     eprintln!("Error, not enough arguments given for: {}", name);
-    Command::Peek
+    Peek
 }

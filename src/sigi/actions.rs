@@ -2,7 +2,7 @@ use crate::sigi::data;
 use crate::sigi::items::Item;
 use chrono::Local;
 
-pub enum Command {
+pub enum Action {
     Peek,
     Create(String),
     Complete,
@@ -17,98 +17,97 @@ pub enum Command {
     Rot,
 }
 
-pub struct Action {
-    pub command: Command,
+use Action::*;
+
+pub struct Command {
+    pub action: Action,
     pub topic: String,
     pub quiet: bool,
 }
 
-impl Action {
+impl Command {
     pub fn act(&self) {
-        match self.command {
-            Command::Create(_) => create(self),
-            Command::Complete => complete(self),
-            Command::Delete => delete(self),
-            Command::DeleteAll => delete_all(self),
-            Command::List => list(self),
-            Command::ListAll => list_all(self),
-            Command::IsEmpty => is_empty(self),
-            Command::Length => length(self),
-            Command::Next => next(self),
-            Command::Swap => swap(self),
-            Command::Rot => rot(self),
-            Command::Peek => peek(self),
+        match &self.action {
+            Peek => peek(self),
+            Create(name) => create(self, name),
+            Complete => complete(self),
+            Delete => delete(self),
+            DeleteAll => delete_all(self),
+            List => list(self),
+            ListAll => list_all(self),
+            IsEmpty => is_empty(self),
+            Length => length(self),
+            Next => next(self),
+            Swap => swap(self),
+            Rot => rot(self),
         }
     }
 }
 // TODO: Refactor. The repetition in function signatures suggests struct { &str, Option<ArgMatches> }
 // TODO: Return Result<(), Error> - some error cases are not covered (e.g. create with no content)
 
-fn create(action: &Action) {
-    if let Command::Create(name) = &action.command {
-        println!("{}{}", if action.quiet { "" } else { "Creating: " }, name);
-        let item = Item {
-            name: name.to_string(),
-            created: Local::now(),
-            succeeded: None,
-            failed: None,
-        };
-        if let Ok(items) = data::load(action) {
-            let mut items = items;
-            items.push(item);
-            data::save(action, items).unwrap();
-        } else {
-            data::save(action, vec![item]).unwrap();
-        }
+fn create(command: &Command, name: &str) {
+    println!("{}{}", if command.quiet { "" } else { "Creating: " }, name);
+    let item = Item {
+        name: name.to_string(),
+        created: Local::now(),
+        succeeded: None,
+        failed: None,
+    };
+    if let Ok(items) = data::load(command) {
+        let mut items = items;
+        items.push(item);
+        data::save(command, items).unwrap();
+    } else {
+        data::save(command, vec![item]).unwrap();
     }
 }
 
-fn complete(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn complete(command: &Command) {
+    if let Ok(items) = data::load(command) {
         let mut items = items;
         if let Some(completed) = items.pop() {
             println!(
                 "{}{}",
-                if action.quiet { "" } else { "Completed: " },
+                if command.quiet { "" } else { "Completed: " },
                 completed.name
             );
             // TODO: Archive instead of delete. (update, save somewhere recoverable)
-            // TODO: Might be nice to have a "history" command for viewing these.
+            // TODO: Might be nice to have a "history" Action for viewing these.
         }
-        data::save(action, items).unwrap();
+        data::save(command, items).unwrap();
     }
 }
 
-fn delete(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn delete(command: &Command) {
+    if let Ok(items) = data::load(command) {
         let mut items = items;
         if let Some(deleted) = items.pop() {
             println!(
                 "{}{}",
-                if action.quiet { "" } else { "Deleted: " },
+                if command.quiet { "" } else { "Deleted: " },
                 deleted.name
             );
             // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
             // Might allow an easy "undo" or "undelete"; would need a "purge" idea
-            // TODO: Might be nice to have a "history" command for viewing these
+            // TODO: Might be nice to have a "history" Action for viewing these
         }
-        data::save(action, items).unwrap();
+        data::save(command, items).unwrap();
     }
 }
 
-fn delete_all(action: &Action) {
-    // TODO: In a stacks-of-stacks world, this will need to do more.
-    delete(action)
+fn delete_all(command: &Command) {
+    data::save(command, vec![]).unwrap()
 }
 
-fn list(action: &Action) {
+fn list(command: &Command) {
     // TODO: Think on this. This limits practical size, but needs a change to the
     // save/load format and/or algorithms to scale.
-    if let Ok(items) = data::load(action) {
+    if let Ok(items) = data::load(command) {
         if !items.is_empty() {
             let mut items = items;
             items.reverse();
-            if action.quiet {
+            if command.quiet {
                 items.iter().for_each(|item| println!("{}", item.name))
             } else {
                 println!("Curr: {}", items[0].name);
@@ -122,15 +121,15 @@ fn list(action: &Action) {
     }
 }
 
-fn list_all(action: &Action) {
+fn list_all(command: &Command) {
     // TODO: In a stacks-of-stacks world, this should do more.
-    list(action)
+    list(command)
 }
 
-fn is_empty(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn is_empty(command: &Command) {
+    if let Ok(items) = data::load(command) {
         let is_empty = items.is_empty();
-        if !action.quiet {
+        if !command.quiet {
             println!("{}", is_empty);
         }
         if !is_empty {
@@ -140,30 +139,30 @@ fn is_empty(action: &Action) {
     }
 }
 
-fn length(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn length(command: &Command) {
+    if let Ok(items) = data::load(command) {
         println!(
             "{}{}",
-            if action.quiet { "" } else { "Items: " },
+            if command.quiet { "" } else { "Items: " },
             items.len()
         )
     }
 }
 
-fn peek(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn peek(command: &Command) {
+    if let Ok(items) = data::load(command) {
         if !items.is_empty() {
             println!(
                 "{}{}",
-                if action.quiet { "" } else { "Curr: " },
+                if command.quiet { "" } else { "Curr: " },
                 items.last().unwrap().name
             )
         }
     }
 }
 
-fn swap(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn swap(command: &Command) {
+    if let Ok(items) = data::load(command) {
         let mut items = items;
         if items.len() < 2 {
             return;
@@ -173,16 +172,16 @@ fn swap(action: &Action) {
         items.push(a);
         items.push(b);
 
-        data::save(action, items).unwrap();
-        peek(action)
+        data::save(command, items).unwrap();
+        peek(command)
     }
 }
 
-fn rot(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn rot(command: &Command) {
+    if let Ok(items) = data::load(command) {
         let mut items = items;
         if items.len() < 3 {
-            swap(action);
+            swap(command);
             return;
         }
         let a = items.pop().unwrap();
@@ -192,13 +191,13 @@ fn rot(action: &Action) {
         items.push(c);
         items.push(b);
 
-        data::save(action, items).unwrap();
-        peek(action)
+        data::save(command, items).unwrap();
+        peek(command)
     }
 }
 
-fn next(action: &Action) {
-    if let Ok(items) = data::load(action) {
+fn next(command: &Command) {
+    if let Ok(items) = data::load(command) {
         let mut items = items;
         if items.is_empty() {
             return;
@@ -206,7 +205,7 @@ fn next(action: &Action) {
         let to_the_back = items.pop().unwrap();
         items.insert(0, to_the_back);
 
-        data::save(action, items).unwrap();
-        peek(action)
+        data::save(command, items).unwrap();
+        peek(command)
     }
 }
