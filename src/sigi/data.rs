@@ -1,3 +1,4 @@
+use crate::sigi::actions::Action;
 use crate::sigi::items::Items;
 use std::error::Error;
 use std::io::ErrorKind;
@@ -10,8 +11,8 @@ const SIGI_DATA_PATH: &str = ".local/share/sigi";
 // TODO: Allow namespaces
 // TODO: Figure out a good naming algorithm (maybe numeric?)
 
-pub fn save(topic: &str, items: Items) -> Result<(), impl Error> {
-    let data_path: String = sigi_file(topic);
+pub fn save(action: &Action, items: Items) -> Result<(), impl Error> {
+    let data_path: String = sigi_file(&action.topic);
     let json: String = serde_json::to_string(&items).unwrap();
     let result = fs::write(&data_path, &json);
     if result.is_err() && result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
@@ -22,8 +23,8 @@ pub fn save(topic: &str, items: Items) -> Result<(), impl Error> {
     }
 }
 
-pub fn load(topic: &str) -> Result<Items, impl Error> {
-    let data_path: String = sigi_file(topic);
+pub fn load(action: &Action) -> Result<Items, impl Error> {
+    let data_path: String = sigi_file(&action.topic);
     let read_result = fs::read_to_string(data_path);
     if read_result.is_err() && read_result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
         Ok(vec![])
