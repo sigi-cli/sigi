@@ -2,8 +2,8 @@ use crate::sigi::actions::{Action, Command};
 use clap::{App, Arg, ArgMatches, SubCommand};
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-/// The current version (0.1.6) of sigi.
-pub const SIGI_VERSION: &str = "0.1.6";
+/// The current version (0.1.7) of sigi.
+pub const SIGI_VERSION: &str = "0.1.7";
 
 fn create_aliases<'a>() -> Vec<&'a str> {
     vec!["push", "add", "do", "start", "new"]

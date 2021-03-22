@@ -2,10 +2,10 @@
 ///
 /// TODO: Add guidance on using sigi as a library.
 ///
-mod actions;
+pub mod actions;
 mod cli;
-mod data;
-mod items;
+pub mod data;
+pub mod items;
 
 pub fn run() {
     let action = cli::get_action();
