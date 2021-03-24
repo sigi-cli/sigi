@@ -1,4 +1,4 @@
-use crate::sigi::actions::{Action, Command};
+use crate::sigi::actions::{Action, Command, NoiseLevel};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use Action::*;
 
@@ -173,11 +173,18 @@ pub fn get_action() -> Command {
     let topic = matches.value_of("topic").unwrap_or("sigi").to_owned();
     let quiet = matches.is_present("quiet");
 
+    let noise = if silent {
+        NoiseLevel::Silent
+    } else if quiet {
+        NoiseLevel::Quiet
+    } else {
+        NoiseLevel::Normal
+    };
+
     Command {
         action,
         topic,
-        quiet,
-        silent,
+        noise,
     }
 }
 
