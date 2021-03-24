@@ -1,5 +1,4 @@
-use crate::sigi::data;
-use crate::sigi::items::Item;
+use crate::sigi::{data, data::Item};
 use chrono::Local;
 
 pub enum Action {
@@ -43,7 +42,7 @@ impl Command {
         }
     }
 }
-// TODO: Refactor. The repetition in function signatures suggests struct { &str, Option<ArgMatches> }
+
 // TODO: Return Result<(), Error> - some error cases are not covered (e.g. create with no content)
 
 fn create(command: &Command, name: &str) {

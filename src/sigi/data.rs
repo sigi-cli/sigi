@@ -1,5 +1,4 @@
 use crate::sigi::actions::Command;
-use crate::sigi::items::Items;
 use std::error::Error;
 use std::io::ErrorKind;
 use std::{env, fs, path::Path};
@@ -9,6 +8,20 @@ use std::{env, fs, path::Path};
 // TODO: Configurable data location?
 // TODO: Allow an idea of "stack of stacks"
 // TODO: Figure out a good naming algorithm (maybe numeric?)
+
+use chrono::{DateTime, Local};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Item {
+    // TODO: Update from "name" to "contents"?
+    pub name: String,
+    pub created: DateTime<Local>,
+    pub succeeded: Option<DateTime<Local>>,
+    pub failed: Option<DateTime<Local>>,
+}
+
+pub type Items = Vec<Item>;
 
 // TODO: Custom error. This is returning raw filesystem errors.
 pub fn save(command: &Command, items: Items) -> Result<(), impl Error> {

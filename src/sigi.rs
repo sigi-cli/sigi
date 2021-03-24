@@ -5,7 +5,6 @@
 pub mod actions;
 mod cli;
 pub mod data;
-pub mod items;
 
 pub fn run() {
     let action = cli::get_action();
