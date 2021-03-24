@@ -1,6 +1,6 @@
 # Sigi
 
-Sigi is a stack-based organizing tool.
+Sigi is an organizing tool and no-frills stack database.
 
 It's primarily intended for you to use as extra memory. Use it to organize your
 tasks, groceries, or the next board games you want to play.
