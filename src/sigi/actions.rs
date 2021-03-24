@@ -197,7 +197,6 @@ fn next(command: &Command) {
 // TODO: Actually use a logger. (Are there any that don't explode binary size?)
 fn log(command: &Command, label: &str, message: &str) {
     if command.silent {
-        return
     } else if command.quiet {
         println!("{}", message)
     } else {
