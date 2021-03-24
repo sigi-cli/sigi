@@ -3,8 +3,8 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use Action::*;
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-/// The current version (0.1.8) of the CLI.
-pub const SIGI_VERSION: &str = "0.1.8";
+/// The current version (0.1.9) of the CLI.
+pub const SIGI_VERSION: &str = "0.1.9";
 
 fn create_aliases<'a>() -> Vec<&'a str> {
     vec!["push", "add", "do", "start", "new"]

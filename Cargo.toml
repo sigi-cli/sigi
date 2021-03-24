@@ -1,6 +1,6 @@
 [package]
 name = "sigi"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["♪ hiljusti 🎮 <hiljusti@pm.me>"]
 edition = "2018"
 license = " GPL-3.0-or-later"
