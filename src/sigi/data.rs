@@ -12,6 +12,7 @@ use std::{env, fs, path::Path};
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
+/// A single stack item.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Item {
     // TODO: Update from "name" to "contents"?
@@ -21,10 +22,14 @@ pub struct Item {
     pub failed: Option<DateTime<Local>>,
 }
 
-pub type Items = Vec<Item>;
+/// A stack of items.
+// TODO: Is there a better stack type than Vec? We only ever perform one command
+// per CLI invocation, so there isn't a huge need for stack optimization yet.
+pub type Stack = Vec<Item>;
 
-// TODO: Custom error. This is returning raw filesystem errors.
-pub fn save(command: &Command, items: Items) -> Result<(), impl Error> {
+/// Save a stack of items.
+// TODO: Create a custom error. This is returning raw filesystem errors.
+pub fn save(command: &Command, items: Stack) -> Result<(), impl Error> {
     let data_path: String = sigi_file(&command.topic);
     let json: String = serde_json::to_string(&items).unwrap();
     let result = fs::write(&data_path, &json);
@@ -36,8 +41,9 @@ pub fn save(command: &Command, items: Items) -> Result<(), impl Error> {
     }
 }
 
-// TODO: Custom error. This is returning raw serialization errors.
-pub fn load(command: &Command) -> Result<Items, impl Error> {
+/// Load a stack of items.
+// TODO: Create a cuustom error. This is returning raw serialization errors.
+pub fn load(command: &Command) -> Result<Stack, impl Error> {
     let data_path: String = sigi_file(&command.topic);
     let read_result = fs::read_to_string(data_path);
     if read_result.is_err() && read_result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {

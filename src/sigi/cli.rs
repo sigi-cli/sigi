@@ -49,6 +49,7 @@ fn rot_aliases<'a>() -> Vec<&'a str> {
     vec!["rotate"]
 }
 
+/// Parses command line arguments and returns a single `sigi::actions::Command`.
 pub fn get_action() -> Command {
     let create_aliases = create_aliases();
     let complete_aliases = complete_aliases();
