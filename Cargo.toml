@@ -8,7 +8,7 @@ description = "Sigi: An organizing tool and no-frills stack database."
 readme = "README.md"
 homepage = "https://github.com/hiljusti/sigi"
 repository = "https://github.com/hiljusti/sigi"
-documentation = "https://github.com/hiljusti/sigi"
+documentation = "https://docs.rs/sigi"
 keywords = ["organization", "planning", "stack", "todo", "cli"]
 categories = ["command-line-interface", "database-implementations"]
 
