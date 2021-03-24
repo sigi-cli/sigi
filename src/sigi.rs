@@ -1,12 +1,12 @@
-/// Sigi, a tool for organizing.
-///
-/// TODO: Add guidance on using sigi as a library.
-///
-pub mod actions;
-mod cli;
-pub mod data;
+//! Sigi, a tool for organizing.
+//!
+//! TODO: Add guidance on using sigi as a library.
 
-pub fn run() {
-    let action = cli::get_action();
-    action.act()
-}
+/// The main interface of Sigi, stack (and stack-adjacent) actions.
+pub mod actions;
+
+/// The CLI implementation.
+pub mod cli;
+
+/// The persistence implementation.
+pub mod data;

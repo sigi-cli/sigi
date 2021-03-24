@@ -3,7 +3,7 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use Action::*;
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-/// The current version (0.1.8) of sigi.
+/// The current version (0.1.8) of the CLI.
 pub const SIGI_VERSION: &str = "0.1.8";
 
 fn create_aliases<'a>() -> Vec<&'a str> {
@@ -79,6 +79,12 @@ pub fn get_action() -> Command {
                 .long("quiet")
                 .help("Omit any leading labels or symbols. Recommended for use in shell scripts")
         )
+        .arg(
+            Arg::with_name("silent")
+                .short("s")
+                .long("silent")
+                .help("Omit any output at all.")
+        )
         // TODO: Collapse repetition
         .subcommands(vec![
             SubCommand::with_name("create")
@@ -131,12 +137,14 @@ pub fn get_action() -> Command {
     let to_command = |name: &str| matches.subcommand_matches(name);
     let command_is = |name: &str| to_command(name).is_some();
 
-    let action: Action = if let Some(matches) = to_command("create") {
+    let silent = matches.is_present("silent");
+
+    let action: Action<String> = if let Some(matches) = to_command("create") {
         if let Some(name_bits) = matches.values_of("name") {
             let name = name_bits.collect::<Vec<_>>().join(" ");
             Create(name)
         } else {
-            error_no_command("create")
+            error_no_command("create", silent)
         }
     } else if command_is("complete") {
         Complete
@@ -169,6 +177,7 @@ pub fn get_action() -> Command {
         action,
         topic,
         quiet,
+        silent,
     }
 }
 
@@ -180,7 +189,9 @@ fn usage_message(aliases: &[&str], text: &str) -> String {
     }
 }
 
-fn error_no_command(name: &str) -> Action {
-    eprintln!("Error, not enough arguments given for: {}", name);
+fn error_no_command(name: &str, silent: bool) -> Action<String> {
+    if !silent {
+        eprintln!("Error, not enough arguments given for: {}", name);
+    }
     Peek
 }

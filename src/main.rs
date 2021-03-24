@@ -1,6 +1,8 @@
 mod sigi;
+use crate::sigi::cli;
 
 /// Run the CLI
 fn main() {
-    sigi::run()
+    let action = cli::get_action();
+    action.act()
 }

@@ -1,9 +1,10 @@
 use crate::sigi::{data, data::Item};
 use chrono::Local;
 
-pub enum Action {
+/// Stack actions.
+pub enum Action<A> {
     Peek,
-    Create(String),
+    Create(A),
     Complete,
     Delete,
     DeleteAll,
@@ -19,9 +20,10 @@ pub enum Action {
 use Action::*;
 
 pub struct Command {
-    pub action: Action,
+    pub action: Action<String>,
     pub topic: String,
     pub quiet: bool,
+    pub silent: bool,
 }
 
 impl Command {
@@ -46,7 +48,6 @@ impl Command {
 // TODO: Return Result<(), Error> - some error cases are not covered (e.g. create with no content)
 
 fn create(command: &Command, name: &str) {
-    println!("{}{}", if command.quiet { "" } else { "Creating: " }, name);
     let item = Item {
         name: name.to_string(),
         created: Local::now(),
@@ -57,8 +58,10 @@ fn create(command: &Command, name: &str) {
         let mut items = items;
         items.push(item);
         data::save(command, items).unwrap();
+        log(command, "Created", name);
     } else {
         data::save(command, vec![item]).unwrap();
+        log(command, "Created", name);
     }
 }
 
@@ -66,11 +69,7 @@ fn complete(command: &Command) {
     if let Ok(items) = data::load(command) {
         let mut items = items;
         if let Some(completed) = items.pop() {
-            println!(
-                "{}{}",
-                if command.quiet { "" } else { "Completed: " },
-                completed.name
-            );
+            log(command, "Completed", &completed.name);
             // TODO: Archive instead of delete. (update, save somewhere recoverable)
             // TODO: Might be nice to have a "history" Action for viewing these.
         }
@@ -82,11 +81,7 @@ fn delete(command: &Command) {
     if let Ok(items) = data::load(command) {
         let mut items = items;
         if let Some(deleted) = items.pop() {
-            println!(
-                "{}{}",
-                if command.quiet { "" } else { "Deleted: " },
-                deleted.name
-            );
+            log(command, "Deleted", &deleted.name);
             // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
             // Might allow an easy "undo" or "undelete"; would need a "purge" idea
             // TODO: Might be nice to have a "history" Action for viewing these
@@ -109,12 +104,12 @@ fn list(command: &Command) {
             if command.quiet {
                 items.iter().for_each(|item| println!("{}", item.name))
             } else {
-                println!("Curr: {}", items[0].name);
+                println!("Now: {}", items[0].name);
                 items
                     .iter()
                     .enumerate()
                     .skip(1)
-                    .for_each(|(n, item)| println!("{: >4}: {}", n, item.name))
+                    .for_each(|(n, item)| println!("{: >3}: {}", n, item.name))
             }
         }
     }
@@ -128,9 +123,7 @@ fn list_all(command: &Command) {
 fn is_empty(command: &Command) {
     if let Ok(items) = data::load(command) {
         let is_empty = items.is_empty();
-        if !command.quiet {
-            println!("{}", is_empty);
-        }
+        log(command, "Empty", &is_empty.to_string());
         if !is_empty {
             // TODO: This would be better as an Err, once everything returns Result
             panic!()
@@ -140,22 +133,14 @@ fn is_empty(command: &Command) {
 
 fn length(command: &Command) {
     if let Ok(items) = data::load(command) {
-        println!(
-            "{}{}",
-            if command.quiet { "" } else { "Items: " },
-            items.len()
-        )
+        log(command, "Items", &items.len().to_string())
     }
 }
 
 fn peek(command: &Command) {
     if let Ok(items) = data::load(command) {
         if !items.is_empty() {
-            println!(
-                "{}{}",
-                if command.quiet { "" } else { "Curr: " },
-                items.last().unwrap().name
-            )
+            log(command, "Now", &items.last().unwrap().name)
         }
     }
 }
@@ -206,5 +191,16 @@ fn next(command: &Command) {
 
         data::save(command, items).unwrap();
         peek(command)
+    }
+}
+
+// TODO: Actually use a logger. (Are there any that don't explode binary size?)
+fn log(command: &Command, label: &str, message: &str) {
+    if command.silent {
+        return
+    } else if command.quiet {
+        println!("{}", message)
+    } else {
+        println!("{}: {}", label, message)
     }
 }
