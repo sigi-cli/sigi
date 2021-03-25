@@ -1,5 +1,4 @@
-mod sigi;
-use crate::sigi::cli;
+mod cli;
 
 /// Run the CLI
 fn main() {

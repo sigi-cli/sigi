@@ -1,4 +1,4 @@
-use crate::sigi::actions::Command;
+use crate::actions::Command;
 use std::error::Error;
 use std::io::ErrorKind;
 use std::{env, fs, path::Path};

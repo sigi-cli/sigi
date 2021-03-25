@@ -1,4 +1,4 @@
-use crate::sigi::actions::{Action, Command, NoiseLevel};
+use crate::{Action, Command, NoiseLevel};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use Action::*;
 
