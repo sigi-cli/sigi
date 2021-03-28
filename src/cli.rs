@@ -6,6 +6,8 @@ use Action::*;
 /// The current version (0.1.10) of the CLI.
 pub const SIGI_VERSION: &str = "0.1.10";
 
+// TODO: These should be attributes of actions. (Also the main name and help messages.)
+
 fn create_aliases<'a>() -> Vec<&'a str> {
     vec!["push", "add", "do", "start", "new"]
 }

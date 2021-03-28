@@ -1,6 +1,8 @@
 use crate::{data, data::Item};
 use chrono::Local;
 
+// TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
+
 /// A stack-manipulation action.
 pub enum Action<A> {
     /// Look at the most-recent item.
