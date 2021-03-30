@@ -4,8 +4,8 @@ use clap::{App, Arg, SubCommand};
 use Action::*;
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-/// The current version (0.1.10) of the CLI.
-pub const SIGI_VERSION: &str = "0.1.10";
+/// The current version (0.2.0) of the CLI.
+pub const SIGI_VERSION: &str = "0.2.0";
 
 /// Parses command line arguments and returns a single `sigi::actions::Command`.
 pub fn get_action() -> Command {
