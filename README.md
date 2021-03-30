@@ -31,7 +31,7 @@ I also just like stacks, and stack-based languages like
 Sigi can understand `do` (create a task) and `done` (complete a task).
 
 ```
-$ alias todo='sigi --topic todo'
+$ alias todo='sigi --stack todo'
 
 $ todo do Write some code
 Creating: Write some code
@@ -53,10 +53,10 @@ $ todo done
 Completed: Take a nap
 ```
 
-It's best to use sigi behind a few aliases with unique "topics". You should
+It's best to use sigi behind a few aliases with unique "stacks". You should
 save these aliases in your `~/.bashrc` or `~/.zshrc` or whatever your shell has
-for configuration. Sigi accepts a `--topic` flag that indicates a unique list.
-You can have as many topics as you can think of names.
+for configuration. Sigi accepts a `--stack` flag that indicates a unique list.
+You can have as many stacks as you can think of names.
 
 Forgot what to do next?
 
@@ -78,14 +78,14 @@ Extending the alias idea, you can use sigi to store anything you want to
 remember later.
 
 ```
-$ alias watch-later='sigi --topic watch-later'
+$ alias watch-later='sigi --stack watch-later'
 
 $ watch-later add One Punch Man
 Creating: One Punch Man
 ```
 
 ```
-$ alias story-ideas='sigi --topic=story-ideas'
+$ alias story-ideas='sigi --stack=story-ideas'
 
 $ story-ideas add Alien race lives backwards through time.
 Creating: Alien race lives backwards through time.
