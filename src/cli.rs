@@ -30,10 +30,7 @@ fn delete_all_aliases<'a>() -> Vec<&'a str> {
     ]
 }
 fn list_aliases<'a>() -> Vec<&'a str> {
-    vec!["show"]
-}
-fn list_all_aliases<'a>() -> Vec<&'a str> {
-    vec!["all"]
+    vec!["show", "all"]
 }
 fn length_aliases<'a>() -> Vec<&'a str> {
     vec!["count", "size"]
@@ -58,7 +55,6 @@ pub fn get_action() -> Command {
     let delete_aliases = delete_aliases();
     let delete_all_aliases = delete_all_aliases();
     let list_aliases = list_aliases();
-    let list_all_aliases = list_all_aliases();
     let length_aliases = length_aliases();
     let is_empty_aliases = is_empty_aliases();
     let next_aliases = next_aliases();
@@ -114,9 +110,6 @@ pub fn get_action() -> Command {
             SubCommand::with_name("list")
                 .about(&*usage_message(&list_aliases, "Lists the current priority items"))
                 .aliases(&list_aliases),
-            SubCommand::with_name("list-all")
-                .about(&*usage_message(&list_all_aliases, "Lists all items"))
-                .aliases(&list_all_aliases),
             SubCommand::with_name("length")
                 .about(&*usage_message(&length_aliases, "Gives the total count of all items"))
                 .aliases(&length_aliases),
@@ -157,8 +150,6 @@ pub fn get_action() -> Command {
         DeleteAll
     } else if command_is("list") {
         List
-    } else if command_is("all") {
-        ListAll
     } else if command_is("length") {
         Length
     } else if command_is("is-empty") {

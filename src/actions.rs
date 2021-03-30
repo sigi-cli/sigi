@@ -21,12 +21,6 @@ pub enum Action<A> {
     DeleteAll,
     /// List the stack's items.
     List,
-    /// List the stack's items.
-    ///
-    /// _Note: This currently does nothing different from `List`.
-    /// In future versions, sigi is planned to allow stacks-of-stacks
-    /// inside a given topic._
-    ListAll,
     /// Count the stack's items.
     Length,
     /// Determine if the stack is empty or not.
@@ -72,7 +66,6 @@ impl Command {
             Delete => delete(self),
             DeleteAll => delete_all(self),
             List => list(self),
-            ListAll => list_all(self),
             IsEmpty => is_empty(self),
             Length => length(self),
             Next => next(self),
@@ -163,11 +156,6 @@ fn list(command: &Command) {
             }
         }
     }
-}
-
-fn list_all(command: &Command) {
-    // TODO: In a stacks-of-stacks world, this should do more.
-    list(command)
 }
 
 fn is_empty(command: &Command) {
