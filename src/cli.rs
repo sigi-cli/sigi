@@ -7,6 +7,8 @@ use Action::*;
 /// The current version (0.2.0) of the CLI.
 pub const SIGI_VERSION: &str = "0.2.0";
 
+const DEFAULT_STACK_NAME: &str = "sigi";
+
 /// Parses command line arguments and returns a single `sigi::actions::Command`.
 pub fn get_action() -> Command {
     let peek = Peek.data();
@@ -95,41 +97,41 @@ pub fn get_action() -> Command {
         ])
         .get_matches();
 
-    let to_command = |name: &str| matches.subcommand_matches(name);
-    let command_is = |name: &str| to_command(name).is_some();
+    let command_is_opt = |name: &str| matches.subcommand_matches(name);
+    let command_is = |name: &str| command_is_opt(name).is_some();
 
     let silent = matches.is_present("silent");
 
-    let action: Action = if let Some(matches) = to_command("create") {
-        if let Some(name_bits) = matches.values_of("name") {
+    let action: Action = if let Some(matches) = command_is_opt(create.name) {
+        if let Some(name_bits) = matches.values_of(create_arg) {
             let name = name_bits.collect::<Vec<_>>().join(" ");
             Create(Item::new(&name))
         } else {
-            error_no_command("create", silent)
+            error_no_command(create.name, silent)
         }
-    } else if command_is("complete") {
+    } else if command_is(complete.name) {
         Complete
-    } else if command_is("delete") {
+    } else if command_is(delete.name) {
         Delete
-    } else if command_is("delete-all") {
+    } else if command_is(delete_all.name) {
         DeleteAll
-    } else if command_is("list") {
+    } else if command_is(list.name) {
         List
-    } else if command_is("length") {
+    } else if command_is(length.name) {
         Length
-    } else if command_is("is-empty") {
+    } else if command_is(is_empty.name) {
         IsEmpty
-    } else if command_is("next") {
+    } else if command_is(next.name) {
         Next
-    } else if command_is("swap") {
+    } else if command_is(swap.name) {
         Swap
-    } else if command_is("rot") {
+    } else if command_is(rot.name) {
         Rot
     } else {
         Peek
     };
 
-    let stack = matches.value_of("stack").unwrap_or("sigi").to_owned();
+    let stack = matches.value_of("stack").unwrap_or(DEFAULT_STACK_NAME).to_owned();
     let quiet = matches.is_present("quiet");
 
     let noise = if silent {
