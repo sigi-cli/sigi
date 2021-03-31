@@ -131,7 +131,10 @@ pub fn get_action() -> Command {
         Peek
     };
 
-    let stack = matches.value_of("stack").unwrap_or(DEFAULT_STACK_NAME).to_owned();
+    let stack = matches
+        .value_of("stack")
+        .unwrap_or(DEFAULT_STACK_NAME)
+        .to_owned();
     let quiet = matches.is_present("quiet");
 
     let noise = if silent {
