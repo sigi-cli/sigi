@@ -13,12 +13,25 @@ const DEFAULT_STACK_NAME: &str = "sigi";
 pub fn get_action() -> Command {
     let peek = Peek.data();
     let create = Create(Item::new("")).data();
-    let ActionInput::RequiredSlurpy(create_arg) = create.input.unwrap();
+    let create_arg = match create.input.unwrap() {
+        ActionInput::RequiredSlurpy(arg) => arg,
+        _ => unreachable!(),
+    };
     let complete = Complete.data();
     let delete = Delete.data();
     let delete_all = DeleteAll.data();
     let list = List.data();
     let length = Length.data();
+    let move_item = Move(String::new()).data();
+    let move_item_arg = match move_item.input.unwrap() {
+        ActionInput::RequiredSingle(arg) => arg,
+        _ => unreachable!(),
+    };
+    let move_all = MoveAll(String::new()).data();
+    let move_all_arg = match move_all.input.unwrap() {
+        ActionInput::RequiredSingle(arg) => arg,
+        _ => unreachable!(),
+    };
     let is_empty = IsEmpty.data();
     let next = Next.data();
     let swap = Swap.data();
@@ -80,6 +93,22 @@ pub fn get_action() -> Command {
             SubCommand::with_name(length.name)
                 .about(length.description)
                 .visible_aliases(&length.aliases),
+            SubCommand::with_name(move_item.name)
+                .about(move_item.description)
+                .visible_aliases(&move_item.aliases)
+                .arg(
+                    Arg::with_name(move_item_arg)
+                        .value_name(&move_item_arg.to_uppercase())
+                        .required(true),
+                ),
+            SubCommand::with_name(move_all.name)
+                .about(move_all.description)
+                .visible_aliases(&move_all.aliases)
+                .arg(
+                    Arg::with_name(move_all_arg)
+                        .value_name(&move_all_arg.to_uppercase())
+                        .required(true),
+                ),
             SubCommand::with_name(is_empty.name)
                 .about(is_empty.description)
                 .visible_aliases(&is_empty.aliases),
@@ -109,6 +138,12 @@ pub fn get_action() -> Command {
         } else {
             error_no_command(create.name, silent)
         }
+    } else if let Some(dest) = command_is_opt(move_item.name) {
+        let dest = dest.value_of(move_item_arg).unwrap().to_string();
+        Move(dest)
+    } else if let Some(dest) = command_is_opt(move_all.name) {
+        let dest = dest.value_of(move_all_arg).unwrap().to_string();
+        MoveAll(dest)
     } else if command_is(complete.name) {
         Complete
     } else if command_is(delete.name) {

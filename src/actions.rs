@@ -20,6 +20,10 @@ pub enum Action {
     DeleteAll,
     /// List the stack's items.
     List,
+    /// Move the current item to a different stack.
+    Move(String),
+    /// Move all items to a different stack.
+    MoveAll(String),
     /// Count the stack's items.
     Length,
     /// Determine if the stack is empty or not.
@@ -37,6 +41,7 @@ use Action::*;
 
 pub enum ActionInput<'a> {
     RequiredSlurpy(&'a str),
+    RequiredSingle(&'a str),
 }
 
 pub struct ActionMetadata<'a> {
@@ -55,6 +60,8 @@ impl Action {
             Delete => delete_data(),
             DeleteAll => delete_all_data(),
             List => list_data(),
+            Move(_) => move_data(),
+            MoveAll(_) => move_all_data(),
             IsEmpty => is_empty_data(),
             Length => length_data(),
             Next => next_data(),
@@ -92,6 +99,8 @@ impl Command {
             Delete => delete(self),
             DeleteAll => delete_all(self),
             List => list(self),
+            Move(dest) => move_item(self, dest),
+            MoveAll(dest) => move_all(self, dest),
             IsEmpty => is_empty(self),
             Length => length(self),
             Next => next(self),
@@ -218,7 +227,7 @@ fn list_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "list",
         description: "List all items",
-        aliases: vec!["show", "all"],
+        aliases: vec!["ls", "show", "all", "list-all"],
         input: None,
     }
 }
@@ -243,6 +252,62 @@ fn list(command: &Command) {
                         .skip(1)
                         .for_each(|(n, item)| println!("{: >3}: {}", n, item.name))
                 }
+            }
+        }
+    }
+}
+
+fn move_data<'a>() -> ActionMetadata<'a> {
+    ActionMetadata {
+        name: "move",
+        description: "Move current item to destination",
+        aliases: vec![],
+        input: Some(ActionInput::RequiredSingle("destination")),
+    }
+}
+
+fn move_item(command: &Command, dest_stack: &str) {
+    // TODO: Indirection is broken somewhere (I think I have distributed too much to each function)
+    // Probably each of these functions is something like a chain of smaller bits (load, action, save)
+    if let Ok(items) = data::load(&command.stack) {
+        let mut items = items;
+        if let Some(item) = items.pop() {
+            command.log("Move", dest_stack);
+            data::save(&command.stack, items).unwrap();
+
+            let command = Command {
+                action: Create(item.clone()),
+                noise: NoiseLevel::Silent,
+                stack: String::from(dest_stack),
+            };
+            create(&command, &item);
+        }
+    }
+}
+
+fn move_all_data<'a>() -> ActionMetadata<'a> {
+    ActionMetadata {
+        name: "move-all",
+        description: "Move all items to destination stack",
+        aliases: vec![],
+        input: Some(ActionInput::RequiredSingle("destination")),
+    }
+}
+
+fn move_all(command: &Command, dest_stack: &str) {
+    if let Ok(src_items) = data::load(&command.stack) {
+        if !src_items.is_empty() {
+            command.log("Move all", dest_stack);
+            if let Ok(dest_items) = data::load(dest_stack) {
+                let mut dest_items = dest_items;
+                for item in src_items {
+                    dest_items.push(item);
+                }
+                data::save(dest_stack, dest_items).unwrap();
+                data::save(&command.stack, vec![]).unwrap();
+            } else {
+                data::save(dest_stack, src_items).unwrap();
+                data::save(&command.stack, vec![]).unwrap();
             }
         }
     }
