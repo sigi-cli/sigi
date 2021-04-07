@@ -162,3 +162,31 @@ ambitious until stable versions (i.e. >= 1.0) become available.
 In the future I plan to provide wrappers through other languages. Also, the
 implementation language is possibly subject to change.
 
+# Similar projects
+
+If sigi doesn't do quite what you want, check out these similar projects. Sigi
+was created before I found these, but some inspiration may be gleaned from them
+for improvement. Most in this list predate sigi by several years.
+
+## Similar CLIs
+
+- [dstask](https://github.com/naggie/dstask) - Single binary terminal-based TODO manager with git-based sync + markdown notes per task
+- [taskwarrior](https://taskwarrior.org) - Taskwarrior is Free and Open Source Software that manages your TODO list from the command line
+- [grit](https://github.com/climech/grit) - Multitree-based task manager
+- [taskell](https://taskell.app) - Command-line Kanban board/task management
+- [py-todo-cli](https://github.com/Mantaseus/Todo-CLI) - A simple command line Todo program written in Python
+- [todo.txt](http://todotxt.org) - Future-proof task tracking in a file you control
+- [tax](https://github.com/netgusto/tax) - CLI task list manager
+- [node-todo-cli](https://www.npmjs.com/package/node-todo-cli) - A command line program that manages todo tasks
+- [todo cli](https://gitlab.com/bigfiga99/todo-cli) - Todo CLI is a simple program that uses a sqlite3 database to keep track of your tasks
+- [pushpop](https://github.com/secretGeek/pushpop) - "Mental stack manager" definition. (Defines both a GUI and CLI)
+  - See also implementations in [sh](https://paste.sr.ht/~erazemkokot/c6aeb2a7bc25049d08825b3cc7aea63b5cf72a08), [power shell](https://github.com/kberridge/psushpop/blob/master/psushpop.psm1)
+- gophercises #7: [task](https://github.com/gophercises/task) - TODO CLI definition. (Defines a CLI)
+
+## Similar non-CLI apps
+
+- Too many to count. TODO apps are kind of the canonical JavaScript "first big project." They're also ubiquitous in mobile app stores.
+
+## Similar Databases
+
+- [piladb](https://github.com/fern4lvarez/piladb) - Stack-based database. (A working REST API and Database)
