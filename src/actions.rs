@@ -1,4 +1,5 @@
 use crate::{data, data::Item};
+use chrono::Local;
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
@@ -10,13 +11,16 @@ pub enum Action {
     Create(Item),
     /// Complete (successfully) the most-recent item.
     ///
-    /// _Note: This currently does nothing different from `Delete`.
-    /// In future versions, sigi is planned to have a history of
-    /// your completed items._
+    /// Note: Completed item is moved to a stack with the same name and the suffix `_completed`.
     Complete,
     /// Delete the most-recent item.
+    ///
+    /// Note: Deleted item is moved to a stack with the same name and the suffix `_deleted`.
     Delete,
     /// Delete all items.
+    ///
+    /// Note: Deleted items are moved to a stack with the same name and the suffix `_deleted`.
+    /// If the stack name already ends in `_deleted` then it is irrecoverably deleted.
     DeleteAll,
     /// List the stack's items.
     List,
@@ -177,8 +181,17 @@ fn complete(command: &Command) {
         let mut items = items;
         if let Some(completed) = items.pop() {
             command.log("Completed", &completed.name);
-            // TODO: Archive instead of delete. (update, save somewhere recoverable)
-            // TODO: Might be nice to have a "history" Action for viewing these.
+
+            let mut completed = completed;
+            completed.succeeded = Some(Local::now());
+
+            let create_command = Command {
+                action: Create(completed.clone()),
+                noise: NoiseLevel::Silent,
+                stack: command.stack.clone() + "_completed",
+            };
+
+            create(&create_command, &completed);
         }
         data::save(&command.stack, items).unwrap();
     }
@@ -198,9 +211,17 @@ fn delete(command: &Command) {
         let mut items = items;
         if let Some(deleted) = items.pop() {
             command.log("Deleted", &deleted.name);
-            // TODO: Archive instead of delete? (i.e. save somewhere recoverable)
-            // Might allow an easy "undo" or "undelete"; would need a "purge" idea
-            // TODO: Might be nice to have a "history" Action for viewing these
+
+            let mut deleted = deleted;
+            deleted.failed = Some(Local::now());
+
+            let create_command = Command {
+                action: Create(deleted.clone()),
+                noise: NoiseLevel::Silent,
+                stack: command.stack.clone() + "_deleted",
+            };
+
+            create(&create_command, &deleted);
         }
         data::save(&command.stack, items).unwrap();
     }
@@ -224,6 +245,11 @@ fn delete_all_data<'a>() -> ActionMetadata<'a> {
 }
 
 fn delete_all(command: &Command) {
+    if !command.stack.ends_with("_deleted") {
+        if let Ok(stack) = data::load(&command.stack) {
+            data::save(&(command.stack.clone() + "_deleted"), stack).unwrap();
+        }
+    }
     data::save(&command.stack, vec![]).unwrap()
 }
 
