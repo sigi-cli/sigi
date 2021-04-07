@@ -9,6 +9,40 @@ Sigi is also a stack-management tool. It can be used as disk-persistent stack
 memory, for example, in a shell script or in Rust code. (And more languages in
 the future!)
 
+```
+sigi 0.2.3
+An organizational tool.
+
+USAGE:
+    sigi [FLAGS] [OPTIONS] [SUBCOMMAND]
+
+FLAGS:
+    -h, --help       Prints help information
+    -q, --quiet      Omit any leading labels or symbols. Recommended for use in shell scripts
+    -s, --silent     Omit any output at all.
+    -V, --version    Prints version information
+
+OPTIONS:
+    -t, --stack <STACK>    Manage items in a specific stack [aliases: topic, about, namespace]
+
+SUBCOMMANDS:
+    complete      Mark the current item as successfully completed [aliases: done, finish, fulfill]
+    create        Create a new item [aliases: push, add, do, start, new]
+    delete        Delete the current item [aliases: pop, remove, cancel, drop, abandon, retire]
+    delete-all    Delete all items [aliases: purge, pop-all, remove-all, cancel-all, drop-all, abandon-all, retire-all]
+    help          Prints this message or the help of the given subcommand(s)
+    is-empty      Determine if stack is empty [aliases: empty]
+    length        Count all items [aliases: count, size]
+    list          List all items [aliases: ls, show, all, list-all]
+    move          Move current item to destination
+    move-all      Move all items to destination stack
+    next          Move the next item to current, and moves current to last [aliases: later, punt, bury]
+    peek          Peek at the current item (This is the default behavior when no command is given) [aliases: show]
+    pick          Move the specified indices to the top of stack
+    rot           Rotate the three most-current items [aliases: rotate]
+    swap          Swap the two most current items
+```
+
 # Motivation
 
 _Sigi_ is the [Chamorro](https://en.wikipedia.org/wiki/Chamorro_language) word
@@ -127,3 +161,4 @@ ambitious until stable versions (i.e. >= 1.0) become available.
 
 In the future I plan to provide wrappers through other languages. Also, the
 implementation language is possibly subject to change.
+
