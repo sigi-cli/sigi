@@ -20,6 +20,8 @@ pub enum Action {
     DeleteAll,
     /// List the stack's items.
     List,
+    /// Move the specified indices to the top of stack.
+    Pick(Vec<usize>),
     /// Move the current item to a different stack.
     Move(String),
     /// Move all items to a different stack.
@@ -60,6 +62,7 @@ impl Action {
             Delete => delete_data(),
             DeleteAll => delete_all_data(),
             List => list_data(),
+            Pick(_) => pick_data(),
             Move(_) => move_data(),
             MoveAll(_) => move_all_data(),
             IsEmpty => is_empty_data(),
@@ -99,6 +102,7 @@ impl Command {
             Delete => delete(self),
             DeleteAll => delete_all(self),
             List => list(self),
+            Pick(ns) => pick(self, ns),
             Move(dest) => move_item(self, dest),
             MoveAll(dest) => move_all(self, dest),
             IsEmpty => is_empty(self),
@@ -254,6 +258,39 @@ fn list(command: &Command) {
                 }
             }
         }
+    }
+}
+
+fn pick_data<'a>() -> ActionMetadata<'a> {
+    ActionMetadata {
+        name: "pick",
+        description: "Move the specified indices to the top of stack",
+        aliases: vec![],
+        input: Some(ActionInput::RequiredSlurpy("index")),
+    }
+}
+
+fn pick(command: &Command, indices: &[usize]) {
+    if let Ok(stack) = data::load(&command.stack) {
+        let mut stack = stack;
+        let mut seen: Vec<usize> = vec![];
+        seen.reserve_exact(indices.len());
+        let indices: Vec<usize> = indices.iter().map(|i| stack.len() - 1 - i).rev().collect();
+        for i in indices {
+            if i > stack.len() {
+                command.log("Pick", "ignoring out-of-bounds index");
+                continue;
+            } else if seen.contains(&i) {
+                command.log("Pick", "ignoring duplicate index");
+                continue;
+            }
+            let i = i - seen.iter().filter(|j| j < &&i).count();
+            let picked = stack.remove(i);
+            command.log("Pick", &picked.name);
+            stack.push(picked);
+            seen.push(i);
+        }
+        data::save(&command.stack, stack).unwrap();
     }
 }
 

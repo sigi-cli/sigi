@@ -21,7 +21,11 @@ pub fn get_action() -> Command {
     let delete = Delete.data();
     let delete_all = DeleteAll.data();
     let list = List.data();
-    let length = Length.data();
+    let pick = Pick(vec![]).data();
+    let pick_arg = match pick.input.unwrap() {
+        ActionInput::RequiredSlurpy(arg) => arg,
+        _ => unreachable!(),
+    };
     let move_item = Move(String::new()).data();
     let move_item_arg = match move_item.input.unwrap() {
         ActionInput::RequiredSingle(arg) => arg,
@@ -33,6 +37,7 @@ pub fn get_action() -> Command {
         _ => unreachable!(),
     };
     let is_empty = IsEmpty.data();
+    let length = Length.data();
     let next = Next.data();
     let swap = Swap.data();
     let rot = Rot.data();
@@ -90,6 +95,15 @@ pub fn get_action() -> Command {
             SubCommand::with_name(list.name)
                 .about(list.description)
                 .visible_aliases(&list.aliases),
+            SubCommand::with_name(pick.name)
+                .about(pick.description)
+                .visible_aliases(&pick.aliases)
+                .arg(
+                    Arg::with_name(pick_arg)
+                        .value_name(&pick_arg.to_uppercase())
+                        .required(true)
+                        .multiple(true),
+                ),
             SubCommand::with_name(length.name)
                 .about(length.description)
                 .visible_aliases(&length.aliases),
@@ -121,8 +135,6 @@ pub fn get_action() -> Command {
             SubCommand::with_name(rot.name)
                 .about(rot.description)
                 .visible_aliases(&rot.aliases),
-            // TODO: Need an idea of "organize" or "re-order"
-            // TODO: Need support for stack-of-stack management
         ])
         .get_matches();
 
@@ -138,12 +150,13 @@ pub fn get_action() -> Command {
         } else {
             error_no_command(create.name, silent)
         }
-    } else if let Some(dest) = command_is_opt(move_item.name) {
-        let dest = dest.value_of(move_item_arg).unwrap().to_string();
-        Move(dest)
-    } else if let Some(dest) = command_is_opt(move_all.name) {
-        let dest = dest.value_of(move_all_arg).unwrap().to_string();
-        MoveAll(dest)
+    } else if let Some(matches) = command_is_opt(pick.name) {
+        let indices = matches
+            .values_of(pick_arg)
+            .unwrap()
+            .map(|i| usize::from_str_radix(&i, 10).unwrap())
+            .collect();
+        Pick(indices)
     } else if command_is(complete.name) {
         Complete
     } else if command_is(delete.name) {
@@ -152,6 +165,12 @@ pub fn get_action() -> Command {
         DeleteAll
     } else if command_is(list.name) {
         List
+    } else if let Some(dest) = command_is_opt(move_item.name) {
+        let dest = dest.value_of(move_item_arg).unwrap().to_string();
+        Move(dest)
+    } else if let Some(dest) = command_is_opt(move_all.name) {
+        let dest = dest.value_of(move_all_arg).unwrap().to_string();
+        MoveAll(dest)
     } else if command_is(length.name) {
         Length
     } else if command_is(is_empty.name) {
