@@ -10,15 +10,15 @@ pub enum Action {
     /// Add a new item.
     Create(Item),
     /// Complete (successfully) the most-recent item.
-    ///
+    /// 
     /// Note: Completed item is moved to a stack with the same name and the suffix `_completed`.
     Complete,
     /// Delete the most-recent item.
-    ///
+    /// 
     /// Note: Deleted item is moved to a stack with the same name and the suffix `_deleted`.
     Delete,
     /// Delete all items.
-    ///
+    /// 
     /// Note: Deleted items are moved to a stack with the same name and the suffix `_deleted`.
     /// If the stack name already ends in `_deleted` then it is irrecoverably deleted.
     DeleteAll,
@@ -257,7 +257,7 @@ fn list_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "list",
         description: "List all items",
-        aliases: vec!["ls", "show", "all", "list-all"],
+        aliases: vec!["ls", "snoop", "show", "all", "list-all"],
         input: None,
     }
 }
