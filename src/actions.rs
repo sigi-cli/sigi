@@ -269,19 +269,22 @@ fn list(command: &Command) {
     // TODO: Think on this. This limits practical size, but needs a change to the
     // save/load format and/or algorithms to scale.
     if let Ok(items) = data::load(&command.stack) {
-        if !items.is_empty() {
-            let mut items = items;
-            items.reverse();
-            match command.noise {
-                NoiseLevel::Quiet => items.iter().for_each(|item| println!("{}", item.name)),
-                _ => {
-                    println!("Now: {}", items[0].name);
-                    items
-                        .iter()
-                        .enumerate()
-                        .skip(1)
-                        .for_each(|(n, item)| println!("{: >3}: {}", n, item.name))
-                }
+        if items.is_empty() {
+            command.log("None", "");
+            return;
+        }
+
+        let mut items = items;
+        items.reverse();
+        match command.noise {
+            NoiseLevel::Quiet => items.iter().for_each(|item| println!("{}", item.name)),
+            _ => {
+                println!("Now: {}", items[0].name);
+                items
+                    .iter()
+                    .enumerate()
+                    .skip(1)
+                    .for_each(|(n, item)| println!("{: >3}: {}", n, item.name))
             }
         }
     }
