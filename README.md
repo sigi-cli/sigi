@@ -10,7 +10,7 @@ memory, for example, in a shell script or in Rust code. (And more languages in
 the future!)
 
 ```
-sigi 0.2.3
+sigi 0.2.4
 An organizational tool.
 
 USAGE:
