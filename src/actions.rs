@@ -1,4 +1,4 @@
-use crate::{data, data::Item};
+use crate::{data, data::Item, data::Stack};
 use chrono::Local;
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
@@ -24,6 +24,10 @@ pub enum Action {
     DeleteAll,
     /// List the stack's items.
     List,
+    /// List the first N stack items.
+    Head(usize),
+    /// List the last N stack items.
+    Tail(usize),
     /// Move the specified indices to the top of stack.
     Pick(Vec<usize>),
     /// Move the current item to a different stack.
@@ -66,6 +70,8 @@ impl Action {
             Delete => delete_data(),
             DeleteAll => delete_all_data(),
             List => list_data(),
+            Head(_) => head_data(),
+            Tail(_) => tail_data(),
             Pick(_) => pick_data(),
             Move(_) => move_data(),
             MoveAll(_) => move_all_data(),
@@ -106,6 +112,8 @@ impl Command {
             Delete => delete(self),
             DeleteAll => delete_all(self),
             List => list(self),
+            Head(n) => head(self, *n),
+            Tail(n) => tail(self, *n),
             Pick(ns) => pick(self, ns),
             Move(dest) => move_item(self, dest),
             MoveAll(dest) => move_all(self, dest),
@@ -266,27 +274,80 @@ fn list(command: &Command) {
     if let NoiseLevel::Silent = command.noise {
         return;
     }
-    // TODO: Think on this. This limits practical size, but needs a change to the
-    // save/load format and/or algorithms to scale.
-    if let Ok(items) = data::load(&command.stack) {
-        if items.is_empty() {
-            command.log("None", "");
-            return;
-        }
 
-        let mut items = items;
-        items.reverse();
-        match command.noise {
-            NoiseLevel::Quiet => items.iter().for_each(|item| println!("{}", item.name)),
-            _ => {
-                println!("Now: {}", items[0].name);
-                items
-                    .iter()
-                    .enumerate()
-                    .skip(1)
-                    .for_each(|(n, item)| println!("{: >3}: {}", n, item.name))
-            }
+    if let Ok(stack) = data::load(&command.stack) {
+        let len = stack.len();
+        list_range(command, stack, 0, len);
+    }
+}
+
+fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
+    if n == 0 {
+        return;
+    }
+
+    if stack.is_empty() {
+        command.log("None", "");
+        return;
+    }
+
+    let mut stack = stack;
+    stack.reverse();
+    match command.noise {
+        NoiseLevel::Quiet => stack.iter().for_each(|item| println!("{}", item.name)),
+        _ => {
+            let (start, n) = if from == 0 {
+                println!("Now: {}", stack[0].name);
+                (1, n - 1)
+            } else {
+                (from, n)
+            };
+            stack
+                .iter()
+                .enumerate()
+                .skip(start)
+                .take(n)
+                .for_each(|(n, item)| println!("{: >3}: {}", n, item.name))
         }
+    }
+}
+
+fn head_data<'a>() -> ActionMetadata<'a> {
+    ActionMetadata {
+        name: "head",
+        description: "List the first N items",
+        aliases: vec![],
+        input: Some(ActionInput::RequiredSingle("n")),
+    }
+}
+
+fn head(command: &Command, n: usize) {
+    if let NoiseLevel::Silent = command.noise {
+        return;
+    }
+
+    if let Ok(stack) = data::load(&command.stack) {
+        list_range(command, stack, 0, n);
+    }
+}
+
+fn tail_data<'a>() -> ActionMetadata<'a> {
+    ActionMetadata {
+        name: "tail",
+        description: "List the last N items",
+        aliases: vec![],
+        input: Some(ActionInput::RequiredSingle("n")),
+    }
+}
+
+fn tail(command: &Command, n: usize) {
+    if let NoiseLevel::Silent = command.noise {
+        return;
+    }
+
+    if let Ok(stack) = data::load(&command.stack) {
+        let start = stack.len() - n;
+        list_range(command, stack, start, n);
     }
 }
 
