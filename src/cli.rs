@@ -18,10 +18,6 @@ pub fn get_action() -> Command {
         ActionInput::RequiredSlurpy(arg) => arg,
         _ => unreachable!(),
     };
-    let complete = Complete.data();
-    let delete = Delete.data();
-    let delete_all = DeleteAll.data();
-    let list = List.data();
     let head = Head(None).data();
     let head_arg = match head.input.unwrap() {
         ActionInput::OptionalSingle(arg) => arg,
@@ -47,11 +43,13 @@ pub fn get_action() -> Command {
         ActionInput::RequiredSingle(arg) => arg,
         _ => unreachable!(),
     };
-    let is_empty = IsEmpty.data();
-    let length = Length.data();
-    let next = Next.data();
-    let swap = Swap.data();
-    let rot = Rot.data();
+
+    let subcommand_for = |action: Action| {
+        let data = action.data();
+        SubCommand::with_name(data.name)
+            .about(data.description)
+            .visible_aliases(&data.aliases)
+    };
 
     let matches = App::new("sigi")
         .version(SIGI_VERSION)
@@ -94,18 +92,10 @@ pub fn get_action() -> Command {
                         .required(true)
                         .multiple(true),
                 ),
-            SubCommand::with_name(complete.name)
-                .about(complete.description)
-                .visible_aliases(&complete.aliases),
-            SubCommand::with_name(delete.name)
-                .about(delete.description)
-                .visible_aliases(&delete.aliases),
-            SubCommand::with_name(delete_all.name)
-                .about(delete_all.description)
-                .visible_aliases(&delete_all.aliases),
-            SubCommand::with_name(list.name)
-                .about(list.description)
-                .visible_aliases(&list.aliases),
+            subcommand_for(Complete),
+            subcommand_for(Delete),
+            subcommand_for(DeleteAll),
+            subcommand_for(List),
             SubCommand::with_name(head.name)
                 .about(head.description)
                 .visible_aliases(&head.aliases)
@@ -123,9 +113,7 @@ pub fn get_action() -> Command {
                         .required(true)
                         .multiple(true),
                 ),
-            SubCommand::with_name(length.name)
-                .about(length.description)
-                .visible_aliases(&length.aliases),
+            subcommand_for(Length),
             SubCommand::with_name(move_item.name)
                 .about(move_item.description)
                 .visible_aliases(&move_item.aliases)
@@ -142,18 +130,10 @@ pub fn get_action() -> Command {
                         .value_name(&move_all_arg.to_uppercase())
                         .required(true),
                 ),
-            SubCommand::with_name(is_empty.name)
-                .about(is_empty.description)
-                .visible_aliases(&is_empty.aliases),
-            SubCommand::with_name(next.name)
-                .about(next.description)
-                .visible_aliases(&next.aliases),
-            SubCommand::with_name(swap.name)
-                .about(swap.description)
-                .visible_aliases(&swap.aliases),
-            SubCommand::with_name(rot.name)
-                .about(rot.description)
-                .visible_aliases(&rot.aliases),
+            subcommand_for(IsEmpty),
+            subcommand_for(Next),
+            subcommand_for(Swap),
+            subcommand_for(Rot),
         ])
         .get_matches();
 
@@ -176,13 +156,13 @@ pub fn get_action() -> Command {
             .map(|i| usize::from_str_radix(&i, 10).unwrap())
             .collect();
         Pick(indices)
-    } else if command_is(complete.name) {
+    } else if command_is(Complete.data().name) {
         Complete
-    } else if command_is(delete.name) {
+    } else if command_is(Delete.data().name) {
         Delete
-    } else if command_is(delete_all.name) {
+    } else if command_is(DeleteAll.data().name) {
         DeleteAll
-    } else if command_is(list.name) {
+    } else if command_is(List.data().name) {
         List
     } else if let Some(n) = command_is_opt(head.name) {
         let n = n
@@ -204,15 +184,15 @@ pub fn get_action() -> Command {
     } else if let Some(dest) = command_is_opt(move_all.name) {
         let dest = dest.value_of(move_all_arg).unwrap().to_string();
         MoveAll(dest)
-    } else if command_is(length.name) {
+    } else if command_is(Length.data().name) {
         Length
-    } else if command_is(is_empty.name) {
+    } else if command_is(IsEmpty.data().name) {
         IsEmpty
-    } else if command_is(next.name) {
+    } else if command_is(Next.data().name) {
         Next
-    } else if command_is(swap.name) {
+    } else if command_is(Swap.data().name) {
         Swap
-    } else if command_is(rot.name) {
+    } else if command_is(Rot.data().name) {
         Rot
     } else {
         Peek
