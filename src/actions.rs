@@ -288,6 +288,8 @@ fn list(command: &Command) {
 }
 
 fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
+    // Checks for NoiseLevel::Silent should happen in calling functions. (To avoid potentially costly load of stack)
+
     if n == 0 {
         return;
     }
