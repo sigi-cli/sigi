@@ -133,7 +133,7 @@ impl Command {
     // TODO: Actually use a logger. (Are there any that don't explode binary size?)
     pub fn log(&self, label: &str, message: &str) {
         match self.noise {
-            NoiseLevel::Verbose => println!("Stack {}: {}: {}", self.stack, label, message),
+            NoiseLevel::Verbose => println!("{}: {}: {}", self.stack, label, message),
             NoiseLevel::Normal => println!("{}: {}", label, message),
             NoiseLevel::Quiet => println!("{}", message),
             NoiseLevel::Silent => {}

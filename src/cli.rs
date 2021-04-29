@@ -43,6 +43,12 @@ pub fn get_action() -> Command {
                 .long("silent")
                 .help("Omit any output at all."),
         )
+        .arg(
+            Arg::with_name("verbose")
+                .short("v")
+                .long("verbose")
+                .help("Enable verbose output."),
+        )
         .subcommands(
             vec![
                 vec![SubCommand::with_name(peek.name)
@@ -134,7 +140,9 @@ pub fn get_action() -> Command {
         .unwrap_or(DEFAULT_STACK_NAME)
         .to_owned();
 
-    let noise = if matches.is_present("silent") {
+    let noise = if matches.is_present("verbose") {
+        NoiseLevel::Verbose
+    } else if matches.is_present("silent") {
         NoiseLevel::Silent
     } else if matches.is_present("quiet") {
         NoiseLevel::Quiet
