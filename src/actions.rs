@@ -4,6 +4,7 @@ use chrono::Local;
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
 /// A stack-manipulation action.
+#[derive(Clone)]
 pub enum Action {
     /// Look at the most-recent item.
     Peek,
