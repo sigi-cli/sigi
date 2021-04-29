@@ -86,6 +86,7 @@ impl Action {
 }
 
 /// How much noise (verbosity) should be used when printing to standard output.
+#[derive(Clone, Copy)]
 pub enum NoiseLevel {
     Normal,
     Quiet,
@@ -379,11 +380,19 @@ fn pick(command: &Command, indices: &[usize]) {
             }
             let i = i - seen.iter().filter(|j| j < &&i).count();
             let picked = stack.remove(i);
-            command.log("Pick", &picked.name);
             stack.push(picked);
             seen.push(i);
         }
+
         data::save(&command.stack, stack).unwrap();
+
+        let picked_n = Some(seen.len());
+        let head_cmd = Command {
+            action: Action::Head(picked_n),
+            noise: command.noise,
+            stack: command.stack.clone(),
+        };
+        head(&head_cmd, &picked_n);
     }
 }
 
