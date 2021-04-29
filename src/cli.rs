@@ -187,12 +187,16 @@ pub fn get_action() -> Command {
     } else if let Some(n) = command_is_opt(head.name) {
         let n = n
             .value_of(head_arg)
-            .map(|i| usize::from_str_radix(&i, 10).unwrap());
+            // FIXME: Validate it's numeric or fail gracefully
+            .map(|i| usize::from_str_radix(&i, 10).ok())
+            .flatten();
         Head(n)
     } else if let Some(n) = command_is_opt(tail.name) {
         let n = n
             .value_of(tail_arg)
-            .map(|i| usize::from_str_radix(&i, 10).unwrap());
+            // FIXME: Validate it's numeric or fail gracefully
+            .map(|i| usize::from_str_radix(&i, 10).ok())
+            .flatten();
         Tail(n)
     } else if let Some(dest) = command_is_opt(move_item.name) {
         let dest = dest.value_of(move_item_arg).unwrap().to_string();
