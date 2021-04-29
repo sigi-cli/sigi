@@ -64,6 +64,7 @@ pub struct ActionMetadata<'a> {
 }
 
 impl Action {
+    // TODO: Something's screwy with this interface. Probably there needs to be a different no-args-only enum?.
     pub fn data<'a>(&self) -> ActionMetadata<'a> {
         match &self {
             Peek => peek_data(),
