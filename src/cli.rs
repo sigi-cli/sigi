@@ -176,14 +176,14 @@ fn subcommand_for<'a, 'b>(action: Action) -> App<'a, 'b> {
         return cmd;
     }
 
-    let (arg, required, multiple) = match data.input.unwrap() {
-        ActionInput::OptionalSingle(arg) => (arg, false, false),
-        ActionInput::RequiredSingle(arg) => (arg, true, false),
-        ActionInput::RequiredSlurpy(arg) => (arg, true, true),
+    let (required, multiple) = match data.input.clone().unwrap() {
+        ActionInput::OptionalSingle(_) => (false, false),
+        ActionInput::RequiredSingle(_) => (true, false),
+        ActionInput::RequiredSlurpy(_) => (true, true),
     };
 
     cmd.arg(
-        Arg::with_name(arg)
+        Arg::with_name(arg_name_for(&data))
             .takes_value(true)
             .required(required)
             .multiple(multiple),

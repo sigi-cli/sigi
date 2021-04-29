@@ -50,12 +50,14 @@ pub enum Action {
 
 use Action::*;
 
+#[derive(Clone)]
 pub enum ActionInput<'a> {
     OptionalSingle(&'a str),
     RequiredSlurpy(&'a str),
     RequiredSingle(&'a str),
 }
 
+#[derive(Clone)]
 pub struct ActionMetadata<'a> {
     pub name: &'a str,
     pub description: &'a str,
