@@ -90,6 +90,7 @@ impl Action {
 /// How much noise (verbosity) should be used when printing to standard output.
 #[derive(Clone, Copy)]
 pub enum NoiseLevel {
+    Verbose,
     Normal,
     Quiet,
     Silent,
@@ -132,6 +133,7 @@ impl Command {
     // TODO: Actually use a logger. (Are there any that don't explode binary size?)
     pub fn log(&self, label: &str, message: &str) {
         match self.noise {
+            NoiseLevel::Verbose => println!("Stack {}: {}: {}", self.stack, label, message),
             NoiseLevel::Normal => println!("{}: {}", label, message),
             NoiseLevel::Quiet => println!("{}", message),
             NoiseLevel::Silent => {}
@@ -537,7 +539,7 @@ fn swap(command: &Command) {
         items.push(b);
 
         data::save(&command.stack, items).unwrap();
-        peek(command)
+        head(command, &Some(2));
     }
 }
 
@@ -565,6 +567,6 @@ fn rot(command: &Command) {
         items.push(b);
 
         data::save(&command.stack, items).unwrap();
-        peek(command)
+        head(command, &Some(3));
     }
 }
