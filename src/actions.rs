@@ -350,8 +350,12 @@ fn tail(command: &Command, n: &Option<usize>) {
 
     if let Ok(stack) = data::load(&command.stack) {
         let n = n.unwrap_or(10);
-        let start = stack.len() - n;
-        list_range(command, stack, start, n);
+        if n >= stack.len() {
+            list(command)
+        } else {
+            let start = stack.len() - n;
+            list_range(command, stack, start, n);
+        };
     }
 }
 
