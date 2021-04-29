@@ -90,7 +90,7 @@ impl Action {
 }
 
 /// How much noise (verbosity) should be used when printing to standard output.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum NoiseLevel {
     Verbose,
     Normal,
@@ -135,7 +135,7 @@ impl Command {
     // TODO: Actually use a logger. (Are there any that don't explode binary size?)
     pub fn log(&self, label: &str, message: &str) {
         match self.noise {
-            NoiseLevel::Verbose => println!("{}: {}: {}", self.stack, label, message),
+            NoiseLevel::Verbose => println!("[Stack: {}] {}: {}", self.stack, label, message),
             NoiseLevel::Normal => println!("{}: {}", label, message),
             NoiseLevel::Quiet => println!("{}", message),
             NoiseLevel::Silent => {}
@@ -303,23 +303,42 @@ fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
 
     let mut stack = stack;
     stack.reverse();
-    match command.noise {
-        NoiseLevel::Quiet => stack.iter().for_each(|item| println!("{}", item.name)),
-        _ => {
-            let (start, n) = if from == 0 {
-                println!("Now: {}", stack[0].name);
-                (1, n - 1)
-            } else {
-                (from, n)
-            };
-            stack
-                .iter()
-                .enumerate()
-                .skip(start)
-                .take(n)
-                .for_each(|(n, item)| println!("{: >3}: {}", n, item.name))
-        }
+    if NoiseLevel::Quiet == command.noise {
+        stack.iter().for_each(|item| println!("{}", item.name));
+        return;
     }
+
+    let description_of = |item: &Item| match command.noise {
+        NoiseLevel::Verbose => {
+            let name = &item.name;
+            format!(
+                "{} | Created: {} | Completed: {} | Deleted: {}",
+                name,
+                item.created,
+                item.succeeded
+                    .map(|d| d.to_string())
+                    .unwrap_or_else(|| "N/A".to_string()),
+                item.failed
+                    .map(|d| d.to_string())
+                    .unwrap_or_else(|| "N/A".to_string())
+            )
+        }
+        _ => item.name.to_string(),
+    };
+
+    let (start, n) = if from == 0 {
+        println!("Now: {}", description_of(&stack[0]));
+        (1, n - 1)
+    } else {
+        (from, n)
+    };
+
+    stack
+        .iter()
+        .enumerate()
+        .skip(start)
+        .take(n)
+        .for_each(|(n, item)| println!("{: >3}: {}", n, description_of(item)));
 }
 
 fn head_data<'a>() -> ActionMetadata<'a> {
