@@ -167,24 +167,27 @@ fn arg_name_for<'a>(data: &ActionMetadata<'a>) -> &'a str {
 
 fn subcommand_for<'a, 'b>(action: Action) -> App<'a, 'b> {
     let data = action.data();
+
     let cmd = SubCommand::with_name(data.name)
         .about(data.description)
         .visible_aliases(&data.aliases);
-    match data.input {
-        None => cmd,
-        Some(input) => match input {
-            ActionInput::OptionalSingle(arg) => cmd.arg(Arg::with_name(arg).takes_value(true)),
-            ActionInput::RequiredSingle(arg) => {
-                cmd.arg(Arg::with_name(arg).takes_value(true).required(true))
-            }
-            ActionInput::RequiredSlurpy(arg) => cmd.arg(
-                Arg::with_name(arg)
-                    .takes_value(true)
-                    .required(true)
-                    .multiple(true),
-            ),
-        },
+
+    if data.input.is_none() {
+        return cmd;
     }
+
+    let (arg, required, multiple) = match data.input.unwrap() {
+        ActionInput::OptionalSingle(arg) => (arg, false, false),
+        ActionInput::RequiredSingle(arg) => (arg, true, false),
+        ActionInput::RequiredSlurpy(arg) => (arg, true, true),
+    };
+
+    cmd.arg(
+        Arg::with_name(arg)
+            .takes_value(true)
+            .required(required)
+            .multiple(multiple),
+    )
 }
 
 fn error_no_command(name: &str, silent: bool) -> Action {
