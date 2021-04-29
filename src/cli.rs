@@ -76,69 +76,55 @@ pub fn get_action() -> Command {
         )
         .get_matches();
 
-    let command_is_opt = |name: &str| matches.subcommand_matches(name);
-    let command_is = |name: &str| command_is_opt(name).is_some();
+    let is_command = |action: &Action| matches.subcommand_matches(action.data().name);
 
-    let silent = matches.is_present("silent");
-
-    let action: Action = if let Some(matches) = command_is_opt(create.data().name) {
+    let action: Action = if let Some(matches) = is_command(&create) {
         if let Some(name_bits) = matches.values_of(arg_name_for(&create.data())) {
             let name = name_bits.collect::<Vec<_>>().join(" ");
             Create(Item::new(&name))
         } else {
-            error_no_command(create.data().name, silent)
+            error_no_command(create.data().name, matches.is_present("silent"))
         }
-    } else if let Some(matches) = command_is_opt(pick.data().name) {
+    } else if let Some(matches) = is_command(&pick) {
         let indices = matches
             .values_of(arg_name_for(&pick.data()))
             .unwrap()
             .map(|i| usize::from_str_radix(&i, 10).unwrap())
             .collect();
         Pick(indices)
-    } else if command_is(Complete.data().name) {
-        Complete
-    } else if command_is(Delete.data().name) {
-        Delete
-    } else if command_is(DeleteAll.data().name) {
-        DeleteAll
-    } else if command_is(List.data().name) {
-        List
-    } else if let Some(n) = command_is_opt(head.data().name) {
+    } else if let Some(n) = is_command(&head) {
         let n = n
             .value_of(arg_name_for(&head.data()))
             // FIXME: Validate it's numeric or fail gracefully
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
         Head(n)
-    } else if let Some(n) = command_is_opt(tail.data().name) {
+    } else if let Some(n) = is_command(&tail) {
         let n = n
             .value_of(arg_name_for(&tail.data()))
             // FIXME: Validate it's numeric or fail gracefully
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
         Tail(n)
-    } else if let Some(dest) = command_is_opt(move_item.data().name) {
+    } else if let Some(dest) = is_command(&move_item) {
         let dest = dest
             .value_of(arg_name_for(&move_item.data()))
             .unwrap()
             .to_string();
         Move(dest)
-    } else if let Some(dest) = command_is_opt(move_all.data().name) {
+    } else if let Some(dest) = is_command(&move_all) {
         let dest = dest
             .value_of(arg_name_for(&move_all.data()))
             .unwrap()
             .to_string();
         MoveAll(dest)
-    } else if command_is(Length.data().name) {
-        Length
-    } else if command_is(IsEmpty.data().name) {
-        IsEmpty
-    } else if command_is(Next.data().name) {
-        Next
-    } else if command_is(Swap.data().name) {
-        Swap
-    } else if command_is(Rot.data().name) {
-        Rot
+    } else if let Some(command) = vec![
+        Complete, Delete, DeleteAll, List, Length, IsEmpty, Next, Swap, Rot,
+    ]
+    .iter()
+    .find(|action| is_command(&action).is_some())
+    {
+        command.clone()
     } else {
         Peek
     };
@@ -147,11 +133,10 @@ pub fn get_action() -> Command {
         .value_of("stack")
         .unwrap_or(DEFAULT_STACK_NAME)
         .to_owned();
-    let quiet = matches.is_present("quiet");
 
-    let noise = if silent {
+    let noise = if matches.is_present("silent") {
         NoiseLevel::Silent
-    } else if quiet {
+    } else if matches.is_present("quiet") {
         NoiseLevel::Quiet
     } else {
         NoiseLevel::Normal
