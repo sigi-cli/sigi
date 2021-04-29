@@ -4,8 +4,8 @@ use clap::{App, Arg, SubCommand};
 use Action::*;
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
-/// The current version (0.2.5) of the CLI.
-pub const SIGI_VERSION: &str = "0.2.5";
+/// The current version (0.2.6) of the CLI.
+pub const SIGI_VERSION: &str = "0.2.6";
 
 const DEFAULT_STACK_NAME: &str = "sigi";
 
