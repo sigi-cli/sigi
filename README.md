@@ -10,7 +10,7 @@ memory, for example, in a shell script or in Rust code. (And more languages in
 the future!)
 
 ```
-sigi 0.2.4
+sigi 0.2.7
 An organizational tool.
 
 USAGE:
@@ -21,6 +21,7 @@ FLAGS:
     -q, --quiet      Omit any leading labels or symbols. Recommended for use in shell scripts
     -s, --silent     Omit any output at all.
     -V, --version    Prints version information
+    -v, --verbose    Enable verbose output.
 
 OPTIONS:
     -t, --stack <STACK>    Manage items in a specific stack [aliases: topic, about, namespace]
@@ -29,11 +30,13 @@ SUBCOMMANDS:
     complete      Mark the current item as successfully completed [aliases: done, finish, fulfill]
     create        Create a new item [aliases: push, add, do, start, new]
     delete        Delete the current item [aliases: pop, remove, cancel, drop, abandon, retire]
-    delete-all    Delete all items [aliases: purge, pop-all, remove-all, cancel-all, drop-all, abandon-all, retire-all]
+    delete-all    Delete all items [aliases: purge, pop-all, remove-all, cancel-all, drop-all, abandon-all,
+                  retire-all]
+    head          List the first N items
     help          Prints this message or the help of the given subcommand(s)
     is-empty      Determine if stack is empty [aliases: empty]
     length        Count all items [aliases: count, size]
-    list          List all items [aliases: ls, show, all, list-all]
+    list          List all items [aliases: ls, snoop, show, all, list-all]
     move          Move current item to destination
     move-all      Move all items to destination stack
     next          Move the next item to current, and moves current to last [aliases: later, punt, bury]
@@ -41,6 +44,7 @@ SUBCOMMANDS:
     pick          Move the specified indices to the top of stack
     rot           Rotate the three most-current items [aliases: rotate]
     swap          Swap the two most current items
+    tail          List the last N items
 ```
 
 # Motivation
