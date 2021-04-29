@@ -25,9 +25,9 @@ pub enum Action {
     /// List the stack's items.
     List,
     /// List the first N stack items.
-    Head(usize),
+    Head(Option<usize>),
     /// List the last N stack items.
-    Tail(usize),
+    Tail(Option<usize>),
     /// Move the specified indices to the top of stack.
     Pick(Vec<usize>),
     /// Move the current item to a different stack.
@@ -50,6 +50,7 @@ pub enum Action {
 use Action::*;
 
 pub enum ActionInput<'a> {
+    OptionalSingle(&'a str),
     RequiredSlurpy(&'a str),
     RequiredSingle(&'a str),
 }
@@ -112,8 +113,8 @@ impl Command {
             Delete => delete(self),
             DeleteAll => delete_all(self),
             List => list(self),
-            Head(n) => head(self, *n),
-            Tail(n) => tail(self, *n),
+            Head(n) => head(self, n),
+            Tail(n) => tail(self, n),
             Pick(ns) => pick(self, ns),
             Move(dest) => move_item(self, dest),
             MoveAll(dest) => move_all(self, dest),
@@ -317,16 +318,17 @@ fn head_data<'a>() -> ActionMetadata<'a> {
         name: "head",
         description: "List the first N items",
         aliases: vec![],
-        input: Some(ActionInput::RequiredSingle("n")),
+        input: Some(ActionInput::OptionalSingle("n")),
     }
 }
 
-fn head(command: &Command, n: usize) {
+fn head(command: &Command, n: &Option<usize>) {
     if let NoiseLevel::Silent = command.noise {
         return;
     }
 
     if let Ok(stack) = data::load(&command.stack) {
+        let n = n.unwrap_or(10);
         list_range(command, stack, 0, n);
     }
 }
@@ -336,16 +338,17 @@ fn tail_data<'a>() -> ActionMetadata<'a> {
         name: "tail",
         description: "List the last N items",
         aliases: vec![],
-        input: Some(ActionInput::RequiredSingle("n")),
+        input: Some(ActionInput::OptionalSingle("n")),
     }
 }
 
-fn tail(command: &Command, n: usize) {
+fn tail(command: &Command, n: &Option<usize>) {
     if let NoiseLevel::Silent = command.noise {
         return;
     }
 
     if let Ok(stack) = data::load(&command.stack) {
+        let n = n.unwrap_or(10);
         let start = stack.len() - n;
         list_range(command, stack, start, n);
     }

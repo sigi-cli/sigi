@@ -22,14 +22,14 @@ pub fn get_action() -> Command {
     let delete = Delete.data();
     let delete_all = DeleteAll.data();
     let list = List.data();
-    let head = Head(0).data();
+    let head = Head(None).data();
     let head_arg = match head.input.unwrap() {
-        ActionInput::RequiredSingle(arg) => arg,
+        ActionInput::OptionalSingle(arg) => arg,
         _ => unreachable!(),
     };
-    let tail = Tail(0).data();
+    let tail = Tail(None).data();
     let tail_arg = match tail.input.unwrap() {
-        ActionInput::RequiredSingle(arg) => arg,
+        ActionInput::OptionalSingle(arg) => arg,
         _ => unreachable!(),
     };
     let pick = Pick(vec![]).data();
@@ -109,19 +109,11 @@ pub fn get_action() -> Command {
             SubCommand::with_name(head.name)
                 .about(head.description)
                 .visible_aliases(&head.aliases)
-                .arg(
-                    Arg::with_name(head_arg)
-                        .value_name(&head_arg.to_uppercase())
-                        .required(true),
-                ),
+                .arg(Arg::with_name(head_arg).value_name(&head_arg.to_uppercase())),
             SubCommand::with_name(tail.name)
                 .about(tail.description)
                 .visible_aliases(&tail.aliases)
-                .arg(
-                    Arg::with_name(tail_arg)
-                        .value_name(&tail_arg.to_uppercase())
-                        .required(true),
-                ),
+                .arg(Arg::with_name(tail_arg).value_name(&tail_arg.to_uppercase())),
             SubCommand::with_name(pick.name)
                 .about(pick.description)
                 .visible_aliases(&pick.aliases)
@@ -195,16 +187,12 @@ pub fn get_action() -> Command {
     } else if let Some(n) = command_is_opt(head.name) {
         let n = n
             .value_of(head_arg)
-            .map(|i| usize::from_str_radix(&i, 10))
-            .unwrap()
-            .unwrap();
+            .map(|i| usize::from_str_radix(&i, 10).unwrap());
         Head(n)
     } else if let Some(n) = command_is_opt(tail.name) {
         let n = n
             .value_of(tail_arg)
-            .map(|i| usize::from_str_radix(&i, 10))
-            .unwrap()
-            .unwrap();
+            .map(|i| usize::from_str_radix(&i, 10).unwrap());
         Tail(n)
     } else if let Some(dest) = command_is_opt(move_item.name) {
         let dest = dest.value_of(move_item_arg).unwrap().to_string();
