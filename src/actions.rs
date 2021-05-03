@@ -522,7 +522,7 @@ fn next_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "next",
         description: "Move the next item to current, and moves current to last",
-        aliases: vec!["later", "punt", "bury"],
+        aliases: vec!["cycle", "punt", "bury", "later"],
         input: None,
     }
 }
