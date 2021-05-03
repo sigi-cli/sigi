@@ -345,7 +345,7 @@ fn head_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "head",
         description: "List the first N items",
-        aliases: vec![],
+        aliases: vec!["top", "first"],
         input: Some(ActionInput::OptionalSingle("n")),
     }
 }
@@ -365,7 +365,7 @@ fn tail_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "tail",
         description: "List the last N items",
-        aliases: vec![],
+        aliases: vec!["bottom", "last"],
         input: Some(ActionInput::OptionalSingle("n")),
     }
 }
