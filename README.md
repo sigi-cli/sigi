@@ -4,17 +4,16 @@
 
 # Sigi
 
-Sigi is an organizing tool and no-frills stack database.
+Sigi is an organizing tool.
 
 It's primarily intended for you to use as extra memory. Use it to organize your
 tasks, groceries, or the next board games you want to play.
 
-Sigi is also a stack-management tool. It can be used as disk-persistent stack
-memory, for example, in a shell script or in Rust code. (And more languages in
-the future!)
+Sigi can also be used as a stack-management tool. It can be used as disk-
+persistent stack memory, for example, in a shell script or in Rust code.
 
 ```
-sigi 1.0.0
+sigi 1.0.1
 An organizational tool.
 
 USAGE:
@@ -31,23 +30,22 @@ OPTIONS:
     -t, --stack <STACK>    Manage items in a specific stack [aliases: topic, about, namespace]
 
 SUBCOMMANDS:
-    complete      Mark the current item as successfully completed [aliases: done, finish, fulfill]
+    complete      Move the current item to "<STACK>_completed" [aliases: done, finish, fulfill]
     create        Create a new item [aliases: push, add, do, start, new]
-    delete        Delete the current item [aliases: pop, remove, cancel, drop, abandon, retire]
-    delete-all    Delete all items [aliases: purge, pop-all, remove-all, cancel-all, drop-all, abandon-all, retire-
-                  all]
+    delete        Move the current item to "<STACK>_deleted" [aliases: pop, remove, cancel, drop]
+    delete-all    Move all items to "<STACK>_deleted" [aliases: purge, pop-all, remove-all, cancel-all, drop-all]
     head          List the first N items [aliases: top, first]
     help          Prints this message or the help of the given subcommand(s)
-    is-empty      Determine if stack is empty [aliases: empty]
-    length        Count all items [aliases: count, size]
-    list          List all items [aliases: ls, snoop, show, all, list-all]
-    move          Move current item to destination
-    move-all      Move all items to destination stack
-    next          Move the next item to current, and moves current to last [aliases: cycle, punt, bury, later]
-    peek          Peek at the current item (This is the default behavior when no command is given) [aliases: show]
-    pick          Move the specified indices to the top of stack
+    is-empty      "true" if stack has no items, "false" otherwise [aliases: empty]
+    length        Print the stack's length [aliases: count, size]
+    list          List all items [aliases: ls, snoop, show, all]
+    move          Move current item to another stack
+    move-all      Move all items to another stack
+    next          Cycle to the next item; the current item becomes last [aliases: later, cycle, bury]
+    peek          Show the current item (This is the default behavior when no command is given) [aliases: show]
+    pick          Move items to the top of stack by their number
     rot           Rotate the three most-current items [aliases: rotate]
-    swap          Swap the two most current items
+    swap          Swap the two most-current items
     tail          List the last N items [aliases: bottom, last]
 ```
 
@@ -169,36 +167,3 @@ ambitious until stable versions (i.e. >= 1.0) become available.
 
 In the future I plan to provide wrappers through other languages. Also, the
 implementation language is possibly subject to change.
-
-# Similar projects
-
-If sigi doesn't do quite what you want, check out these similar projects. Sigi
-was created before I found these, but some inspiration may be gleaned from them
-for improvement. Most in this list predate sigi by several years.
-
-## Similar CLIs
-
-- [devtodo](https://swapoff.org/devtodo.html) - A hierarchical command-line task manager
-- [dstask](https://github.com/naggie/dstask) - Single binary terminal-based TODO manager with git-based sync + markdown notes per task
-- [grit](https://github.com/climech/grit) - Multitree-based task manager
-- [node-todo-cli](https://www.npmjs.com/package/node-todo-cli) - A command line program that manages todo tasks
-- [py-todo-cli](https://github.com/Mantaseus/Todo-CLI) - A simple command line Todo program written in Python
-- [taskell](https://taskell.app) - Command-line Kanban board/task management
-- [taskwarrior](https://taskwarrior.org) - Taskwarrior is Free and Open Source Software that manages your TODO list from the command line
-- [tax](https://github.com/netgusto/tax) - CLI task list manager
-- [todo cli](https://gitlab.com/bigfiga99/todo-cli) - Todo CLI is a simple program that uses a sqlite3 database to keep track of your tasks
-- [todo.txt](http://todotxt.org) - Future-proof task tracking in a file you control
-
-### Similar CLI Definitions
-
-- gophercises #7: [task](https://github.com/gophercises/task) - TODO CLI definition. (Defines a CLI)
-- [pushpop](https://github.com/secretGeek/pushpop) - "Mental stack manager" definition. (Defines both a GUI and CLI)
-  - See also implementations in [sh](https://paste.sr.ht/~erazemkokot/c6aeb2a7bc25049d08825b3cc7aea63b5cf72a08), [power shell](https://github.com/kberridge/psushpop/blob/master/psushpop.psm1)
-
-## Similar non-CLI apps
-
-- Too many to count. TODO apps are kind of the canonical JavaScript "first big project." They're also ubiquitous in mobile app stores.
-
-## Similar Databases
-
-- [piladb](https://github.com/fern4lvarez/piladb) - Stack-based database. (A working REST API and Database)

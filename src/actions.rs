@@ -3,6 +3,9 @@ use chrono::Local;
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
+const COMPLETED_SUFFIX: &str = "_completed";
+const DELETED_SUFFIX: &str = "_deleted";
+
 /// A stack-manipulation action.
 #[derive(Clone)]
 pub enum Action {
@@ -148,7 +151,7 @@ impl Command {
 fn peek_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "peek",
-        description: "Peek at the current item",
+        description: "Show the current item",
         aliases: vec!["show"],
         input: None,
     }
@@ -186,7 +189,7 @@ fn create(command: &Command, item: &Item) {
 fn complete_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "complete",
-        description: "Mark the current item as successfully completed",
+        description: "Move the current item to \"<STACK>_completed\"",
         aliases: vec!["done", "finish", "fulfill"],
         input: None,
     }
@@ -204,7 +207,7 @@ fn complete(command: &Command) {
             let create_command = Command {
                 action: Create(completed.clone()),
                 noise: NoiseLevel::Silent,
-                stack: command.stack.clone() + "_completed",
+                stack: command.stack.clone() + COMPLETED_SUFFIX,
             };
 
             create(&create_command, &completed);
@@ -216,7 +219,7 @@ fn complete(command: &Command) {
 fn delete_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "delete",
-        description: "Delete the current item",
+        description: "Move the current item to \"<STACK>_deleted\"",
         aliases: vec!["pop", "remove", "cancel", "drop"],
         input: None,
     }
@@ -234,7 +237,7 @@ fn delete(command: &Command) {
             let create_command = Command {
                 action: Create(deleted.clone()),
                 noise: NoiseLevel::Silent,
-                stack: command.stack.clone() + "_deleted",
+                stack: command.stack.clone() + DELETED_SUFFIX,
             };
 
             create(&create_command, &deleted);
@@ -246,7 +249,7 @@ fn delete(command: &Command) {
 fn delete_all_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "delete-all",
-        description: "Delete all items",
+        description: "Move all items to \"<STACK>_deleted\"",
         aliases: vec!["purge", "pop-all", "remove-all", "cancel-all", "drop-all"],
         input: None,
     }
@@ -255,7 +258,7 @@ fn delete_all_data<'a>() -> ActionMetadata<'a> {
 fn delete_all(command: &Command) {
     if !command.stack.ends_with("_deleted") {
         if let Ok(stack) = data::load(&command.stack) {
-            data::save(&(command.stack.clone() + "_deleted"), stack).unwrap();
+            data::save(&(command.stack.clone() + DELETED_SUFFIX), stack).unwrap();
         }
     }
     data::save(&command.stack, vec![]).unwrap()
@@ -381,9 +384,9 @@ fn tail(command: &Command, n: &Option<usize>) {
 fn pick_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "pick",
-        description: "Move the specified indices to the top of stack",
+        description: "Move items to the top of stack by their number",
         aliases: vec![],
-        input: Some(ActionInput::RequiredSlurpy("index")),
+        input: Some(ActionInput::RequiredSlurpy("number")),
     }
 }
 
@@ -422,7 +425,7 @@ fn pick(command: &Command, indices: &[usize]) {
 fn move_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "move",
-        description: "Move current item to destination",
+        description: "Move current item to another stack",
         aliases: vec![],
         input: Some(ActionInput::RequiredSingle("destination")),
     }
@@ -450,7 +453,7 @@ fn move_item(command: &Command, dest_stack: &str) {
 fn move_all_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "move-all",
-        description: "Move all items to destination stack",
+        description: "Move all items to another stack",
         aliases: vec![],
         input: Some(ActionInput::RequiredSingle("destination")),
     }
@@ -478,7 +481,7 @@ fn move_all(command: &Command, dest_stack: &str) {
 fn is_empty_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "is-empty",
-        description: "Determine if stack is empty",
+        description: "\"true\" if stack has no items, \"false\" otherwise",
         aliases: vec!["empty"],
         input: None,
     }
@@ -490,7 +493,7 @@ fn is_empty(command: &Command) {
         command.log("Empty", &is_empty.to_string());
         if !is_empty {
             // TODO: This would be better as an Err, once everything returns Result
-            panic!()
+            std::process::exit(1)
         }
     }
 }
@@ -498,7 +501,7 @@ fn is_empty(command: &Command) {
 fn length_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "length",
-        description: "Count all items",
+        description: "Print the stack's length",
         aliases: vec!["count", "size"],
         input: None,
     }
@@ -513,7 +516,7 @@ fn length(command: &Command) {
 fn next_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "next",
-        description: "Move the next item to current, and moves current to last",
+        description: "Cycle to the next item; the current item becomes last",
         aliases: vec!["later", "cycle", "bury"],
         input: None,
     }
@@ -536,7 +539,7 @@ fn next(command: &Command) {
 fn swap_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "swap",
-        description: "Swap the two most current items",
+        description: "Swap the two most-current items",
         aliases: vec![],
         input: None,
     }
