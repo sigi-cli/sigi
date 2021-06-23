@@ -217,7 +217,7 @@ fn delete_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "delete",
         description: "Delete the current item",
-        aliases: vec!["pop", "remove", "cancel", "drop", "abandon", "retire"],
+        aliases: vec!["pop", "remove", "cancel", "drop"],
         input: None,
     }
 }
@@ -247,15 +247,7 @@ fn delete_all_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "delete-all",
         description: "Delete all items",
-        aliases: vec![
-            "purge",
-            "pop-all",
-            "remove-all",
-            "cancel-all",
-            "drop-all",
-            "abandon-all",
-            "retire-all",
-        ],
+        aliases: vec!["purge", "pop-all", "remove-all", "cancel-all", "drop-all"],
         input: None,
     }
 }
@@ -273,7 +265,7 @@ fn list_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "list",
         description: "List all items",
-        aliases: vec!["ls", "snoop", "show", "all", "list-all"],
+        aliases: vec!["ls", "snoop", "show", "all"],
         input: None,
     }
 }
@@ -522,7 +514,7 @@ fn next_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
         name: "next",
         description: "Move the next item to current, and moves current to last",
-        aliases: vec!["cycle", "punt", "bury", "later"],
+        aliases: vec!["later", "cycle", "bury"],
         input: None,
     }
 }
