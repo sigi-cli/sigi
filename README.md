@@ -13,7 +13,7 @@ Sigi can also be used as a stack-management tool. It can be used as disk-
 persistent stack memory, for example, in a shell script or in Rust code.
 
 ```
-sigi 1.0.1
+sigi 1.1.0
 An organizational tool.
 
 USAGE:
