@@ -213,6 +213,7 @@ fn complete(command: &Command) {
             create(&create_command, &completed);
         }
         data::save(&command.stack, items).unwrap();
+        peek(command);
     }
 }
 
@@ -243,6 +244,7 @@ fn delete(command: &Command) {
             create(&create_command, &deleted);
         }
         data::save(&command.stack, items).unwrap();
+        peek(command);
     }
 }
 
