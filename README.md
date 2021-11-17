@@ -9,9 +9,6 @@ Sigi is an organizing tool.
 It's primarily intended for you to use as extra memory. Use it to organize your
 tasks, groceries, or the next board games you want to play.
 
-Sigi can also be used as a stack-management tool. It can be used as disk-
-persistent stack memory, for example, in a shell script or in Rust code.
-
 ```
 sigi 1.1.0
 An organizational tool.
@@ -156,14 +153,5 @@ Instructions on installing cargo can be found here:
 
 - https://doc.rust-lang.org/cargo/getting-started/installation.html
 
-In the future I plan to distribute sigi through more package managers.
-
-# Library
-
-Sigi is available as a Rust library via [crates.io](https://crates.io/crates/sigi).
-
-It is still in active, unstable development, so I suggest not doing anything
-ambitious until stable versions (i.e. >= 1.0) become available.
-
-In the future I plan to provide wrappers through other languages. Also, the
-implementation language is possibly subject to change.
+Please package it up for your Linux/BSD/etc distribution. And open an issue
+to let us know (and/or work on man pages)!
