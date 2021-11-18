@@ -2,11 +2,12 @@ use std::error::Error;
 use std::io::ErrorKind;
 use std::{env, fs, path::Path};
 
-// TODO: Alternate backends? Right now it's just JSON files. Maybe SQLite? PilaDB?
-//       Something new? Daemon(s) could prevent many loads and handle locking.
+// TODO: Alternate backends:
+//       - Redis
+//       - SQLite
+//       - The existing version (JSON via Serde)
 // TODO: Configurable data location?
 // TODO: Allow an idea of "stack of stacks"
-// TODO: Figure out a good naming algorithm (maybe numeric?)
 
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};

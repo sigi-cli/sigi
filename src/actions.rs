@@ -69,7 +69,8 @@ pub struct ActionMetadata<'a> {
 }
 
 impl Action {
-    // TODO: Something's screwy with this interface. Probably there needs to be a different no-args-only enum?.
+    // TODO: Something's screwy with this interface.
+    //       I think what I really want is a trait, and let each action implement it.
     pub fn data<'a>(&self) -> ActionMetadata<'a> {
         match &self {
             Peek => peek_data(),
