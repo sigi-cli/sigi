@@ -1,4 +1,4 @@
 /// Run the CLI
 fn main() {
-    sigi::cli::get_action().act()
+    sigi::cli::parse_command().act()
 }

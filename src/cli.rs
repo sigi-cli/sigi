@@ -1,4 +1,4 @@
-use crate::actions::{Action, ActionInput, ActionMetadata, Command, NoiseLevel};
+use crate::actions::{Action, ActionInput, ActionMetadata, Command, NoiseLevel, OutputFormat};
 use crate::data::Item;
 use clap::{App, Arg, SubCommand};
 use Action::*;
@@ -10,7 +10,7 @@ pub const SIGI_VERSION: &str = "1.1.0";
 const DEFAULT_STACK_NAME: &str = "sigi";
 
 /// Parses command line arguments and returns a single `sigi::actions::Command`.
-pub fn get_action() -> Command {
+pub fn parse_command() -> Command {
     let peek = Peek.data();
     let create = Create(Item::new(""));
     let head = Head(None);
@@ -49,6 +49,13 @@ pub fn get_action() -> Command {
                 .long("verbose")
                 .visible_alias("noisy")
                 .help("Print more information, like when an item was created."),
+        )
+        .arg(
+            Arg::with_name("format")
+                .short("f")
+                .long("format")
+                .takes_value(true)
+                .help("Use a programmatic format. Options include [csv, json, tsv]. Not compatible with quiet/silent/verbose.")
         )
         .subcommands(
             vec![
@@ -141,20 +148,29 @@ pub fn get_action() -> Command {
         .unwrap_or(DEFAULT_STACK_NAME)
         .to_owned();
 
-    let noise = if matches.is_present("verbose") {
-        NoiseLevel::Verbose
+    let default_format = OutputFormat::Human(NoiseLevel::Normal);
+
+    let format = if matches.is_present("verbose") {
+        OutputFormat::Human(NoiseLevel::Verbose)
     } else if matches.is_present("silent") {
-        NoiseLevel::Silent
+        OutputFormat::Silent
     } else if matches.is_present("quiet") {
-        NoiseLevel::Quiet
+        OutputFormat::Human(NoiseLevel::Quiet)
+    } else if let Some(fmt) = matches.value_of("format") {
+        match fmt {
+            "csv" => OutputFormat::CSV,
+            "json" => OutputFormat::JSON,
+            "tsv" => OutputFormat::TSV,
+            _ => default_format,
+        }
     } else {
-        NoiseLevel::Normal
+        default_format
     };
 
     Command {
         action,
         stack,
-        noise,
+        format,
     }
 }
 

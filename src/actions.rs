@@ -93,13 +93,21 @@ impl Action {
     }
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum OutputFormat {
+    CSV,
+    Human(NoiseLevel),
+    JSON,
+    Silent,
+    TSV,
+}
+
 /// How much noise (verbosity) should be used when printing to standard output.
 #[derive(Clone, Copy, PartialEq)]
 pub enum NoiseLevel {
     Verbose,
     Normal,
     Quiet,
-    Silent,
 }
 
 /// A stack-manipulation command.
@@ -110,8 +118,8 @@ pub struct Command {
     pub action: Action,
     /// The stack identifier.
     pub stack: String,
-    /// Determines how much should be printed to standard output.
-    pub noise: NoiseLevel,
+    /// Determines what should be printed to standard output.
+    pub format: OutputFormat,
 }
 
 impl Command {
@@ -138,11 +146,16 @@ impl Command {
 
     // TODO: Actually use a logger. (Are there any that don't explode binary size?)
     pub fn log(&self, label: &str, message: &str) {
-        match self.noise {
-            NoiseLevel::Verbose => println!("[Stack: {}] {}: {}", self.stack, label, message),
-            NoiseLevel::Normal => println!("{}: {}", label, message),
-            NoiseLevel::Quiet => println!("{}", message),
-            NoiseLevel::Silent => {}
+        match self.format {
+            OutputFormat::CSV => println!("csv"),
+            OutputFormat::Human(noise) => match noise {
+                NoiseLevel::Verbose => println!("[Stack: {}] {}: {}", self.stack, label, message),
+                NoiseLevel::Normal => println!("{}: {}", label, message),
+                NoiseLevel::Quiet => println!("{}", message),
+            },
+            OutputFormat::JSON => println!("json"),
+            OutputFormat::Silent => {}
+            OutputFormat::TSV => println!("tsv"),
         }
     }
 }
@@ -207,7 +220,7 @@ fn complete(command: &Command) {
 
             let create_command = Command {
                 action: Create(completed.clone()),
-                noise: NoiseLevel::Silent,
+                format: OutputFormat::Silent,
                 stack: command.stack.clone() + COMPLETED_SUFFIX,
             };
 
@@ -238,7 +251,7 @@ fn delete(command: &Command) {
 
             let create_command = Command {
                 action: Create(deleted.clone()),
-                noise: NoiseLevel::Silent,
+                format: OutputFormat::Silent,
                 stack: command.stack.clone() + DELETED_SUFFIX,
             };
 
@@ -277,7 +290,7 @@ fn list_data<'a>() -> ActionMetadata<'a> {
 }
 
 fn list(command: &Command) {
-    if let NoiseLevel::Silent = command.noise {
+    if let OutputFormat::Silent = command.format {
         return;
     }
 
@@ -301,13 +314,13 @@ fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
 
     let mut stack = stack;
     stack.reverse();
-    if NoiseLevel::Quiet == command.noise {
+    if OutputFormat::Human(NoiseLevel::Quiet) == command.format {
         stack.iter().for_each(|item| println!("{}", item.name));
         return;
     }
 
-    let description_of = |item: &Item| match command.noise {
-        NoiseLevel::Verbose => {
+    let description_of = |item: &Item| match command.format {
+        OutputFormat::Human(NoiseLevel::Verbose) => {
             let name = &item.name;
             let created = format_time_for_humans(item.created);
             let succeeded = item
@@ -351,7 +364,7 @@ fn head_data<'a>() -> ActionMetadata<'a> {
 }
 
 fn head(command: &Command, n: &Option<usize>) {
-    if let NoiseLevel::Silent = command.noise {
+    if let OutputFormat::Silent = command.format {
         return;
     }
 
@@ -371,7 +384,7 @@ fn tail_data<'a>() -> ActionMetadata<'a> {
 }
 
 fn tail(command: &Command, n: &Option<usize>) {
-    if let NoiseLevel::Silent = command.noise {
+    if let OutputFormat::Silent = command.format {
         return;
     }
 
@@ -420,7 +433,7 @@ fn pick(command: &Command, indices: &[usize]) {
         let picked_n = Some(seen.len());
         let head_cmd = Command {
             action: Action::Head(picked_n),
-            noise: command.noise,
+            format: command.format,
             stack: command.stack.clone(),
         };
         head(&head_cmd, &picked_n);
@@ -447,7 +460,7 @@ fn move_item(command: &Command, dest_stack: &str) {
 
             let command = Command {
                 action: Create(item.clone()),
-                noise: NoiseLevel::Silent,
+                format: OutputFormat::Silent,
                 stack: String::from(dest_stack),
             };
             create(&command, &item);
