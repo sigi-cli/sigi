@@ -1,5 +1,5 @@
 use crate::{data, data::Item, data::Stack};
-use chrono::Local;
+use chrono::{DateTime, Local};
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
@@ -309,16 +309,18 @@ fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
     let description_of = |item: &Item| match command.noise {
         NoiseLevel::Verbose => {
             let name = &item.name;
+            let created = format_time_for_humans(item.created);
+            let succeeded = item
+                .succeeded
+                .map(format_time_for_humans)
+                .unwrap_or_else(|| "N/A".to_string());
+            let deleted = item
+                .failed
+                .map(format_time_for_humans)
+                .unwrap_or_else(|| "N/A".to_string());
             format!(
-                "{} | Created: {} | Completed: {} | Deleted: {}",
-                name,
-                item.created,
-                item.succeeded
-                    .map(|d| d.to_string())
-                    .unwrap_or_else(|| "N/A".to_string()),
-                item.failed
-                    .map(|d| d.to_string())
-                    .unwrap_or_else(|| "N/A".to_string())
+                "{} (Created: {} | Completed: {} | Deleted: {})",
+                name, created, succeeded, deleted
             )
         }
         _ => item.name.to_string(),
@@ -590,4 +592,9 @@ fn rot(command: &Command) {
         data::save(&command.stack, items).unwrap();
         head(command, &Some(3));
     }
+}
+
+fn format_time_for_humans(dt: DateTime<Local>) -> String {
+    // TODO: Does this work for all locales?
+    dt.to_rfc2822()
 }
