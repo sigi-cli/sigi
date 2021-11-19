@@ -155,3 +155,11 @@ Instructions on installing cargo can be found here:
 
 Please package it up for your Linux/BSD/etc distribution. And open an issue
 to let us know (and/or work on man pages)!
+
+# More
+
+Please [open an issue](https://github.com/hiljusti/sigi/issues) if you see
+bugs or have ideas! Use [our wiki](https://github.com/hiljusti/sigi/wiki) to
+see and share tips, tricks, and examples.
+
+Thanks for checking it out!
