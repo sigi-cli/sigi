@@ -47,6 +47,7 @@ pub fn get_action() -> Command {
             Arg::with_name("verbose")
                 .short("v")
                 .long("verbose")
+                .visible_alias("noisy")
                 .help("Print more information, like when an item was created."),
         )
         .subcommands(
