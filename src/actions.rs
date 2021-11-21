@@ -1,3 +1,4 @@
+use crate::output::{NoiseLevel, OutputFormat};
 use crate::{data, data::Item, data::Stack};
 use chrono::{DateTime, Local};
 
@@ -10,77 +11,13 @@ pub trait StackEffect {
     fn run(&self, output: OutputFormat);
 }
 
-/// Output formats supported by Sigi.
-#[derive(Clone, Copy, PartialEq)]
-pub enum OutputFormat {
-    /// Comma-separated values.
-    CSV,
-    /// Human readable formats. Accepts a "noise level" for how much to output.
-    Human(NoiseLevel),
-    /// JSON (JavaScript Object Notation).
-    JSON,
-    /// Print nothing at all.
-    Silent,
-    /// Tab-separated values.
-    TSV,
-}
-
-impl OutputFormat {
-    fn log(&self, labels: Vec<&str>, values: Vec<Vec<&str>>) {
-        let joining = |sep: &str| {
-            let sep = sep.to_string();
-            return move |tokens: Vec<&str>| tokens.join(&sep);
-        };
-        match &self {
-            OutputFormat::CSV => {
-                let csv = joining(",");
-                println!("{}", csv(labels));
-                values
-                    .into_iter()
-                    .for_each(|line| println!("{}", csv(line)))
-            }
-            OutputFormat::Human(noise) => match noise {
-                NoiseLevel::Verbose => {
-                    // Print all values separated by a single space.
-                    values
-                        .into_iter()
-                        .for_each(|line| println!("{}", line.join(" ")));
-                }
-                NoiseLevel::Normal => {
-                    // Print only first two values (num, item) separated by a single space.
-                    values.into_iter().for_each(|line| {
-                        println!("{}", line.into_iter().take(2).collect::<Vec<_>>().join(" "))
-                    });
-                }
-                NoiseLevel::Quiet => values.into_iter().for_each(|line| {
-                    // Print only second value (item) separated by a single space.
-                    if let Some(message) = line.get(1) {
-                        println!("{}", message);
-                    }
-                }),
-            },
-            OutputFormat::JSON => {
-                println!("json: TODO")
-            }
-            OutputFormat::Silent => (),
-            OutputFormat::TSV => {
-                let tsv = joining("\t");
-                println!("{}", tsv(labels));
-                values
-                    .into_iter()
-                    .for_each(|line| println!("{}", tsv(line)))
-            }
-        }
-    }
-}
-
 pub struct EffectNames {
     pub name: &'static str,
     pub description: &'static str,
     pub aliases: &'static [&'static str],
 }
 
-const PEEK_ALIASES: [&'static str; 1] = ["show"];
+const PEEK_ALIASES: [&str; 1] = ["show"];
 const PEEK_NAMES: EffectNames = EffectNames {
     name: "peek",
     description: "Show the current item",
@@ -197,14 +134,6 @@ impl Action {
     }
 }
 
-/// How much noise (verbosity) should be used when printing to standard output.
-#[derive(Clone, Copy, PartialEq)]
-pub enum NoiseLevel {
-    Verbose,
-    Normal,
-    Quiet,
-}
-
 /// A stack-manipulation command.
 ///
 /// _Note: This is fairly tied to the CLI paradigm and will likely change._
@@ -242,15 +171,15 @@ impl Command {
     // TODO: Actually use a logger. (Are there any that don't explode binary size?)
     pub fn log(&self, label: &str, message: &str) {
         match self.format {
-            OutputFormat::CSV => println!("csv: TODO"),
+            OutputFormat::Csv => println!("csv: TODO"),
             OutputFormat::Human(noise) => match noise {
                 NoiseLevel::Verbose => println!("[Stack: {}] {}: {}", self.stack, label, message),
                 NoiseLevel::Normal => println!("{}: {}", label, message),
                 NoiseLevel::Quiet => println!("{}", message),
             },
-            OutputFormat::JSON => println!("json: TODO"),
+            OutputFormat::Json => println!("json: TODO"),
             OutputFormat::Silent => {}
-            OutputFormat::TSV => println!("tsv: TODO"),
+            OutputFormat::Tsv => println!("tsv: TODO"),
         }
     }
 }

@@ -22,3 +22,6 @@ pub mod cli;
 
 /// The item, stack, and persistence implementation.
 pub mod data;
+
+/// The printing implementation.
+pub mod output;

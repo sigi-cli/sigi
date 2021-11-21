@@ -1,4 +1,5 @@
-use crate::actions::{Action, ActionInput, ActionMetadata, Command, NoiseLevel, OutputFormat};
+use crate::actions::{Action, ActionInput, ActionMetadata, Command};
+use crate::output::{NoiseLevel, OutputFormat};
 use crate::data::Item;
 use clap::{App, Arg, ArgMatches, SubCommand};
 use std::iter;
@@ -166,9 +167,9 @@ fn get_format(matches: ArgMatches) -> OutputFormat {
         OutputFormat::Human(NoiseLevel::Quiet)
     } else if let Some(fmt) = matches.value_of("format") {
         match fmt {
-            "csv" => OutputFormat::CSV,
-            "json" => OutputFormat::JSON,
-            "tsv" => OutputFormat::TSV,
+            "csv" => OutputFormat::Csv,
+            "json" => OutputFormat::Json,
+            "tsv" => OutputFormat::Tsv,
             _ => default_format,
         }
     } else {
