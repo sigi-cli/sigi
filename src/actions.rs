@@ -3,6 +3,112 @@ use chrono::{DateTime, Local};
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
+// ===== V2 stuff now =====
+
+pub trait StackEffect {
+    fn names() -> EffectNames;
+    fn run(&self, output: OutputFormat);
+}
+
+/// Output formats supported by Sigi.
+#[derive(Clone, Copy, PartialEq)]
+pub enum OutputFormat {
+    /// Comma-separated values.
+    CSV,
+    /// Human readable formats. Accepts a "noise level" for how much to output.
+    Human(NoiseLevel),
+    /// JSON (JavaScript Object Notation).
+    JSON,
+    /// Print nothing at all.
+    Silent,
+    /// Tab-separated values.
+    TSV,
+}
+
+impl OutputFormat {
+    fn log(&self, labels: Vec<&str>, values: Vec<Vec<&str>>) {
+        let joining = |sep: &str| {
+            let sep = sep.to_string();
+            return move |tokens: Vec<&str>| tokens.join(&sep);
+        };
+        match &self {
+            OutputFormat::CSV => {
+                let csv = joining(",");
+                println!("{}", csv(labels));
+                values
+                    .into_iter()
+                    .for_each(|line| println!("{}", csv(line)))
+            }
+            OutputFormat::Human(noise) => match noise {
+                NoiseLevel::Verbose => {
+                    // Print all values separated by a single space.
+                    values
+                        .into_iter()
+                        .for_each(|line| println!("{}", line.join(" ")));
+                }
+                NoiseLevel::Normal => {
+                    // Print only first two values (num, item) separated by a single space.
+                    values.into_iter().for_each(|line| {
+                        println!("{}", line.into_iter().take(2).collect::<Vec<_>>().join(" "))
+                    });
+                }
+                NoiseLevel::Quiet => values.into_iter().for_each(|line| {
+                    // Print only second value (item) separated by a single space.
+                    if let Some(message) = line.get(1) {
+                        println!("{}", message);
+                    }
+                }),
+            },
+            OutputFormat::JSON => {
+                println!("json: TODO")
+            }
+            OutputFormat::Silent => (),
+            OutputFormat::TSV => {
+                let tsv = joining("\t");
+                println!("{}", tsv(labels));
+                values
+                    .into_iter()
+                    .for_each(|line| println!("{}", tsv(line)))
+            }
+        }
+    }
+}
+
+pub struct EffectNames {
+    pub name: &'static str,
+    pub description: &'static str,
+    pub aliases: &'static [&'static str],
+}
+
+const PEEK_ALIASES: [&'static str; 1] = ["show"];
+const PEEK_NAMES: EffectNames = EffectNames {
+    name: "peek",
+    description: "Show the current item",
+    aliases: &PEEK_ALIASES,
+};
+
+pub struct StackPeek {
+    stack: String,
+}
+
+impl StackEffect for StackPeek {
+    fn names() -> EffectNames {
+        PEEK_NAMES
+    }
+    fn run(&self, output: OutputFormat) {
+        if let Ok(items) = data::load(&self.stack) {
+            if !items.is_empty() {
+                output.log(
+                    vec!["num", "item"],
+                    vec![vec!["Now", &items.last().unwrap().name]],
+                );
+            }
+        }
+    }
+}
+
+// ===== V1 stuff below =====
+
 const COMPLETED_SUFFIX: &str = "_completed";
 const DELETED_SUFFIX: &str = "_deleted";
 
@@ -69,8 +175,6 @@ pub struct ActionMetadata<'a> {
 }
 
 impl Action {
-    // TODO: Something's screwy with this interface.
-    //       I think what I really want is a trait, and let each action implement it.
     pub fn data<'a>(&self) -> ActionMetadata<'a> {
         match &self {
             Peek => peek_data(),
@@ -91,15 +195,6 @@ impl Action {
             Rot => rot_data(),
         }
     }
-}
-
-#[derive(Clone, Copy, PartialEq)]
-pub enum OutputFormat {
-    CSV,
-    Human(NoiseLevel),
-    JSON,
-    Silent,
-    TSV,
 }
 
 /// How much noise (verbosity) should be used when printing to standard output.
@@ -147,15 +242,15 @@ impl Command {
     // TODO: Actually use a logger. (Are there any that don't explode binary size?)
     pub fn log(&self, label: &str, message: &str) {
         match self.format {
-            OutputFormat::CSV => println!("csv"),
+            OutputFormat::CSV => println!("csv: TODO"),
             OutputFormat::Human(noise) => match noise {
                 NoiseLevel::Verbose => println!("[Stack: {}] {}: {}", self.stack, label, message),
                 NoiseLevel::Normal => println!("{}: {}", label, message),
                 NoiseLevel::Quiet => println!("{}", message),
             },
-            OutputFormat::JSON => println!("json"),
+            OutputFormat::JSON => println!("json: TODO"),
             OutputFormat::Silent => {}
-            OutputFormat::TSV => println!("tsv"),
+            OutputFormat::TSV => println!("tsv: TODO"),
         }
     }
 }
@@ -164,19 +259,18 @@ impl Command {
 
 fn peek_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
-        name: "peek",
-        description: "Show the current item",
-        aliases: vec!["show"],
+        name: StackPeek::names().name,
+        description: StackPeek::names().description,
+        aliases: StackPeek::names().aliases.to_vec(),
         input: None,
     }
 }
 
 fn peek(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        if !items.is_empty() {
-            command.log("Now", &items.last().unwrap().name)
-        }
+    StackPeek {
+        stack: command.stack.clone(),
     }
+    .run(command.format);
 }
 
 fn create_data<'a>() -> ActionMetadata<'a> {
