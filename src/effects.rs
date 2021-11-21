@@ -29,10 +29,11 @@ impl StackEffect for Peek {
     }
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
+            let top_item = &items.last().unwrap().name;
             if !items.is_empty() {
                 output.log(
                     vec!["num", "item"],
-                    vec![vec!["Now:", &items.last().unwrap().name]],
+                    vec![vec!["Now:", top_item]],
                 );
             }
         }
