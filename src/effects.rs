@@ -12,11 +12,10 @@ pub struct EffectNames {
     pub aliases: &'static [&'static str],
 }
 
-const PEEK_ALIASES: [&str; 1] = ["show"];
 const PEEK_NAMES: EffectNames = EffectNames {
     name: "peek",
     description: "Show the current item",
-    aliases: &PEEK_ALIASES,
+    aliases: &["show"],
 };
 
 pub struct Peek {
