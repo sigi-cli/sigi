@@ -1,50 +1,9 @@
 use crate::output::{NoiseLevel, OutputFormat};
 use crate::{data, data::Item, data::Stack};
+use crate::{effects, effects::StackEffect};
 use chrono::{DateTime, Local};
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
-
-// ===== V2 stuff now =====
-
-pub trait StackEffect {
-    fn names() -> EffectNames;
-    fn run(&self, output: OutputFormat);
-}
-
-pub struct EffectNames {
-    pub name: &'static str,
-    pub description: &'static str,
-    pub aliases: &'static [&'static str],
-}
-
-const PEEK_ALIASES: [&str; 1] = ["show"];
-const PEEK_NAMES: EffectNames = EffectNames {
-    name: "peek",
-    description: "Show the current item",
-    aliases: &PEEK_ALIASES,
-};
-
-pub struct StackPeek {
-    stack: String,
-}
-
-impl StackEffect for StackPeek {
-    fn names() -> EffectNames {
-        PEEK_NAMES
-    }
-    fn run(&self, output: OutputFormat) {
-        if let Ok(items) = data::load(&self.stack) {
-            if !items.is_empty() {
-                output.log(
-                    vec!["num", "item"],
-                    vec![vec!["Now", &items.last().unwrap().name]],
-                );
-            }
-        }
-    }
-}
-
-// ===== V1 stuff below =====
 
 const COMPLETED_SUFFIX: &str = "_completed";
 const DELETED_SUFFIX: &str = "_deleted";
@@ -188,15 +147,15 @@ impl Command {
 
 fn peek_data<'a>() -> ActionMetadata<'a> {
     ActionMetadata {
-        name: StackPeek::names().name,
-        description: StackPeek::names().description,
-        aliases: StackPeek::names().aliases.to_vec(),
+        name: effects::Peek::names().name,
+        description: effects::Peek::names().description,
+        aliases: effects::Peek::names().aliases.to_vec(),
         input: None,
     }
 }
 
 fn peek(command: &Command) {
-    StackPeek {
+    effects::Peek {
         stack: command.stack.clone(),
     }
     .run(command.format);

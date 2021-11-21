@@ -14,8 +14,11 @@
 
 // TODO: Add guidance and examples for using sigi as a library.
 
-/// The main interface of Sigi, stack (and stack-adjacent) actions.
+/// (V1) The main interface of Sigi, stack (and stack-adjacent) actions.
 pub mod actions;
+
+/// (V2) The main interface of Sigi, stack (and stack-adjacent) actions.
+pub mod effects;
 
 /// The CLI implementation.
 pub mod cli;
