@@ -43,9 +43,11 @@ impl OutputFormat {
                         .for_each(|line| println!("{}", line.join(" ")));
                 }
                 NoiseLevel::Normal => {
-                    // Print only first two values (num, item) separated by a single space.
+                    // Print only first two values e.g. (num, item) separated by a single space.
                     values.into_iter().for_each(|line| {
-                        println!("{}", line.into_iter().take(2).collect::<Vec<_>>().join(" "))
+                        if let (Some(label), Some(item)) = (line.get(0), line.get(1)) {
+                            println!("{}: {}", label, item);
+                        }
                     });
                 }
                 NoiseLevel::Quiet => values.into_iter().for_each(|line| {

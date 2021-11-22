@@ -1,6 +1,6 @@
 use crate::actions::{Action, ActionInput, ActionMetadata, Command};
-use crate::output::{NoiseLevel, OutputFormat};
 use crate::data::Item;
+use crate::output::{NoiseLevel, OutputFormat};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use std::iter;
 use Action::*;

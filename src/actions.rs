@@ -5,9 +5,6 @@ use chrono::{DateTime, Local};
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
-const COMPLETED_SUFFIX: &str = "_completed";
-const DELETED_SUFFIX: &str = "_deleted";
-
 /// A stack-manipulation action.
 #[derive(Clone)]
 pub enum Action {
@@ -145,13 +142,20 @@ impl Command {
 
 // TODO: Make command processors return `Result<(), Error>`. Many error cases are not covered (e.g. create with no content)
 
-fn peek_data<'a>() -> ActionMetadata<'a> {
+fn effect_to_old_action_metadata<'a>(
+    get_names: impl Fn() -> effects::EffectNames<'a>,
+    input: Option<ActionInput<'a>>,
+) -> ActionMetadata<'a> {
     ActionMetadata {
-        name: effects::Peek::names().name,
-        description: effects::Peek::names().description,
-        aliases: effects::Peek::names().aliases.to_vec(),
-        input: None,
+        name: get_names().name,
+        description: get_names().description,
+        aliases: get_names().aliases.to_vec(),
+        input,
     }
+}
+
+fn peek_data<'a>() -> ActionMetadata<'a> {
+    effect_to_old_action_metadata(effects::Peek::names, None)
 }
 
 fn peek(command: &Command) {
@@ -162,104 +166,51 @@ fn peek(command: &Command) {
 }
 
 fn create_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "create",
-        description: "Create a new item",
-        aliases: vec!["push", "add", "do", "start", "new"],
-        input: Some(ActionInput::RequiredSlurpy("item")),
-    }
+    effect_to_old_action_metadata(
+        effects::Push::names,
+        Some(ActionInput::RequiredSlurpy("item")),
+    )
 }
 
 fn create(command: &Command, item: &Item) {
-    if let Ok(items) = data::load(&command.stack) {
-        let mut items = items;
-        items.push(item.clone());
-        data::save(&command.stack, items).unwrap();
-        command.log("Created", &item.name);
-    } else {
-        data::save(&command.stack, vec![item.clone()]).unwrap();
-        command.log("Created", &item.name);
+    effects::Push {
+        stack: command.stack.clone(),
+        item: item.clone(),
     }
+    .run(command.format);
 }
 
 fn complete_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "complete",
-        description: "Move the current item to \"<STACK>_completed\"",
-        aliases: vec!["done", "finish", "fulfill"],
-        input: None,
-    }
+    effect_to_old_action_metadata(effects::Complete::names, None)
 }
 
 fn complete(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        let mut items = items;
-        if let Some(completed) = items.pop() {
-            command.log("Completed", &completed.name);
-
-            let mut completed = completed;
-            completed.succeeded = Some(Local::now());
-
-            let create_command = Command {
-                action: Create(completed.clone()),
-                format: OutputFormat::Silent,
-                stack: command.stack.clone() + COMPLETED_SUFFIX,
-            };
-
-            create(&create_command, &completed);
-        }
-        data::save(&command.stack, items).unwrap();
-        peek(command);
+    effects::Complete {
+        stack: command.stack.clone(),
     }
+    .run(command.format);
 }
 
 fn delete_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "delete",
-        description: "Move the current item to \"<STACK>_deleted\"",
-        aliases: vec!["pop", "remove", "cancel", "drop"],
-        input: None,
-    }
+    effect_to_old_action_metadata(effects::Delete::names, None)
 }
 
 fn delete(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        let mut items = items;
-        if let Some(deleted) = items.pop() {
-            command.log("Deleted", &deleted.name);
-
-            let mut deleted = deleted;
-            deleted.failed = Some(Local::now());
-
-            let create_command = Command {
-                action: Create(deleted.clone()),
-                format: OutputFormat::Silent,
-                stack: command.stack.clone() + DELETED_SUFFIX,
-            };
-
-            create(&create_command, &deleted);
-        }
-        data::save(&command.stack, items).unwrap();
-        peek(command);
+    effects::Delete {
+        stack: command.stack.clone(),
     }
+    .run(command.format);
 }
 
 fn delete_all_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "delete-all",
-        description: "Move all items to \"<STACK>_deleted\"",
-        aliases: vec!["purge", "pop-all", "remove-all", "cancel-all", "drop-all"],
-        input: None,
-    }
+    effect_to_old_action_metadata(effects::DeleteAll::names, None)
 }
 
 fn delete_all(command: &Command) {
-    if !command.stack.ends_with("_deleted") {
-        if let Ok(stack) = data::load(&command.stack) {
-            data::save(&(command.stack.clone() + DELETED_SUFFIX), stack).unwrap();
-        }
+    effects::DeleteAll {
+        stack: command.stack.clone()
     }
-    data::save(&command.stack, vec![]).unwrap()
+    .run(command.format);
 }
 
 fn list_data<'a>() -> ActionMetadata<'a> {
@@ -297,28 +248,26 @@ fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
     let mut stack = stack;
     stack.reverse();
     if OutputFormat::Human(NoiseLevel::Quiet) == command.format {
-        stack.iter().for_each(|item| println!("{}", item.name));
+        stack.iter().for_each(|item| println!("{}", item.contents));
         return;
     }
 
     let description_of = |item: &Item| match command.format {
         OutputFormat::Human(NoiseLevel::Verbose) => {
-            let name = &item.name;
-            let created = format_time_for_humans(item.created);
-            let succeeded = item
-                .succeeded
-                .map(format_time_for_humans)
-                .unwrap_or_else(|| "N/A".to_string());
-            let deleted = item
-                .failed
-                .map(format_time_for_humans)
-                .unwrap_or_else(|| "N/A".to_string());
-            format!(
-                "{} (Created: {} | Completed: {} | Deleted: {})",
-                name, created, succeeded, deleted
-            )
+            let name = &item.contents;
+            let history = item
+                .history
+                .iter()
+                .map(|(status, datetime)| {
+                    let status = status.chars().take(1).collect::<String>().to_uppercase()
+                        + &status.chars().skip(1).collect::<String>().to_lowercase();
+                    format!("{}: {}", status, format_time_for_humans(*datetime))
+                })
+                .collect::<Vec<_>>()
+                .join(" | ");
+            format!("{} ({})", name, history)
         }
-        _ => item.name.to_string(),
+        _ => item.contents.to_string(),
     };
 
     let (start, n) = if from == 0 {
