@@ -90,7 +90,6 @@ impl StackEffect for Complete {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
             if let Some(item) = items.pop() {
-
                 let mut item = item;
                 item.mark_completed();
 
@@ -198,11 +197,65 @@ impl StackEffect for DeleteAll {
 
             // Save the original stack as empty now.
             data::save(&self.stack, vec![]).unwrap();
-            
+
             output.log(
                 vec!["action", "item"],
                 vec![vec!["Deleted", &format!("{} items", items.len())]],
             );
+        }
+    }
+}
+
+// ===== ListAll =====
+
+pub struct ListAll {
+    pub stack: String,
+}
+
+impl StackEffect for ListAll {
+    fn names<'a>() -> EffectNames<'a> {
+        EffectNames {
+            name: "list",
+            description: "List all items",
+            aliases: &["ls", "snoop", "show", "all"],
+        }
+    }
+
+    fn run(&self, output: OutputFormat) {
+        if let Ok(items) = data::load(&self.stack) {
+            let lines = items
+                .into_iter()
+                .enumerate()
+                .map(|(i, item)| {
+                    let position = match output {
+                        // Pad human output numbers to line up nicely with "Now".
+                        OutputFormat::Human(_) => match i {
+                            0 => "Now".to_string(),
+                            1..=9 => format!("  {}", i),
+                            10..=099 => format!(" {}", i),
+                            _ => i.to_string(),
+                        },
+                        _ => i.to_string(),
+                    };
+
+                    let created = item
+                        .history
+                        .iter()
+                        .find(|(status, _)| status == "created")
+                        .map(|(_, dt)| dt.to_string())
+                        .unwrap_or("unknown".to_string());
+
+                    vec![position, item.contents, created]
+                })
+                .collect::<Vec<_>>();
+
+            // Get the lines into a "borrow" state (&str instead of String) to make log happy.
+            let lines = lines
+                .iter()
+                .map(|line| line.iter().map(|s| s.as_str()).collect())
+                .collect();
+
+            output.log(vec!["position", "item", "created"], lines);
         }
     }
 }

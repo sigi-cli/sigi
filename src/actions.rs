@@ -208,29 +208,20 @@ fn delete_all_data<'a>() -> ActionMetadata<'a> {
 
 fn delete_all(command: &Command) {
     effects::DeleteAll {
-        stack: command.stack.clone()
+        stack: command.stack.clone(),
     }
     .run(command.format);
 }
 
 fn list_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "list",
-        description: "List all items",
-        aliases: vec!["ls", "snoop", "show", "all"],
-        input: None,
-    }
+    effect_to_old_action_metadata(effects::ListAll::names, None)
 }
 
 fn list(command: &Command) {
-    if let OutputFormat::Silent = command.format {
-        return;
+    effects::ListAll {
+        stack: command.stack.clone(),
     }
-
-    if let Ok(stack) = data::load(&command.stack) {
-        let len = stack.len();
-        list_range(command, stack, 0, len);
-    }
+    .run(command.format);
 }
 
 fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
