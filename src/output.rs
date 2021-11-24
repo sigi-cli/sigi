@@ -47,6 +47,8 @@ impl OutputFormat {
                     values.into_iter().for_each(|line| {
                         if let (Some(label), Some(item)) = (line.get(0), line.get(1)) {
                             println!("{}: {}", label, item);
+                        } else if let Some(info) = line.get(0) {
+                            println!("{}", info);
                         }
                     });
                 }

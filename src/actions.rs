@@ -1,7 +1,6 @@
 use crate::output::{NoiseLevel, OutputFormat};
-use crate::{data, data::Item, data::Stack};
+use crate::{data, data::Item};
 use crate::{effects, effects::StackEffect};
-use chrono::{DateTime, Local};
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
@@ -224,101 +223,28 @@ fn list(command: &Command) {
     .run(command.format);
 }
 
-fn list_range(command: &Command, stack: Stack, from: usize, n: usize) {
-    // Checks for NoiseLevel::Silent should happen in calling functions. (To avoid potentially costly load of stack)
-
-    if n == 0 {
-        return;
-    }
-
-    if stack.is_empty() {
-        command.log("None", "");
-        return;
-    }
-
-    let mut stack = stack;
-    stack.reverse();
-    if OutputFormat::Human(NoiseLevel::Quiet) == command.format {
-        stack.iter().for_each(|item| println!("{}", item.contents));
-        return;
-    }
-
-    let description_of = |item: &Item| match command.format {
-        OutputFormat::Human(NoiseLevel::Verbose) => {
-            let name = &item.contents;
-            let history = item
-                .history
-                .iter()
-                .map(|(status, datetime)| {
-                    let status = status.chars().take(1).collect::<String>().to_uppercase()
-                        + &status.chars().skip(1).collect::<String>().to_lowercase();
-                    format!("{}: {}", status, format_time_for_humans(*datetime))
-                })
-                .collect::<Vec<_>>()
-                .join(" | ");
-            format!("{} ({})", name, history)
-        }
-        _ => item.contents.to_string(),
-    };
-
-    let (start, n) = if from == 0 {
-        println!("Now: {}", description_of(&stack[0]));
-        (1, n - 1)
-    } else {
-        (from, n)
-    };
-
-    stack
-        .iter()
-        .enumerate()
-        .skip(start)
-        .take(n)
-        .for_each(|(n, item)| println!("{: >3}: {}", n, description_of(item)));
-}
-
 fn head_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "head",
-        description: "List the first N items",
-        aliases: vec!["top", "first"],
-        input: Some(ActionInput::OptionalSingle("n")),
-    }
+    effect_to_old_action_metadata(effects::Head::names, Some(ActionInput::OptionalSingle("n")))
 }
 
 fn head(command: &Command, n: &Option<usize>) {
-    if let OutputFormat::Silent = command.format {
-        return;
+    effects::Head {
+        stack: command.stack.clone(),
+        n: n.clone(),
     }
-
-    if let Ok(stack) = data::load(&command.stack) {
-        let n = n.unwrap_or(10);
-        list_range(command, stack, 0, n);
-    }
+    .run(command.format);
 }
 
 fn tail_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "tail",
-        description: "List the last N items",
-        aliases: vec!["bottom", "last"],
-        input: Some(ActionInput::OptionalSingle("n")),
-    }
+    effect_to_old_action_metadata(effects::Tail::names, Some(ActionInput::OptionalSingle("n")))
 }
 
 fn tail(command: &Command, n: &Option<usize>) {
-    if let OutputFormat::Silent = command.format {
-        return;
+    effects::Tail {
+        stack: command.stack.clone(),
+        n: n.clone(),
     }
-
-    if let Ok(stack) = data::load(&command.stack) {
-        let n = n.unwrap_or(10);
-        if n >= stack.len() {
-            list(command)
-        } else {
-            let start = stack.len() - n;
-            list_range(command, stack, start, n);
-        };
-    }
+    .run(command.format);
 }
 
 fn pick_data<'a>() -> ActionMetadata<'a> {
@@ -419,38 +345,25 @@ fn move_all(command: &Command, dest_stack: &str) {
 }
 
 fn is_empty_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "is-empty",
-        description: "\"true\" if stack has no items, \"false\" otherwise",
-        aliases: vec!["empty"],
-        input: None,
-    }
+    effect_to_old_action_metadata(effects::IsEmpty::names, None)
 }
 
 fn is_empty(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        let is_empty = items.is_empty();
-        command.log("Empty", &is_empty.to_string());
-        if !is_empty {
-            // TODO: This would be better as an Err, once everything returns Result
-            std::process::exit(1)
-        }
+    effects::IsEmpty {
+        stack: command.stack.clone(),
     }
+    .run(command.format);
 }
 
 fn length_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "length",
-        description: "Print the stack's length",
-        aliases: vec!["count", "size"],
-        input: None,
-    }
+    effect_to_old_action_metadata(effects::Count::names, None)
 }
 
 fn length(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        command.log("Items", &items.len().to_string())
+    effects::Count {
+        stack: command.stack.clone(),
     }
+    .run(command.format)
 }
 
 fn next_data<'a>() -> ActionMetadata<'a> {
@@ -527,9 +440,4 @@ fn rot(command: &Command) {
         data::save(&command.stack, items).unwrap();
         head(command, &Some(3));
     }
-}
-
-fn format_time_for_humans(dt: DateTime<Local>) -> String {
-    // TODO: Does this work for all locales?
-    dt.to_rfc2822()
 }
