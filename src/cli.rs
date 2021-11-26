@@ -86,78 +86,18 @@ pub fn run() {
         .unwrap_or(DEFAULT_STACK_NAME)
         .to_string();
 
-    let effect = get_effect(stack, &matches);
+    let effect = get_push_effect(&stack, &matches)
+        .or(get_pick_effect(&stack, &matches))
+        .or(get_head_effect(&stack, &matches))
+        .or(get_tail_effect(&stack, &matches))
+        .or(get_move_effect(&stack, &matches))
+        .or(get_move_all_effect(&stack, &matches))
+        .or(get_noarg_effect(&stack, &matches))
+        .unwrap_or_else(|| get_peek_effect(&stack));
 
     let output = get_format(matches);
 
     effect.run(output);
-}
-
-fn get_effect(stack: String, matches: &ArgMatches) -> Box<dyn StackEffect> {
-    let maybe_effect = |names: &EffectNames| matches.subcommand_matches(names.name);
-
-    if let Some(matches) = maybe_effect(&Push::names()) {
-        if let Some(name_bits) = matches.values_of(Push::names().input.arg_name()) {
-            let contents = name_bits.collect::<Vec<_>>().join(" ");
-            let item = Item::new(&contents);
-
-            Box::new(Push { stack, item })
-        } else {
-            error_no_command(Push::names().name, matches.is_present("silent"));
-            Box::new(Peek { stack })
-        }
-    } else if let Some(matches) = maybe_effect(&Pick::names()) {
-        let indices = matches
-            .values_of(Pick::names().input.arg_name())
-            .unwrap()
-            .map(|i| usize::from_str_radix(&i, 10).unwrap())
-            .collect();
-        Box::new(Pick { stack, indices })
-    } else if let Some(n) = maybe_effect(&Head::names()) {
-        let n = n
-            .value_of(Head::names().input.arg_name())
-            .map(only_digits)
-            .map(|i| usize::from_str_radix(&i, 10).ok())
-            .flatten();
-        Box::new(Head { stack, n })
-    } else if let Some(n) = maybe_effect(&Tail::names()) {
-        let n = n
-            .value_of(Tail::names().input.arg_name())
-            .map(only_digits)
-            .map(|i| usize::from_str_radix(&i, 10).ok())
-            .flatten();
-        Box::new(Tail { stack, n })
-    } else if let Some(dest) = maybe_effect(&Move::names()) {
-        let dest_stack = dest
-            .value_of(Move::names().input.arg_name())
-            .unwrap()
-            .to_string();
-        Box::new(Move { stack, dest_stack })
-    } else if let Some(dest) = maybe_effect(&MoveAll::names()) {
-        let dest_stack = dest
-            .value_of(MoveAll::names().input.arg_name())
-            .unwrap()
-            .to_string();
-        Box::new(MoveAll { stack, dest_stack })
-    } else {
-        let candidates: Vec<(EffectNames, Box<dyn StackEffect>)> = vec![
-            (Complete::names(), Box::new(Complete { stack: stack.clone() })),
-            (Delete::names(), Box::new(Delete { stack: stack.clone() })),
-            (DeleteAll::names(), Box::new(DeleteAll { stack: stack.clone() })),
-            (ListAll::names(), Box::new(ListAll { stack: stack.clone() })),
-            (Count::names(), Box::new(Count { stack: stack.clone() })),
-            (IsEmpty::names(), Box::new(IsEmpty { stack: stack.clone() })),
-            (Next::names(), Box::new(Next { stack: stack.clone() })),
-            (Swap::names(), Box::new(Swap { stack: stack.clone() })),
-            (Rot::names(), Box::new(Rot { stack: stack.clone() })),
-        ];
-
-        candidates
-            .into_iter()
-            .find(|(names, _)| maybe_effect(names).is_some())
-            .map(|(_, b)| b)
-            .unwrap_or_else(|| Box::new(Peek { stack }))
-    }
 }
 
 fn get_format(matches: ArgMatches) -> OutputFormat {
@@ -212,8 +152,130 @@ fn subcommand_for<'a, 'b>(names: EffectNames<'a>) -> App<'a, 'b> {
     )
 }
 
-fn error_no_command(name: &str, silent: bool) {
-    if !silent {
-        eprintln!("Error, not enough arguments given for: {}", name);
-    }
+// ===== Clap compat =====
+
+fn get_push_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+    let names = Push::names();
+
+    matches
+        .subcommand_matches(&names.name)
+        .map(|matches| matches.values_of(names.input.arg_name()).unwrap())
+        .map(|contents| {
+            let contents = contents.collect::<Vec<_>>().join(" ");
+            let item = Item::new(&contents);
+
+            let push: Box<dyn StackEffect> = Box::new(Push {
+                stack: stack.to_string(),
+                item,
+            });
+
+            push
+        })
+}
+
+fn get_pick_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+    matches
+        .subcommand_matches(&Pick::names().name)
+        .map(|matches| {
+            let indices = matches
+                .values_of(Pick::names().input.arg_name())
+                .unwrap()
+                .map(|i| usize::from_str_radix(&i, 10).unwrap())
+                .collect();
+
+            let pick: Box<dyn StackEffect> = Box::new(Pick {
+                stack: stack.to_string(),
+                indices,
+            });
+
+            pick
+        })
+}
+
+fn get_head_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+    let names = Head::names();
+    matches.subcommand_matches(names.name).map(|matches| {
+        let n = matches
+            .value_of(names.input.arg_name())
+            .map(only_digits)
+            .map(|i| usize::from_str_radix(&i, 10).ok())
+            .flatten();
+
+        let head: Box<dyn StackEffect> = Box::new(Head {
+            stack: stack.to_string(),
+            n,
+        });
+        head
+    })
+}
+
+fn get_tail_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+    let names = Tail::names();
+    matches.subcommand_matches(names.name).map(|matches| {
+        let n = matches
+            .value_of(names.input.arg_name())
+            .map(only_digits)
+            .map(|i| usize::from_str_radix(&i, 10).ok())
+            .flatten();
+        let tail: Box<dyn StackEffect> = Box::new(Tail {
+            stack: stack.to_string(),
+            n,
+        });
+        tail
+    })
+}
+
+fn get_move_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+    let names = Move::names();
+    matches.subcommand_matches(names.name).map(|matches| {
+        let dest_stack = matches
+            .value_of(names.input.arg_name())
+            .unwrap()
+            .to_string();
+        let move_: Box<dyn StackEffect> = Box::new(Move {
+            stack: stack.to_string(),
+            dest_stack,
+        });
+        move_
+    })
+}
+
+fn get_move_all_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+    let names = MoveAll::names();
+    matches.subcommand_matches(names.name).map(|matches| {
+        let dest_stack = matches
+            .value_of(names.input.arg_name())
+            .unwrap()
+            .to_string();
+        let move_all: Box<dyn StackEffect> = Box::new(MoveAll {
+            stack: stack.to_string(),
+            dest_stack,
+        });
+        move_all
+    })
+}
+
+fn get_noarg_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+    let candidates: Vec<(EffectNames, Box<dyn StackEffect>)> = vec![
+        (Complete::names(), Box::new(Complete::from(stack))),
+        (Delete::names(), Box::new(Delete::from(stack))),
+        (DeleteAll::names(), Box::new(DeleteAll::from(stack))),
+        (ListAll::names(), Box::new(ListAll::from(stack))),
+        (Count::names(), Box::new(Count::from(stack))),
+        (IsEmpty::names(), Box::new(IsEmpty::from(stack))),
+        (Next::names(), Box::new(Next::from(stack))),
+        (Swap::names(), Box::new(Swap::from(stack))),
+        (Rot::names(), Box::new(Rot::from(stack))),
+    ];
+
+    candidates
+        .into_iter()
+        .find(|(names, _)| matches.subcommand_matches(names.name).is_some())
+        .map(|(_, b)| b)
+}
+
+fn get_peek_effect(stack: &str) -> Box<dyn StackEffect> {
+    Box::new(Peek {
+        stack: stack.to_string(),
+    })
 }

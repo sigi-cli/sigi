@@ -91,6 +91,14 @@ impl StackEffect for Complete {
     }
 }
 
+impl From<&str> for Complete {
+    fn from(stack: &str) -> Complete {
+        Complete {
+            stack: stack.to_string(),
+        }
+    }
+}
+
 // ===== Delete (Pop) =====
 
 /// Delete the most-recent item.
@@ -144,6 +152,14 @@ impl StackEffect for Delete {
     }
 }
 
+impl From<&str> for Delete {
+    fn from(stack: &str) -> Delete {
+        Delete {
+            stack: stack.to_string(),
+        }
+    }
+}
+
 // ===== DeleteAll (Pop all) =====
 
 /// Delete all items.
@@ -183,6 +199,14 @@ impl StackEffect for DeleteAll {
                 vec!["action", "item"],
                 vec![vec!["Deleted", &format!("{} items", items.len())]],
             );
+        }
+    }
+}
+
+impl From<&str> for DeleteAll {
+    fn from(stack: &str) -> DeleteAll {
+        DeleteAll {
+            stack: stack.to_string(),
         }
     }
 }

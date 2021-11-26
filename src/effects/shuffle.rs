@@ -46,6 +46,14 @@ impl StackEffect for Swap {
     }
 }
 
+impl From<&str> for Swap {
+    fn from(stack: &str) -> Swap {
+        Swap {
+            stack: stack.to_string(),
+        }
+    }
+}
+
 // ===== Rot =====
 
 /// Rotate the three most-recent items.
@@ -95,6 +103,14 @@ impl StackEffect for Rot {
     }
 }
 
+impl From<&str> for Rot {
+    fn from(stack: &str) -> Rot {
+        Rot {
+            stack: stack.to_string(),
+        }
+    }
+}
+
 // ===== Next =====
 
 /// Make the next item the most-recent item.
@@ -129,6 +145,14 @@ impl StackEffect for Next {
                 stack: self.stack.clone(),
             }
             .run(output);
+        }
+    }
+}
+
+impl From<&str> for Next {
+    fn from(stack: &str) -> Next {
+        Next {
+            stack: stack.to_string(),
         }
     }
 }
