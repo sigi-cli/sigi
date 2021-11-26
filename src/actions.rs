@@ -69,19 +69,28 @@ pub struct ActionMetadata<'a> {
 impl Action {
     pub fn data<'a>(&self) -> ActionMetadata<'a> {
         match &self {
-            Peek => peek_data(),
-            Create(_) => create_data(),
-            Complete => complete_data(),
-            Delete => delete_data(),
-            DeleteAll => delete_all_data(),
-            List => list_data(),
-            Head(_) => head_data(),
-            Tail(_) => tail_data(),
+            Peek => effect_to_old_action_metadata(effects::Peek::names, None),
+            Create(_) => effect_to_old_action_metadata(
+                effects::Push::names,
+                Some(ActionInput::RequiredSlurpy("item")),
+            ),
+            Complete => effect_to_old_action_metadata(effects::Complete::names, None),
+            Delete => effect_to_old_action_metadata(effects::Delete::names, None),
+            DeleteAll => effect_to_old_action_metadata(effects::DeleteAll::names, None),
+            List => effect_to_old_action_metadata(effects::ListAll::names, None),
+            Head(_) => effect_to_old_action_metadata(
+                effects::Head::names,
+                Some(ActionInput::OptionalSingle("n")),
+            ),
+            Tail(_) => effect_to_old_action_metadata(
+                effects::Tail::names,
+                Some(ActionInput::OptionalSingle("n")),
+            ),
+            IsEmpty => effect_to_old_action_metadata(effects::IsEmpty::names, None),
+            Length => effect_to_old_action_metadata(effects::Count::names, None),
             Pick(_) => pick_data(),
             Move(_) => move_data(),
             MoveAll(_) => move_all_data(),
-            IsEmpty => is_empty_data(),
-            Length => length_data(),
             Next => next_data(),
             Swap => swap_data(),
             Rot => rot_data(),
@@ -103,20 +112,28 @@ pub struct Command {
 
 impl Command {
     pub fn act(&self) {
+        let stack = self.stack.clone();
+        let format = self.format;
         match &self.action {
-            Peek => peek(self),
-            Create(item) => create(self, item),
-            Complete => complete(self),
-            Delete => delete(self),
-            DeleteAll => delete_all(self),
-            List => list(self),
+            Peek => effects::Peek { stack }.run(format),
+            Create(item) => {
+                let item = item.clone();
+                effects::Push { stack, item }.run(format)
+            }
+            Complete => effects::Complete { stack }.run(format),
+            Delete => effects::Delete { stack }.run(format),
+            DeleteAll => effects::DeleteAll { stack }.run(format),
+            List => effects::ListAll { stack }.run(format),
+            Tail(n) => {
+                let n = n.clone();
+                effects::Tail { stack, n }.run(format)
+            }
+            IsEmpty => effects::IsEmpty { stack }.run(format),
+            Length => effects::Count { stack }.run(format),
             Head(n) => head(self, n),
-            Tail(n) => tail(self, n),
             Pick(ns) => pick(self, ns),
             Move(dest) => move_item(self, dest),
             MoveAll(dest) => move_all(self, dest),
-            IsEmpty => is_empty(self),
-            Length => length(self),
             Next => next(self),
             Swap => swap(self),
             Rot => rot(self),
@@ -153,22 +170,11 @@ fn effect_to_old_action_metadata<'a>(
     }
 }
 
-fn peek_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::Peek::names, None)
-}
-
 fn peek(command: &Command) {
     effects::Peek {
         stack: command.stack.clone(),
     }
     .run(command.format);
-}
-
-fn create_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(
-        effects::Push::names,
-        Some(ActionInput::RequiredSlurpy("item")),
-    )
 }
 
 fn create(command: &Command, item: &Item) {
@@ -179,68 +185,8 @@ fn create(command: &Command, item: &Item) {
     .run(command.format);
 }
 
-fn complete_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::Complete::names, None)
-}
-
-fn complete(command: &Command) {
-    effects::Complete {
-        stack: command.stack.clone(),
-    }
-    .run(command.format);
-}
-
-fn delete_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::Delete::names, None)
-}
-
-fn delete(command: &Command) {
-    effects::Delete {
-        stack: command.stack.clone(),
-    }
-    .run(command.format);
-}
-
-fn delete_all_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::DeleteAll::names, None)
-}
-
-fn delete_all(command: &Command) {
-    effects::DeleteAll {
-        stack: command.stack.clone(),
-    }
-    .run(command.format);
-}
-
-fn list_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::ListAll::names, None)
-}
-
-fn list(command: &Command) {
-    effects::ListAll {
-        stack: command.stack.clone(),
-    }
-    .run(command.format);
-}
-
-fn head_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::Head::names, Some(ActionInput::OptionalSingle("n")))
-}
-
 fn head(command: &Command, n: &Option<usize>) {
     effects::Head {
-        stack: command.stack.clone(),
-        n: n.clone(),
-    }
-    .run(command.format);
-}
-
-fn tail_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::Tail::names, Some(ActionInput::OptionalSingle("n")))
-}
-
-fn tail(command: &Command, n: &Option<usize>) {
-    effects::Tail {
         stack: command.stack.clone(),
         n: n.clone(),
     }
@@ -342,28 +288,6 @@ fn move_all(command: &Command, dest_stack: &str) {
             }
         }
     }
-}
-
-fn is_empty_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::IsEmpty::names, None)
-}
-
-fn is_empty(command: &Command) {
-    effects::IsEmpty {
-        stack: command.stack.clone(),
-    }
-    .run(command.format);
-}
-
-fn length_data<'a>() -> ActionMetadata<'a> {
-    effect_to_old_action_metadata(effects::Count::names, None)
-}
-
-fn length(command: &Command) {
-    effects::Count {
-        stack: command.stack.clone(),
-    }
-    .run(command.format)
 }
 
 fn next_data<'a>() -> ActionMetadata<'a> {
