@@ -1,15 +1,16 @@
 use crate::data;
-use crate::effects::{stack_history_of, EffectInput, EffectNames, Peek, StackEffect};
+use crate::effects::{stack_history_of, EffectInput, EffectNames, NamedEffect, Peek, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Create (Push) =====
 
+/// Add a new item.
 pub struct Push {
     pub stack: String,
     pub item: data::Item,
 }
 
-impl StackEffect for Push {
+impl NamedEffect for Push {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "push",
@@ -19,6 +20,9 @@ impl StackEffect for Push {
         }
     }
 
+}
+
+impl StackEffect for Push {
     fn run(&self, output: OutputFormat) {
         let new_items = if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
@@ -37,11 +41,12 @@ impl StackEffect for Push {
 
 // ===== Complete (Pop) =====
 
+/// Complete (successfully) the most-recent item.
 pub struct Complete {
     pub stack: String,
 }
 
-impl StackEffect for Complete {
+impl NamedEffect for Complete {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "complete",
@@ -50,6 +55,9 @@ impl StackEffect for Complete {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for Complete {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
@@ -87,11 +95,12 @@ impl StackEffect for Complete {
 
 // ===== Delete (Pop) =====
 
+/// Delete the most-recent item.
 pub struct Delete {
     pub stack: String,
 }
 
-impl StackEffect for Delete {
+impl NamedEffect for Delete {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "delete",
@@ -100,6 +109,9 @@ impl StackEffect for Delete {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for Delete {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
@@ -137,11 +149,14 @@ impl StackEffect for Delete {
 
 // ===== DeleteAll (Pop all) =====
 
+/// Delete all items.
+///
+/// Note: Deleted items are moved to a stack with the same name and the suffix `_history`.
 pub struct DeleteAll {
     pub stack: String,
 }
 
-impl StackEffect for DeleteAll {
+impl NamedEffect for DeleteAll {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "delete-all",
@@ -150,6 +165,9 @@ impl StackEffect for DeleteAll {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for DeleteAll {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {

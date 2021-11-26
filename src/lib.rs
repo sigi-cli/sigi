@@ -12,12 +12,9 @@
 //! Other internals are documented, but the project is early in development
 //! and should be considered **unstable** at best.
 
-// TODO: Add guidance and examples for using sigi as a library.
+// TODO: Add guidance and examples for using sigi as a library... Or stop being a library.
 
-/// (V1) The main interface of Sigi, stack (and stack-adjacent) actions.
-pub mod actions;
-
-/// (V2) The main interface of Sigi, stack (and stack-adjacent) actions.
+/// The main interface of Sigi, stack (and stack-adjacent) actions.
 pub mod effects;
 
 /// The CLI implementation.

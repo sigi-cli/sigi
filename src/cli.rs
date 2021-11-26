@@ -1,4 +1,3 @@
-use crate::actions::{Action, Command};
 use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
@@ -78,83 +77,88 @@ fn get_app() -> App<'static, 'static> {
         .map(subcommand_for))
 }
 
-/// Parses command line arguments and returns a single `sigi::actions::Command`.
-pub fn parse_command() -> Command {
+/// Parses command line arguments and executes a single `sigi::effects::StackEffect`.
+pub fn run() {
     let matches = get_app().get_matches();
 
-    let maybe_action = |action: &Action| matches.subcommand_matches(action.data().name);
-    let maybe_command = |names: EffectNames| matches.subcommand_matches(names.name);
+    let stack = matches
+        .value_of("stack")
+        .unwrap_or(DEFAULT_STACK_NAME)
+        .to_string();
 
-    let action: Action = if let Some(matches) = maybe_command(Push::names()) {
+    let output = get_format(matches);
+
+    let effect = get_effect(stack, matches);
+
+    effect.run(output);
+}
+
+fn get_effect(stack: String, matches: ArgMatches) -> Box<dyn StackEffect> {
+    let maybe_effect = |names: EffectNames| matches.subcommand_matches(names.name);
+
+    if let Some(matches) = maybe_effect(Push::names()) {
         if let Some(name_bits) = matches.values_of(Push::names().input.arg_name()) {
-            let name = name_bits.collect::<Vec<_>>().join(" ");
-            Action::Create(Item::new(&name))
+            let contents = name_bits.collect::<Vec<_>>().join(" ");
+            let item = Item::new(&contents);
+
+            Box::new(Push { stack, item })
         } else {
-            error_no_command(Push::names().name, matches.is_present("silent"))
+            error_no_command(Push::names().name, matches.is_present("silent"));
+            Box::new(Peek { stack })
         }
-    } else if let Some(matches) = maybe_command(Pick::names()) {
+    } else if let Some(matches) = maybe_effect(Pick::names()) {
         let indices = matches
             .values_of(Pick::names().input.arg_name())
             .unwrap()
             .map(|i| usize::from_str_radix(&i, 10).unwrap())
             .collect();
-        Action::Pick(indices)
-    } else if let Some(n) = maybe_command(Head::names()) {
+        Box::new(Pick { stack, indices })
+    } else if let Some(n) = maybe_effect(Head::names()) {
         let n = n
             .value_of(Head::names().input.arg_name())
             .map(only_digits)
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
-        Action::Head(n)
-    } else if let Some(n) = maybe_command(Tail::names()) {
+        Box::new(Head { stack, n })
+    } else if let Some(n) = maybe_effect(Tail::names()) {
         let n = n
             .value_of(Tail::names().input.arg_name())
             .map(only_digits)
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
-        Action::Tail(n)
-    } else if let Some(dest) = maybe_command(Move::names()) {
-        let dest = dest
+        Box::new(Tail { stack, n })
+    } else if let Some(dest) = maybe_effect(Move::names()) {
+        let dest_stack = dest
             .value_of(Move::names().input.arg_name())
             .unwrap()
             .to_string();
-        Action::Move(dest)
-    } else if let Some(dest) = maybe_command(MoveAll::names()) {
-        let dest = dest
+        Box::new(Move { stack, dest_stack })
+    } else if let Some(dest) = maybe_effect(MoveAll::names()) {
+        let dest_stack = dest
             .value_of(MoveAll::names().input.arg_name())
             .unwrap()
             .to_string();
-        Action::MoveAll(dest)
-    } else if let Some(command) = vec![
-        Action::Complete,
-        Action::Delete,
-        Action::DeleteAll,
-        Action::List,
-        Action::Length,
-        Action::IsEmpty,
-        Action::Next,
-        Action::Swap,
-        Action::Rot,
-    ]
-    .into_iter()
-    .find(|action| maybe_action(&action).is_some())
-    {
-        command
+        Box::new(MoveAll { stack, dest_stack })
+    } else if maybe_effect(Complete::names()).is_some() {
+        Box::new(Complete { stack })
+    } else if maybe_effect(Delete::names()).is_some() {
+        Box::new(Delete { stack })
+    } else if maybe_effect(DeleteAll::names()).is_some() {
+        Box::new(DeleteAll { stack })
+    } else if maybe_effect(ListAll::names()).is_some() {
+        Box::new(ListAll { stack })
+    } else if maybe_effect(Count::names()).is_some() {
+        Box::new(Count { stack })
+    } else if maybe_effect(IsEmpty::names()).is_some() {
+        Box::new(IsEmpty { stack })
+    } else if maybe_effect(Next::names()).is_some() {
+        Box::new(Next { stack })
+    } else if maybe_effect(Swap::names()).is_some() {
+        Box::new(Swap { stack })
+    } else if maybe_effect(Rot::names()).is_some() {
+        Box::new(Rot { stack })
     } else {
-        Action::Peek
-    };
-
-    let stack = matches
-        .value_of("stack")
-        .unwrap_or(DEFAULT_STACK_NAME)
-        .to_owned();
-
-    let format = get_format(matches);
-
-    Command {
-        action,
-        stack,
-        format,
+        Box::new(Peek { stack })
     }
 }
 
@@ -210,9 +214,8 @@ fn subcommand_for<'a, 'b>(names: EffectNames<'a>) -> App<'a, 'b> {
     )
 }
 
-fn error_no_command(name: &str, silent: bool) -> Action {
+fn error_no_command(name: &str, silent: bool) {
     if !silent {
         eprintln!("Error, not enough arguments given for: {}", name);
     }
-    Action::Peek
 }

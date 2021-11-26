@@ -1,14 +1,17 @@
 use crate::data;
-use crate::effects::{EffectInput, EffectNames, Head, Peek, StackEffect};
+use crate::effects::{EffectInput, EffectNames, Head, NamedEffect, Peek, StackEffect};
 use crate::output::OutputFormat;
+
+// TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
 // ===== Swap =====
 
+/// Swap the two most-recent items.
 pub struct Swap {
     pub stack: String,
 }
 
-impl StackEffect for Swap {
+impl NamedEffect for Swap {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "swap",
@@ -17,6 +20,9 @@ impl StackEffect for Swap {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for Swap {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
@@ -43,11 +49,12 @@ impl StackEffect for Swap {
 
 // ===== Rot =====
 
+/// Rotate the three most-recent items.
 pub struct Rot {
     pub stack: String,
 }
 
-impl StackEffect for Rot {
+impl NamedEffect for Rot {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "rot",
@@ -56,6 +63,9 @@ impl StackEffect for Rot {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for Rot {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
@@ -89,11 +99,13 @@ impl StackEffect for Rot {
 
 // ===== Next =====
 
+/// Make the next item the most-recent item.
+/// The previously most-recent item is sent to the end of the stack.
 pub struct Next {
     pub stack: String,
 }
 
-impl StackEffect for Next {
+impl NamedEffect for Next {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "next",
@@ -102,6 +114,9 @@ impl StackEffect for Next {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for Next {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {

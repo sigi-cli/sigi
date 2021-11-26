@@ -12,8 +12,11 @@ pub use housekeeping::*;
 const HISTORY_SUFFIX: &str = "_history";
 
 pub trait StackEffect {
-    fn names<'a>() -> EffectNames<'a>;
     fn run(&self, output: OutputFormat);
+}
+
+pub trait NamedEffect {
+    fn names<'a>() -> EffectNames<'a>;
 }
 
 pub struct EffectNames<'a> {

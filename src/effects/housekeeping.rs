@@ -1,15 +1,16 @@
 use crate::data;
-use crate::effects::{EffectInput, EffectNames, Head, Push, StackEffect};
+use crate::effects::{EffectInput, EffectNames, Head, NamedEffect, Push, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Pick =====
 
+/// Move the specified indices to the top of stack.
 pub struct Pick {
     pub stack: String,
     pub indices: Vec<usize>,
 }
 
-impl StackEffect for Pick {
+impl NamedEffect for Pick {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "pick",
@@ -18,7 +19,9 @@ impl StackEffect for Pick {
             input: EffectInput::RequiredSlurpy("number"),
         }
     }
+}
 
+impl StackEffect for Pick {
     fn run(&self, output: OutputFormat) {
         if let Ok(stack) = data::load(&self.stack) {
             let mut stack = stack;
@@ -56,12 +59,13 @@ impl StackEffect for Pick {
 
 // ===== Move =====
 
+/// Move the current item to a different stack.
 pub struct Move {
     pub stack: String,
     pub dest_stack: String,
 }
 
-impl StackEffect for Move {
+impl NamedEffect for Move {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "move",
@@ -70,7 +74,9 @@ impl StackEffect for Move {
             input: EffectInput::RequiredSlurpy("destination"),
         }
     }
+}
 
+impl StackEffect for Move {
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
@@ -94,12 +100,13 @@ impl StackEffect for Move {
 
 // ===== MoveAll =====
 
+/// Move all items to a different stack.
 pub struct MoveAll {
     pub stack: String,
     pub dest_stack: String,
 }
 
-impl StackEffect for MoveAll {
+impl NamedEffect for MoveAll {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "move-all",
@@ -108,7 +115,9 @@ impl StackEffect for MoveAll {
             input: EffectInput::RequiredSlurpy("destination"),
         }
     }
+}
 
+impl StackEffect for MoveAll {
     fn run(&self, output: OutputFormat) {
         if let Ok(src_items) = data::load(&self.stack) {
             let count = src_items.len();

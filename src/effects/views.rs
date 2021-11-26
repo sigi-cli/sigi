@@ -1,14 +1,15 @@
 use crate::data;
-use crate::effects::{EffectInput, EffectNames, StackEffect};
+use crate::effects::{EffectInput, EffectNames, NamedEffect, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Peek =====
 
+/// Look at the most-recent item.
 pub struct Peek {
     pub stack: String,
 }
 
-impl StackEffect for Peek {
+impl NamedEffect for Peek {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "peek",
@@ -17,6 +18,9 @@ impl StackEffect for Peek {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for Peek {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
@@ -106,6 +110,7 @@ fn list_range(listable: &impl Listable, output: OutputFormat) {
 
 // ===== ListAll =====
 
+/// List the stack's items.
 pub struct ListAll {
     pub stack: String,
 }
@@ -121,7 +126,7 @@ impl Listable for ListAll {
     }
 }
 
-impl StackEffect for ListAll {
+impl NamedEffect for ListAll {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "list",
@@ -130,6 +135,9 @@ impl StackEffect for ListAll {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for ListAll {
 
     fn run(&self, output: OutputFormat) {
         list_range(self, output);
@@ -138,6 +146,7 @@ impl StackEffect for ListAll {
 
 // ===== Head =====
 
+/// List the first N stack items.
 const HEAD_DEFAULT_LIMIT: usize = 10;
 
 pub struct Head {
@@ -156,7 +165,7 @@ impl Listable for Head {
     }
 }
 
-impl StackEffect for Head {
+impl NamedEffect for Head {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "head",
@@ -165,6 +174,9 @@ impl StackEffect for Head {
             input: EffectInput::OptionalSingle("n"),
         }
     }
+}
+
+impl StackEffect for Head {
 
     fn run(&self, output: OutputFormat) {
         list_range(self, output);
@@ -173,6 +185,7 @@ impl StackEffect for Head {
 
 // ===== Tail =====
 
+/// List the last N stack items.
 const TAIL_DEFAULT_LIMIT: usize = 10;
 
 pub struct Tail {
@@ -191,7 +204,7 @@ impl Listable for Tail {
     }
 }
 
-impl StackEffect for Tail {
+impl NamedEffect for Tail {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "tail",
@@ -200,6 +213,9 @@ impl StackEffect for Tail {
             input: EffectInput::OptionalSingle("n"),
         }
     }
+}
+
+impl StackEffect for Tail {
 
     fn run(&self, output: OutputFormat) {
         list_range(self, output);
@@ -208,11 +224,12 @@ impl StackEffect for Tail {
 
 // ===== Count =====
 
+/// Count the stack's items.
 pub struct Count {
     pub stack: String,
 }
 
-impl StackEffect for Count {
+impl NamedEffect for Count {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "count",
@@ -221,6 +238,9 @@ impl StackEffect for Count {
             input: EffectInput::NoInput,
         }
     }
+}
+
+impl StackEffect for Count {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
@@ -232,11 +252,12 @@ impl StackEffect for Count {
 
 // ===== IsEmpty =====
 
+/// Determine if the stack is empty or not.
 pub struct IsEmpty {
     pub stack: String,
 }
 
-impl StackEffect for IsEmpty {
+impl NamedEffect for IsEmpty {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "is-empty",
@@ -245,6 +266,9 @@ impl StackEffect for IsEmpty {
             input: EffectInput::NoInput
         }
     }
+}
+
+impl StackEffect for IsEmpty {
 
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
