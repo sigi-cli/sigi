@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::*;
+use crate::effects::{stack_history_of, EffectNames, Peek, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Create (Push) =====

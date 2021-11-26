@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::*;
+use crate::effects::{EffectNames, Head, Peek, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Swap =====

@@ -1,5 +1,5 @@
 use crate::output::{NoiseLevel, OutputFormat};
-use crate::{data, data::Item};
+use crate::data::Item;
 use crate::{effects, effects::StackEffect};
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
@@ -100,9 +100,18 @@ impl Action {
             }
             IsEmpty => ActionMetadata::from(effects::IsEmpty::names, None),
             Length => ActionMetadata::from(effects::Count::names, None),
-            Pick(_) => pick_data(),
-            Move(_) => move_data(),
-            MoveAll(_) => move_all_data(),
+            Pick(_) => ActionMetadata::from(
+                effects::Pick::names,
+                Some(ActionInput::RequiredSlurpy("number")),
+            ),
+            Move(_) => ActionMetadata::from(
+                effects::Move::names,
+                Some(ActionInput::RequiredSingle("destination")),
+            ),
+            MoveAll(_) => ActionMetadata::from(
+                effects::MoveAll::names,
+                Some(ActionInput::RequiredSingle("destination")),
+            ),
             Next => ActionMetadata::from(effects::Next::names, None),
             Swap => ActionMetadata::from(effects::Swap::names, None),
             Rot => ActionMetadata::from(effects::Rot::names, None),
@@ -146,9 +155,21 @@ impl Command {
                 let n = n.clone();
                 effects::Head { stack, n }.run(format)
             }
-            Pick(ns) => pick(self, ns),
-            Move(dest) => move_item(self, dest),
-            MoveAll(dest) => move_all(self, dest),
+            Pick(ns) => effects::Pick {
+                stack,
+                indices: ns.to_vec(),
+            }
+            .run(format),
+            Move(dest) => effects::Move {
+                stack,
+                dest_stack: dest.clone(),
+            }
+            .run(format),
+            MoveAll(dest) => effects::MoveAll {
+                stack,
+                dest_stack: dest.clone(),
+            }
+            .run(format),
             Next => effects::Next { stack }.run(format),
             Swap => effects::Swap { stack }.run(format),
             Rot => effects::Rot { stack }.run(format),
@@ -166,100 +187,6 @@ impl Command {
             OutputFormat::Json => println!("json: TODO"),
             OutputFormat::Silent => {}
             OutputFormat::Tsv => println!("tsv: TODO"),
-        }
-    }
-}
-
-fn pick_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "pick",
-        description: "Move items to the top of stack by their number",
-        aliases: vec![],
-        input: Some(ActionInput::RequiredSlurpy("number")),
-    }
-}
-
-fn pick(command: &Command, indices: &[usize]) {
-    if let Ok(stack) = data::load(&command.stack) {
-        let mut stack = stack;
-        let mut seen: Vec<usize> = vec![];
-        seen.reserve_exact(indices.len());
-        let indices: Vec<usize> = indices.iter().map(|i| stack.len() - 1 - i).rev().collect();
-        for i in indices {
-            if i > stack.len() {
-                command.log("Pick", "ignoring out-of-bounds index");
-                continue;
-            } else if seen.contains(&i) {
-                command.log("Pick", "ignoring duplicate index");
-                continue;
-            }
-            let i = i - seen.iter().filter(|j| j < &&i).count();
-            let picked = stack.remove(i);
-            stack.push(picked);
-            seen.push(i);
-        }
-
-        data::save(&command.stack, stack).unwrap();
-
-        effects::Head {
-            stack: command.stack.clone(),
-            n: Some(seen.len()),
-        }
-        .run(command.format);
-    }
-}
-
-fn move_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "move",
-        description: "Move current item to another stack",
-        aliases: vec![],
-        input: Some(ActionInput::RequiredSingle("destination")),
-    }
-}
-
-fn move_item(command: &Command, dest_stack: &str) {
-    // TODO: Indirection is broken somewhere (I think I have distributed too much to each function)
-    // Probably each of these functions is something like a chain of smaller bits (load, action, save)
-    if let Ok(items) = data::load(&command.stack) {
-        let mut items = items;
-        if let Some(item) = items.pop() {
-            command.log("Move", dest_stack);
-            data::save(&command.stack, items).unwrap();
-
-            effects::Push {
-                stack: dest_stack.to_string(),
-                item,
-            }
-            .run(OutputFormat::Silent);
-        }
-    }
-}
-
-fn move_all_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "move-all",
-        description: "Move all items to another stack",
-        aliases: vec![],
-        input: Some(ActionInput::RequiredSingle("destination")),
-    }
-}
-
-fn move_all(command: &Command, dest_stack: &str) {
-    if let Ok(src_items) = data::load(&command.stack) {
-        if !src_items.is_empty() {
-            command.log("Move all", dest_stack);
-            if let Ok(dest_items) = data::load(dest_stack) {
-                let mut dest_items = dest_items;
-                for item in src_items {
-                    dest_items.push(item);
-                }
-                data::save(dest_stack, dest_items).unwrap();
-                data::save(&command.stack, vec![]).unwrap();
-            } else {
-                data::save(dest_stack, src_items).unwrap();
-                data::save(&command.stack, vec![]).unwrap();
-            }
         }
     }
 }
