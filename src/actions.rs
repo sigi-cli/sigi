@@ -140,7 +140,6 @@ impl Command {
         }
     }
 
-    // TODO: Actually use a logger. (Are there any that don't explode binary size?)
     pub fn log(&self, label: &str, message: &str) {
         match self.format {
             OutputFormat::Csv => println!("csv: TODO"),
@@ -155,8 +154,6 @@ impl Command {
         }
     }
 }
-
-// TODO: Make command processors return `Result<(), Error>`. Many error cases are not covered (e.g. create with no content)
 
 fn effect_to_old_action_metadata<'a>(
     get_names: impl Fn() -> effects::EffectNames<'a>,
