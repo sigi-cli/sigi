@@ -67,18 +67,17 @@ pub struct ActionMetadata<'a> {
 }
 
 impl ActionMetadata<'_> {
-
-fn from<'a>(
-    get_names: impl Fn() -> effects::EffectNames<'a>,
-    input: Option<ActionInput<'a>>,
-) -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: get_names().name,
-        description: get_names().description,
-        aliases: get_names().aliases.to_vec(),
-        input,
+    fn from<'a>(
+        get_names: impl Fn() -> effects::EffectNames<'a>,
+        input: Option<ActionInput<'a>>,
+    ) -> ActionMetadata<'a> {
+        ActionMetadata {
+            name: get_names().name,
+            description: get_names().description,
+            aliases: get_names().aliases.to_vec(),
+            input,
+        }
     }
-}
 }
 
 impl Action {
@@ -93,14 +92,12 @@ impl Action {
             Delete => ActionMetadata::from(effects::Delete::names, None),
             DeleteAll => ActionMetadata::from(effects::DeleteAll::names, None),
             List => ActionMetadata::from(effects::ListAll::names, None),
-            Head(_) => ActionMetadata::from(
-                effects::Head::names,
-                Some(ActionInput::OptionalSingle("n")),
-            ),
-            Tail(_) => ActionMetadata::from(
-                effects::Tail::names,
-                Some(ActionInput::OptionalSingle("n")),
-            ),
+            Head(_) => {
+                ActionMetadata::from(effects::Head::names, Some(ActionInput::OptionalSingle("n")))
+            }
+            Tail(_) => {
+                ActionMetadata::from(effects::Tail::names, Some(ActionInput::OptionalSingle("n")))
+            }
             IsEmpty => ActionMetadata::from(effects::IsEmpty::names, None),
             Length => ActionMetadata::from(effects::Count::names, None),
             Pick(_) => pick_data(),
