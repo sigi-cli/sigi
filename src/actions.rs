@@ -66,34 +66,49 @@ pub struct ActionMetadata<'a> {
     pub input: Option<ActionInput<'a>>,
 }
 
+impl ActionMetadata<'_> {
+
+fn from<'a>(
+    get_names: impl Fn() -> effects::EffectNames<'a>,
+    input: Option<ActionInput<'a>>,
+) -> ActionMetadata<'a> {
+    ActionMetadata {
+        name: get_names().name,
+        description: get_names().description,
+        aliases: get_names().aliases.to_vec(),
+        input,
+    }
+}
+}
+
 impl Action {
     pub fn data<'a>(&self) -> ActionMetadata<'a> {
         match &self {
-            Peek => effect_to_old_action_metadata(effects::Peek::names, None),
-            Create(_) => effect_to_old_action_metadata(
+            Peek => ActionMetadata::from(effects::Peek::names, None),
+            Create(_) => ActionMetadata::from(
                 effects::Push::names,
                 Some(ActionInput::RequiredSlurpy("item")),
             ),
-            Complete => effect_to_old_action_metadata(effects::Complete::names, None),
-            Delete => effect_to_old_action_metadata(effects::Delete::names, None),
-            DeleteAll => effect_to_old_action_metadata(effects::DeleteAll::names, None),
-            List => effect_to_old_action_metadata(effects::ListAll::names, None),
-            Head(_) => effect_to_old_action_metadata(
+            Complete => ActionMetadata::from(effects::Complete::names, None),
+            Delete => ActionMetadata::from(effects::Delete::names, None),
+            DeleteAll => ActionMetadata::from(effects::DeleteAll::names, None),
+            List => ActionMetadata::from(effects::ListAll::names, None),
+            Head(_) => ActionMetadata::from(
                 effects::Head::names,
                 Some(ActionInput::OptionalSingle("n")),
             ),
-            Tail(_) => effect_to_old_action_metadata(
+            Tail(_) => ActionMetadata::from(
                 effects::Tail::names,
                 Some(ActionInput::OptionalSingle("n")),
             ),
-            IsEmpty => effect_to_old_action_metadata(effects::IsEmpty::names, None),
-            Length => effect_to_old_action_metadata(effects::Count::names, None),
+            IsEmpty => ActionMetadata::from(effects::IsEmpty::names, None),
+            Length => ActionMetadata::from(effects::Count::names, None),
             Pick(_) => pick_data(),
             Move(_) => move_data(),
             MoveAll(_) => move_all_data(),
-            Next => effect_to_old_action_metadata(effects::Next::names, None),
-            Swap => effect_to_old_action_metadata(effects::Swap::names, None),
-            Rot => effect_to_old_action_metadata(effects::Rot::names, None),
+            Next => ActionMetadata::from(effects::Next::names, None),
+            Swap => ActionMetadata::from(effects::Swap::names, None),
+            Rot => ActionMetadata::from(effects::Rot::names, None),
         }
     }
 }
@@ -155,18 +170,6 @@ impl Command {
             OutputFormat::Silent => {}
             OutputFormat::Tsv => println!("tsv: TODO"),
         }
-    }
-}
-
-fn effect_to_old_action_metadata<'a>(
-    get_names: impl Fn() -> effects::EffectNames<'a>,
-    input: Option<ActionInput<'a>>,
-) -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: get_names().name,
-        description: get_names().description,
-        aliases: get_names().aliases.to_vec(),
-        input,
     }
 }
 
