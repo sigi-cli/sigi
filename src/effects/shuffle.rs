@@ -23,7 +23,6 @@ impl NamedEffect for Swap {
 }
 
 impl StackEffect for Swap {
-
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
@@ -66,7 +65,6 @@ impl NamedEffect for Rot {
 }
 
 impl StackEffect for Rot {
-
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
@@ -117,7 +115,6 @@ impl NamedEffect for Next {
 }
 
 impl StackEffect for Next {
-
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;

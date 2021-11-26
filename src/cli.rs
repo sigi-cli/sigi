@@ -86,14 +86,14 @@ pub fn run() {
         .unwrap_or(DEFAULT_STACK_NAME)
         .to_string();
 
-    let output = get_format(matches);
+    let effect = get_effect(stack, &matches);
 
-    let effect = get_effect(stack, matches);
+    let output = get_format(matches);
 
     effect.run(output);
 }
 
-fn get_effect(stack: String, matches: ArgMatches) -> Box<dyn StackEffect> {
+fn get_effect(stack: String, matches: &ArgMatches) -> Box<dyn StackEffect> {
     let maybe_effect = |names: EffectNames| matches.subcommand_matches(names.name);
 
     if let Some(matches) = maybe_effect(Push::names()) {

@@ -19,7 +19,6 @@ impl NamedEffect for Push {
             input: EffectInput::RequiredSlurpy("item"),
         }
     }
-
 }
 
 impl StackEffect for Push {
@@ -58,7 +57,6 @@ impl NamedEffect for Complete {
 }
 
 impl StackEffect for Complete {
-
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
@@ -112,7 +110,6 @@ impl NamedEffect for Delete {
 }
 
 impl StackEffect for Delete {
-
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
@@ -168,7 +165,6 @@ impl NamedEffect for DeleteAll {
 }
 
 impl StackEffect for DeleteAll {
-
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
