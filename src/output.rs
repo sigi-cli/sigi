@@ -1,3 +1,5 @@
+use chrono::{DateTime, Local};
+
 /// Output formats supported by Sigi.
 #[derive(Clone, Copy, PartialEq)]
 pub enum OutputFormat {
@@ -21,8 +23,23 @@ pub enum NoiseLevel {
     Quiet,
 }
 
+pub enum StrOrDt<'a> {
+    Str(&'a str),
+    Dt(DateTime<Local>),
+}
+
 impl OutputFormat {
+    pub fn format_time(&self, dt: DateTime<Local>) -> String {
+        // TODO: This should be configurable.
+        // TODO: Does this work for all locales?
+        dt.to_rfc2822()
+    }
+
     pub fn log(&self, labels: Vec<&str>, values: Vec<Vec<&str>>) {
+        if let OutputFormat::Silent = self {
+            return;
+        }
+
         let joining = |sep: &str| {
             let sep = sep.to_string();
             move |tokens: Vec<&str>| tokens.join(&sep)
@@ -62,7 +79,7 @@ impl OutputFormat {
             OutputFormat::Json => {
                 println!("json: TODO")
             }
-            OutputFormat::Silent => (),
+            OutputFormat::Silent => unreachable!("[BUG] Sigi should always exit outputting before this point."),
             OutputFormat::Tsv => {
                 let tsv = joining("\t");
                 println!("{}", tsv(labels));

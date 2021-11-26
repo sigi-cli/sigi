@@ -1,6 +1,5 @@
 use crate::data;
 use crate::output::OutputFormat;
-use chrono::{DateTime, Local};
 
 const HISTORY_SUFFIX: &str = "_history";
 
@@ -246,6 +245,7 @@ fn list_range(listable: &impl Listable, output: OutputFormat) {
 
         let lines = items
             .into_iter()
+            .rev()
             .enumerate()
             .skip(start)
             .take(limit)
@@ -265,7 +265,7 @@ fn list_range(listable: &impl Listable, output: OutputFormat) {
                     .history
                     .iter()
                     .find(|(status, _)| status == "created")
-                    .map(|(_, dt)| dt.to_string())
+                    .map(|(_, dt)| output.format_time(*dt))
                     .unwrap_or("unknown".to_string());
 
                 vec![position, item.contents, created]
@@ -438,9 +438,4 @@ impl StackEffect for IsEmpty {
 
 fn stack_history_of(stack: &str) -> String {
     stack.to_string() + HISTORY_SUFFIX
-}
-
-fn _format_time_for_humans(dt: DateTime<Local>) -> String {
-    // TODO: Does this work for all locales?
-    dt.to_rfc2822()
 }
