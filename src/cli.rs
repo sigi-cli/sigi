@@ -1,11 +1,9 @@
 use crate::actions::{Action, Command};
 use crate::data::Item;
-use crate::effects;
-use crate::effects::{EffectInput, EffectNames, StackEffect};
+use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use std::iter;
-use Action::*;
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
 /// The current version of the CLI.
@@ -14,7 +12,7 @@ pub const SIGI_VERSION: &str = "1.1.0";
 const DEFAULT_STACK_NAME: &str = "sigi";
 
 fn get_app() -> App<'static, 'static> {
-    let peek_names = effects::Peek::names();
+    let peek_names = Peek::names();
 
     App::new("sigi")
         .version(SIGI_VERSION)
@@ -60,21 +58,21 @@ fn get_app() -> App<'static, 'static> {
                 .visible_aliases(peek_names.aliases)
         )
         .subcommands(vec![
-            effects::Push::names(),
-            effects::Complete::names(),
-            effects::Delete::names(),
-            effects::DeleteAll::names(),
-            effects::ListAll::names(),
-            effects::Head::names(),
-            effects::Tail::names(),
-            effects::Pick::names(),
-            effects::Count::names(),
-            effects::Move::names(),
-            effects::MoveAll::names(),
-            effects::IsEmpty::names(),
-            effects::Next::names(),
-            effects::Swap::names(),
-            effects::Rot::names(),
+            Push::names(),
+            Complete::names(),
+            Delete::names(),
+            DeleteAll::names(),
+            ListAll::names(),
+            Head::names(),
+            Tail::names(),
+            Pick::names(),
+            Count::names(),
+            Move::names(),
+            MoveAll::names(),
+            IsEmpty::names(),
+            Next::names(),
+            Swap::names(),
+            Rot::names(),
         ]
         .into_iter()
         .map(subcommand_for))
@@ -87,55 +85,63 @@ pub fn parse_command() -> Command {
     let maybe_action = |action: &Action| matches.subcommand_matches(action.data().name);
     let maybe_command = |names: EffectNames| matches.subcommand_matches(names.name);
 
-    let action: Action = if let Some(matches) = maybe_command(effects::Push::names()) {
-        if let Some(name_bits) = matches.values_of(effects::Push::names().input.arg_name()) {
+    let action: Action = if let Some(matches) = maybe_command(Push::names()) {
+        if let Some(name_bits) = matches.values_of(Push::names().input.arg_name()) {
             let name = name_bits.collect::<Vec<_>>().join(" ");
-            Create(Item::new(&name))
+            Action::Create(Item::new(&name))
         } else {
-            error_no_command(effects::Push::names().name, matches.is_present("silent"))
+            error_no_command(Push::names().name, matches.is_present("silent"))
         }
-    } else if let Some(matches) = maybe_command(effects::Pick::names()) {
+    } else if let Some(matches) = maybe_command(Pick::names()) {
         let indices = matches
-            .values_of(effects::Pick::names().input.arg_name())
+            .values_of(Pick::names().input.arg_name())
             .unwrap()
             .map(|i| usize::from_str_radix(&i, 10).unwrap())
             .collect();
-        Pick(indices)
-    } else if let Some(n) = maybe_command(effects::Head::names()) {
+        Action::Pick(indices)
+    } else if let Some(n) = maybe_command(Head::names()) {
         let n = n
-            .value_of(effects::Head::names().input.arg_name())
+            .value_of(Head::names().input.arg_name())
             .map(only_digits)
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
-        Head(n)
-    } else if let Some(n) = maybe_command(effects::Tail::names()) {
+        Action::Head(n)
+    } else if let Some(n) = maybe_command(Tail::names()) {
         let n = n
-            .value_of(effects::Tail::names().input.arg_name())
+            .value_of(Tail::names().input.arg_name())
             .map(only_digits)
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
-        Tail(n)
-    } else if let Some(dest) = maybe_command(effects::Move::names()) {
+        Action::Tail(n)
+    } else if let Some(dest) = maybe_command(Move::names()) {
         let dest = dest
-            .value_of(effects::Move::names().input.arg_name())
+            .value_of(Move::names().input.arg_name())
             .unwrap()
             .to_string();
-        Move(dest)
-    } else if let Some(dest) = maybe_command(effects::MoveAll::names()) {
+        Action::Move(dest)
+    } else if let Some(dest) = maybe_command(MoveAll::names()) {
         let dest = dest
-            .value_of(effects::MoveAll::names().input.arg_name())
+            .value_of(MoveAll::names().input.arg_name())
             .unwrap()
             .to_string();
-        MoveAll(dest)
+        Action::MoveAll(dest)
     } else if let Some(command) = vec![
-        Complete, Delete, DeleteAll, List, Length, IsEmpty, Next, Swap, Rot,
+        Action::Complete,
+        Action::Delete,
+        Action::DeleteAll,
+        Action::List,
+        Action::Length,
+        Action::IsEmpty,
+        Action::Next,
+        Action::Swap,
+        Action::Rot,
     ]
     .into_iter()
     .find(|action| maybe_action(&action).is_some())
     {
         command
     } else {
-        Peek
+        Action::Peek
     };
 
     let stack = matches
@@ -193,7 +199,7 @@ fn subcommand_for<'a, 'b>(names: EffectNames<'a>) -> App<'a, 'b> {
         EffectInput::OptionalSingle(_) => (false, false),
         EffectInput::RequiredSingle(_) => (true, false),
         EffectInput::RequiredSlurpy(_) => (true, true),
-        EffectInput::NoInput => unreachable!()
+        EffectInput::NoInput => unreachable!(),
     };
 
     cmd.arg(
@@ -208,5 +214,5 @@ fn error_no_command(name: &str, silent: bool) -> Action {
     if !silent {
         eprintln!("Error, not enough arguments given for: {}", name);
     }
-    Peek
+    Action::Peek
 }

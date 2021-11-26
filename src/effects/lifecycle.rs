@@ -15,7 +15,7 @@ impl StackEffect for Push {
             name: "push",
             description: "Create a new item",
             aliases: &["create", "add", "do", "start", "new"],
-            input: EffectInput::RequiredSlurpy("item")
+            input: EffectInput::RequiredSlurpy("item"),
         }
     }
 
@@ -47,7 +47,7 @@ impl StackEffect for Complete {
             name: "complete",
             description: "Move the current item to \"<STACK>_history\" and mark as completed.",
             aliases: &["done", "finish", "fulfill"],
-            input: EffectInput::NoInput
+            input: EffectInput::NoInput,
         }
     }
 
@@ -97,7 +97,7 @@ impl StackEffect for Delete {
             name: "delete",
             description: "Move the current item to \"<STACK>_history\" and mark as deleted.",
             aliases: &["pop", "remove", "cancel", "drop"],
-            input: EffectInput::NoInput
+            input: EffectInput::NoInput,
         }
     }
 
@@ -147,7 +147,7 @@ impl StackEffect for DeleteAll {
             name: "delete-all",
             description: "Move all items to \"<STACK>_history\" and mark as deleted.",
             aliases: &["purge", "pop-all", "remove-all", "cancel-all", "drop-all"],
-            input: EffectInput::NoInput
+            input: EffectInput::NoInput,
         }
     }
 

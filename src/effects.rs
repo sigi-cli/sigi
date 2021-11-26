@@ -30,7 +30,7 @@ pub enum EffectInput<'a> {
     RequiredSlurpy(&'a str),
 }
 
-impl <'a> EffectInput<'a> {
+impl<'a> EffectInput<'a> {
     pub fn arg_name(&self) -> &'a str {
         match self {
             EffectInput::NoInput => "NONE",

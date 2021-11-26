@@ -14,7 +14,7 @@ impl StackEffect for Peek {
             name: "peek",
             description: "Show the current item",
             aliases: &["show"],
-            input: EffectInput::NoInput
+            input: EffectInput::NoInput,
         }
     }
 
@@ -127,7 +127,7 @@ impl StackEffect for ListAll {
             name: "list",
             description: "List all items",
             aliases: &["ls", "snoop", "show", "all"],
-            input: EffectInput::NoInput
+            input: EffectInput::NoInput,
         }
     }
 
@@ -162,7 +162,7 @@ impl StackEffect for Head {
             name: "head",
             description: "List the first N items",
             aliases: &["top", "first"],
-            input: EffectInput::OptionalSingle("n")
+            input: EffectInput::OptionalSingle("n"),
         }
     }
 
@@ -197,7 +197,7 @@ impl StackEffect for Tail {
             name: "tail",
             description: "List the last N items",
             aliases: &["bottom", "last"],
-            input: EffectInput::OptionalSingle("n")
+            input: EffectInput::OptionalSingle("n"),
         }
     }
 
@@ -218,7 +218,7 @@ impl StackEffect for Count {
             name: "count",
             description: "Print the total number of items in the stack",
             aliases: &["size", "length"],
-            input: EffectInput::NoInput
+            input: EffectInput::NoInput,
         }
     }
 

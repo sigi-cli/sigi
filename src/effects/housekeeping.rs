@@ -15,7 +15,7 @@ impl StackEffect for Pick {
             name: "pick",
             description: "Move items to the top of stack by their number",
             aliases: &[],
-            input: EffectInput::RequiredSlurpy("number")
+            input: EffectInput::RequiredSlurpy("number"),
         }
     }
 
@@ -67,7 +67,7 @@ impl StackEffect for Move {
             name: "move",
             description: "Move current item to another stack",
             aliases: &[],
-            input: EffectInput::RequiredSlurpy("destination")
+            input: EffectInput::RequiredSlurpy("destination"),
         }
     }
 
@@ -105,7 +105,7 @@ impl StackEffect for MoveAll {
             name: "move-all",
             description: "Move all items to another stack",
             aliases: &[],
-            input: EffectInput::RequiredSlurpy("destination")
+            input: EffectInput::RequiredSlurpy("destination"),
         }
     }
 
