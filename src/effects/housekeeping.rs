@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::{EffectNames, Head, Push, StackEffect};
+use crate::effects::{EffectInput, EffectNames, Head, Push, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Pick =====
@@ -15,6 +15,7 @@ impl StackEffect for Pick {
             name: "pick",
             description: "Move items to the top of stack by their number",
             aliases: &[],
+            input: EffectInput::RequiredSlurpy("number")
         }
     }
 
@@ -30,10 +31,9 @@ impl StackEffect for Pick {
                 .rev()
                 .collect();
             for i in indices {
-                if i > stack.len() {
+                if i > stack.len() || seen.contains(&i) {
+                    // TODO: What should be the output here? Some stderr?
                     // command.log("Pick", "ignoring out-of-bounds index");
-                    continue;
-                } else if seen.contains(&i) {
                     // command.log("Pick", "ignoring duplicate index");
                     continue;
                 }
@@ -67,6 +67,7 @@ impl StackEffect for Move {
             name: "move",
             description: "Move current item to another stack",
             aliases: &[],
+            input: EffectInput::RequiredSlurpy("destination")
         }
     }
 
@@ -104,6 +105,7 @@ impl StackEffect for MoveAll {
             name: "move-all",
             description: "Move all items to another stack",
             aliases: &[],
+            input: EffectInput::RequiredSlurpy("destination")
         }
     }
 

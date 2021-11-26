@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::{stack_history_of, EffectNames, Peek, StackEffect};
+use crate::effects::{stack_history_of, EffectInput, EffectNames, Peek, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Create (Push) =====
@@ -15,6 +15,7 @@ impl StackEffect for Push {
             name: "push",
             description: "Create a new item",
             aliases: &["create", "add", "do", "start", "new"],
+            input: EffectInput::RequiredSlurpy("item")
         }
     }
 
@@ -46,6 +47,7 @@ impl StackEffect for Complete {
             name: "complete",
             description: "Move the current item to \"<STACK>_history\" and mark as completed.",
             aliases: &["done", "finish", "fulfill"],
+            input: EffectInput::NoInput
         }
     }
 
@@ -95,6 +97,7 @@ impl StackEffect for Delete {
             name: "delete",
             description: "Move the current item to \"<STACK>_history\" and mark as deleted.",
             aliases: &["pop", "remove", "cancel", "drop"],
+            input: EffectInput::NoInput
         }
     }
 
@@ -144,6 +147,7 @@ impl StackEffect for DeleteAll {
             name: "delete-all",
             description: "Move all items to \"<STACK>_history\" and mark as deleted.",
             aliases: &["purge", "pop-all", "remove-all", "cancel-all", "drop-all"],
+            input: EffectInput::NoInput
         }
     }
 
@@ -154,7 +158,7 @@ impl StackEffect for DeleteAll {
 
             // Push the now-marked-deleted items to history stack.
             let history_stack = &stack_history_of(&self.stack);
-            let mut history = data::load(history_stack).unwrap_or(vec![]);
+            let mut history = data::load(history_stack).unwrap_or_default();
             history.append(&mut items);
             data::save(history_stack, history).unwrap();
 

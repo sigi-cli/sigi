@@ -1,5 +1,5 @@
-use crate::output::{NoiseLevel, OutputFormat};
 use crate::data::Item;
+use crate::output::{NoiseLevel, OutputFormat};
 use crate::{effects, effects::StackEffect};
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
@@ -146,13 +146,13 @@ impl Command {
             DeleteAll => effects::DeleteAll { stack }.run(format),
             List => effects::ListAll { stack }.run(format),
             Tail(n) => {
-                let n = n.clone();
+                let n = *n;
                 effects::Tail { stack, n }.run(format)
             }
             IsEmpty => effects::IsEmpty { stack }.run(format),
             Length => effects::Count { stack }.run(format),
             Head(n) => {
-                let n = n.clone();
+                let n = *n;
                 effects::Head { stack, n }.run(format)
             }
             Pick(ns) => effects::Pick {

@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::{EffectNames, StackEffect};
+use crate::effects::{EffectInput, EffectNames, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Peek =====
@@ -14,6 +14,7 @@ impl StackEffect for Peek {
             name: "peek",
             description: "Show the current item",
             aliases: &["show"],
+            input: EffectInput::NoInput
         }
     }
 
@@ -30,7 +31,7 @@ impl StackEffect for Peek {
 // ===== Some help for doing ListAll/Head/Tail =====
 
 trait Listable {
-    fn range<'a>(&'a self) -> ListRange<'a>;
+    fn range(&self) -> ListRange;
 }
 
 struct ListRange<'a> {
@@ -76,7 +77,7 @@ fn list_range(listable: &impl Listable, output: OutputFormat) {
                     OutputFormat::Human(_) => match i {
                         0 => "Now".to_string(),
                         1..=9 => format!("  {}", i),
-                        10..=099 => format!(" {}", i),
+                        10..=99 => format!(" {}", i),
                         _ => i.to_string(),
                     },
                     _ => i.to_string(),
@@ -87,7 +88,7 @@ fn list_range(listable: &impl Listable, output: OutputFormat) {
                     .iter()
                     .find(|(status, _)| status == "created")
                     .map(|(_, dt)| output.format_time(*dt))
-                    .unwrap_or("unknown".to_string());
+                    .unwrap_or_else(|| "unknown".to_string());
 
                 vec![position, item.contents, created]
             })
@@ -110,7 +111,7 @@ pub struct ListAll {
 }
 
 impl Listable for ListAll {
-    fn range<'a>(&'a self) -> ListRange<'a> {
+    fn range(&self) -> ListRange {
         ListRange {
             stack: &self.stack,
             start: 0,
@@ -126,6 +127,7 @@ impl StackEffect for ListAll {
             name: "list",
             description: "List all items",
             aliases: &["ls", "snoop", "show", "all"],
+            input: EffectInput::NoInput
         }
     }
 
@@ -144,7 +146,7 @@ pub struct Head {
 }
 
 impl Listable for Head {
-    fn range<'a>(&'a self) -> ListRange<'a> {
+    fn range(&self) -> ListRange {
         ListRange {
             stack: &self.stack,
             start: 0,
@@ -160,6 +162,7 @@ impl StackEffect for Head {
             name: "head",
             description: "List the first N items",
             aliases: &["top", "first"],
+            input: EffectInput::OptionalSingle("n")
         }
     }
 
@@ -178,7 +181,7 @@ pub struct Tail {
 }
 
 impl Listable for Tail {
-    fn range<'a>(&'a self) -> ListRange<'a> {
+    fn range(&self) -> ListRange {
         ListRange {
             stack: &self.stack,
             start: 0,
@@ -194,6 +197,7 @@ impl StackEffect for Tail {
             name: "tail",
             description: "List the last N items",
             aliases: &["bottom", "last"],
+            input: EffectInput::OptionalSingle("n")
         }
     }
 
@@ -214,6 +218,7 @@ impl StackEffect for Count {
             name: "count",
             description: "Print the total number of items in the stack",
             aliases: &["size", "length"],
+            input: EffectInput::NoInput
         }
     }
 
@@ -237,6 +242,7 @@ impl StackEffect for IsEmpty {
             name: "is-empty",
             description: "\"true\" if stack has zero items, \"false\" (and nonzero exit code) if the stack does have items",
             aliases: &["empty"],
+            input: EffectInput::NoInput
         }
     }
 

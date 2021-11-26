@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::{EffectNames, Head, Peek, StackEffect};
+use crate::effects::{EffectInput, EffectNames, Head, Peek, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Swap =====
@@ -14,6 +14,7 @@ impl StackEffect for Swap {
             name: "swap",
             description: "Swap the two most-current items",
             aliases: &[],
+            input: EffectInput::NoInput
         }
     }
 
@@ -52,6 +53,7 @@ impl StackEffect for Rot {
             name: "rot",
             description: "Rotate the three most-current items",
             aliases: &["rotate"],
+            input: EffectInput::NoInput
         }
     }
 
@@ -97,6 +99,7 @@ impl StackEffect for Next {
             name: "next",
             description: "Cycle to the next item; the current item becomes last",
             aliases: &["later", "cycle", "bury"],
+            input: EffectInput::NoInput
         }
     }
 

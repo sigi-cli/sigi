@@ -1,5 +1,7 @@
-use crate::actions::{Action, ActionInput, ActionMetadata, Command};
+use crate::actions::{Action, Command};
 use crate::data::Item;
+use crate::effects;
+use crate::effects::{EffectInput, EffectNames, StackEffect};
 use crate::output::{NoiseLevel, OutputFormat};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use std::iter;
@@ -12,7 +14,7 @@ pub const SIGI_VERSION: &str = "1.1.0";
 const DEFAULT_STACK_NAME: &str = "sigi";
 
 fn get_app() -> App<'static, 'static> {
-    let peek = Peek.data();
+    let peek_names = effects::Peek::names();
 
     App::new("sigi")
         .version(SIGI_VERSION)
@@ -53,26 +55,26 @@ fn get_app() -> App<'static, 'static> {
                 .help("Use a programmatic format. Options include [csv, json, tsv]. Not compatible with quiet/silent/verbose.")
         )
         .subcommand(
-            SubCommand::with_name(peek.name)
+            SubCommand::with_name(peek_names.name)
                 .about("Show the first item. (This is the default behavior when no command is given)")
-                .visible_aliases(&peek.aliases)
+                .visible_aliases(peek_names.aliases)
         )
         .subcommands(vec![
-            Create(Item::new("")),
-            Complete,
-            Delete,
-            DeleteAll,
-            List,
-            Head(None),
-            Tail(None),
-            Pick(vec![]),
-            Length,
-            Move(String::new()),
-            MoveAll(String::new()),
-            IsEmpty,
-            Next,
-            Swap,
-            Rot,
+            effects::Push::names(),
+            effects::Complete::names(),
+            effects::Delete::names(),
+            effects::DeleteAll::names(),
+            effects::ListAll::names(),
+            effects::Head::names(),
+            effects::Tail::names(),
+            effects::Pick::names(),
+            effects::Count::names(),
+            effects::Move::names(),
+            effects::MoveAll::names(),
+            effects::IsEmpty::names(),
+            effects::Next::names(),
+            effects::Swap::names(),
+            effects::Rot::names(),
         ]
         .into_iter()
         .map(subcommand_for))
@@ -80,54 +82,48 @@ fn get_app() -> App<'static, 'static> {
 
 /// Parses command line arguments and returns a single `sigi::actions::Command`.
 pub fn parse_command() -> Command {
-    let create = Create(Item::new(""));
-    let head = Head(None);
-    let tail = Tail(None);
-    let pick = Pick(vec![]);
-    let move_item = Move(String::new());
-    let move_all = MoveAll(String::new());
-
     let matches = get_app().get_matches();
 
-    let maybe_command = |action: &Action| matches.subcommand_matches(action.data().name);
+    let maybe_action = |action: &Action| matches.subcommand_matches(action.data().name);
+    let maybe_command = |names: EffectNames| matches.subcommand_matches(names.name);
 
-    let action: Action = if let Some(matches) = maybe_command(&create) {
-        if let Some(name_bits) = matches.values_of(arg_name_for(&create.data())) {
+    let action: Action = if let Some(matches) = maybe_command(effects::Push::names()) {
+        if let Some(name_bits) = matches.values_of(effects::Push::names().input.arg_name()) {
             let name = name_bits.collect::<Vec<_>>().join(" ");
             Create(Item::new(&name))
         } else {
-            error_no_command(create.data().name, matches.is_present("silent"))
+            error_no_command(effects::Push::names().name, matches.is_present("silent"))
         }
-    } else if let Some(matches) = maybe_command(&pick) {
+    } else if let Some(matches) = maybe_command(effects::Pick::names()) {
         let indices = matches
-            .values_of(arg_name_for(&pick.data()))
+            .values_of(effects::Pick::names().input.arg_name())
             .unwrap()
             .map(|i| usize::from_str_radix(&i, 10).unwrap())
             .collect();
         Pick(indices)
-    } else if let Some(n) = maybe_command(&head) {
+    } else if let Some(n) = maybe_command(effects::Head::names()) {
         let n = n
-            .value_of(arg_name_for(&head.data()))
+            .value_of(effects::Head::names().input.arg_name())
             .map(only_digits)
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
         Head(n)
-    } else if let Some(n) = maybe_command(&tail) {
+    } else if let Some(n) = maybe_command(effects::Tail::names()) {
         let n = n
-            .value_of(arg_name_for(&tail.data()))
+            .value_of(effects::Tail::names().input.arg_name())
             .map(only_digits)
             .map(|i| usize::from_str_radix(&i, 10).ok())
             .flatten();
         Tail(n)
-    } else if let Some(dest) = maybe_command(&move_item) {
+    } else if let Some(dest) = maybe_command(effects::Move::names()) {
         let dest = dest
-            .value_of(arg_name_for(&move_item.data()))
+            .value_of(effects::Move::names().input.arg_name())
             .unwrap()
             .to_string();
         Move(dest)
-    } else if let Some(dest) = maybe_command(&move_all) {
+    } else if let Some(dest) = maybe_command(effects::MoveAll::names()) {
         let dest = dest
-            .value_of(arg_name_for(&move_all.data()))
+            .value_of(effects::MoveAll::names().input.arg_name())
             .unwrap()
             .to_string();
         MoveAll(dest)
@@ -135,7 +131,7 @@ pub fn parse_command() -> Command {
         Complete, Delete, DeleteAll, List, Length, IsEmpty, Next, Swap, Rot,
     ]
     .into_iter()
-    .find(|action| maybe_command(&action).is_some())
+    .find(|action| maybe_action(&action).is_some())
     {
         command
     } else {
@@ -184,33 +180,24 @@ fn only_digits(s: &str) -> String {
         .collect::<String>()
 }
 
-fn arg_name_for<'a>(data: &ActionMetadata<'a>) -> &'a str {
-    match data.input.as_ref().unwrap() {
-        ActionInput::OptionalSingle(arg) => arg,
-        ActionInput::RequiredSingle(arg) => arg,
-        ActionInput::RequiredSlurpy(arg) => arg,
-    }
-}
+fn subcommand_for<'a, 'b>(names: EffectNames<'a>) -> App<'a, 'b> {
+    let cmd = SubCommand::with_name(names.name)
+        .about(names.description)
+        .visible_aliases(names.aliases);
 
-fn subcommand_for<'a, 'b>(action: Action) -> App<'a, 'b> {
-    let data = action.data();
-
-    let cmd = SubCommand::with_name(data.name)
-        .about(data.description)
-        .visible_aliases(&data.aliases);
-
-    if data.input.is_none() {
+    if let EffectInput::NoInput = names.input {
         return cmd;
     }
 
-    let (is_required, is_multiple) = match data.input.clone().unwrap() {
-        ActionInput::OptionalSingle(_) => (false, false),
-        ActionInput::RequiredSingle(_) => (true, false),
-        ActionInput::RequiredSlurpy(_) => (true, true),
+    let (is_required, is_multiple) = match names.input {
+        EffectInput::OptionalSingle(_) => (false, false),
+        EffectInput::RequiredSingle(_) => (true, false),
+        EffectInput::RequiredSlurpy(_) => (true, true),
+        EffectInput::NoInput => unreachable!()
     };
 
     cmd.arg(
-        Arg::with_name(arg_name_for(&data))
+        Arg::with_name(names.input.arg_name())
             .takes_value(true)
             .required(is_required)
             .multiple(is_multiple),
