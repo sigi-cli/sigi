@@ -87,12 +87,12 @@ pub fn run() {
         .to_string();
 
     let effect = get_push_effect(&stack, &matches)
-        .or(get_pick_effect(&stack, &matches))
-        .or(get_head_effect(&stack, &matches))
-        .or(get_tail_effect(&stack, &matches))
-        .or(get_move_effect(&stack, &matches))
-        .or(get_move_all_effect(&stack, &matches))
-        .or(get_noarg_effect(&stack, &matches))
+        .or_else(|| get_head_effect(&stack, &matches))
+        .or_else(|| get_tail_effect(&stack, &matches))
+        .or_else(|| get_move_effect(&stack, &matches))
+        .or_else(|| get_move_all_effect(&stack, &matches))
+        .or_else(|| get_pick_effect(&stack, &matches))
+        .or_else(|| get_noarg_effect(&stack, &matches))
         .unwrap_or_else(|| get_peek_effect(&stack));
 
     let output = get_format(matches);

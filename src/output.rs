@@ -64,7 +64,7 @@ impl OutputFormat {
                             line.get(1).unwrap(),
                             line.iter()
                                 .skip(2)
-                                .map(|s| s.clone())
+                                .map(|s| s.to_string())
                                 .collect::<Vec<_>>()
                                 .join(", ")
                         ),
