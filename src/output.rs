@@ -54,10 +54,21 @@ impl OutputFormat {
             }
             OutputFormat::Human(noise) => match noise {
                 NoiseLevel::Verbose => {
-                    // Print all values separated by a single space.
-                    values
-                        .into_iter()
-                        .for_each(|line| println!("{}", line.join(" ")));
+                    values.into_iter().for_each(|line| match line.len() {
+                        0 => (),
+                        1 => println!("{}", line.get(0).unwrap()),
+                        2 => println!("{}: {}", line.get(0).unwrap(), line.get(1).unwrap()),
+                        _ => println!(
+                            "{}: {} ({})",
+                            line.get(0).unwrap(),
+                            line.get(1).unwrap(),
+                            line.iter()
+                                .skip(2)
+                                .map(|s| s.clone())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        ),
+                    });
                 }
                 NoiseLevel::Normal => {
                     // Print only first two values e.g. (num, item) separated by a single space.
