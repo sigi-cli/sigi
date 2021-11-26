@@ -10,7 +10,7 @@ It's primarily intended for you to use as extra memory. Use it to organize your
 tasks, groceries, or the next board games you want to play.
 
 ```
-sigi 2.0.0
+sigi 2.0.1
 An organizational tool.
 
 USAGE:
