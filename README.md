@@ -10,7 +10,7 @@ It's primarily intended for you to use as extra memory. Use it to organize your
 tasks, groceries, or the next board games you want to play.
 
 ```
-sigi 1.1.0
+sigi 2.0.0
 An organizational tool.
 
 USAGE:
@@ -21,32 +21,37 @@ FLAGS:
     -q, --quiet      Omit any leading labels or symbols. Recommended for use in shell scripts
     -s, --silent     Omit any output at all.
     -V, --version    Prints version information
-    -v, --verbose    Enable verbose output.
+    -v, --verbose    Print more information, like when an item was created. [aliases: noisy]
 
 OPTIONS:
-    -t, --stack <STACK>    Manage items in a specific stack [aliases: topic, about, namespace]
+    -f, --format <format>    Use a programmatic format. Options include [csv, json, tsv]. Not compatible with
+                             quiet/silent/verbose.
+    -t, --stack <STACK>      Manage items in a specific stack [aliases: topic, about, namespace]
 
 SUBCOMMANDS:
-    complete      Move the current item to "<STACK>_completed" [aliases: done, finish, fulfill]
-    create        Create a new item [aliases: push, add, do, start, new]
-    delete        Move the current item to "<STACK>_deleted" [aliases: pop, remove, cancel, drop]
-    delete-all    Move all items to "<STACK>_deleted" [aliases: purge, pop-all, remove-all, cancel-all, drop-all]
+    complete      Move the current item to "<STACK>_history" and mark as completed. [aliases: done, finish, fulfill]
+    count         Print the total number of items in the stack [aliases: size, length]
+    delete        Move the current item to "<STACK>_history" and mark as deleted. [aliases: pop, remove, cancel,
+                  drop]
+    delete-all    Move all items to "<STACK>_history" and mark as deleted. [aliases: purge, pop-all, remove-all,
+                  cancel-all, drop-all]
     head          List the first N items [aliases: top, first]
     help          Prints this message or the help of the given subcommand(s)
-    is-empty      "true" if stack has no items, "false" otherwise [aliases: empty]
-    length        Print the stack's length [aliases: count, size]
+    is-empty      "true" if stack has zero items, "false" (and nonzero exit code) if the stack does have items
+                  [aliases: empty]
     list          List all items [aliases: ls, snoop, show, all]
     move          Move current item to another stack
     move-all      Move all items to another stack
     next          Cycle to the next item; the current item becomes last [aliases: later, cycle, bury]
-    peek          Show the current item (This is the default behavior when no command is given) [aliases: show]
+    peek          Show the first item. (This is the default behavior when no command is given) [aliases: show]
     pick          Move items to the top of stack by their number
+    push          Create a new item [aliases: create, add, do, start, new]
     rot           Rotate the three most-current items [aliases: rotate]
     swap          Swap the two most-current items
     tail          List the last N items [aliases: bottom, last]
 ```
 
-# Motivation
+# The big idea
 
 _Sigi_ is the [Chamorro](https://en.wikipedia.org/wiki/Chamorro_language) word
 for _continue_. I hope it will help you to plan more, forget less, get things
@@ -57,7 +62,7 @@ remembering things uses up [willpower](https://www.penguinrandomhouse.com/books/
 I like working at a command line, and wanted a tool to free me up from trying to
 juggle tasks and ideas.
 
-I also just like stacks, and stack-based languages like
+I also just find that stacks, and stack-based languages like
 [Forth](https://en.wikipedia.org/wiki/Forth_(programming_language)) and
 [Factor](https://factorcode.org) are a joy to play with.
 

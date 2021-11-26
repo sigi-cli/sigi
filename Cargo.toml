@@ -1,6 +1,6 @@
 [package]
 name = "sigi"
-version = "1.1.0"
+version = "2.0.0"
 authors = ["♪ hiljusti 🎮 <hiljusti@pm.me>"]
 edition = "2018"
 license = "GPL-3.0-or-later"
@@ -13,7 +13,7 @@ keywords = ["organization", "planning", "stack", "todo", "cli"]
 categories = ["command-line-interface", "database-implementations"]
 
 [badges]
-maintenance = { status = "experimental" }
+maintenance = { status = "passively-maintained" }
 
 [profile.release]
 codegen-units = 1
