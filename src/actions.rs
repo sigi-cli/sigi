@@ -91,9 +91,9 @@ impl Action {
             Pick(_) => pick_data(),
             Move(_) => move_data(),
             MoveAll(_) => move_all_data(),
-            Next => next_data(),
-            Swap => swap_data(),
-            Rot => rot_data(),
+            Next => effect_to_old_action_metadata(effects::Next::names, None),
+            Swap => effect_to_old_action_metadata(effects::Swap::names, None),
+            Rot => effect_to_old_action_metadata(effects::Rot::names, None),
         }
     }
 }
@@ -130,13 +130,16 @@ impl Command {
             }
             IsEmpty => effects::IsEmpty { stack }.run(format),
             Length => effects::Count { stack }.run(format),
-            Head(n) => head(self, n),
+            Head(n) => {
+                let n = n.clone();
+                effects::Head { stack, n }.run(format)
+            }
             Pick(ns) => pick(self, ns),
             Move(dest) => move_item(self, dest),
             MoveAll(dest) => move_all(self, dest),
-            Next => next(self),
-            Swap => swap(self),
-            Rot => rot(self),
+            Next => effects::Next { stack }.run(format),
+            Swap => effects::Swap { stack }.run(format),
+            Rot => effects::Rot { stack }.run(format),
         }
     }
 
@@ -165,29 +168,6 @@ fn effect_to_old_action_metadata<'a>(
         aliases: get_names().aliases.to_vec(),
         input,
     }
-}
-
-fn peek(command: &Command) {
-    effects::Peek {
-        stack: command.stack.clone(),
-    }
-    .run(command.format);
-}
-
-fn create(command: &Command, item: &Item) {
-    effects::Push {
-        stack: command.stack.clone(),
-        item: item.clone(),
-    }
-    .run(command.format);
-}
-
-fn head(command: &Command, n: &Option<usize>) {
-    effects::Head {
-        stack: command.stack.clone(),
-        n: n.clone(),
-    }
-    .run(command.format);
 }
 
 fn pick_data<'a>() -> ActionMetadata<'a> {
@@ -221,13 +201,11 @@ fn pick(command: &Command, indices: &[usize]) {
 
         data::save(&command.stack, stack).unwrap();
 
-        let picked_n = Some(seen.len());
-        let head_cmd = Command {
-            action: Action::Head(picked_n),
-            format: command.format,
+        effects::Head {
             stack: command.stack.clone(),
-        };
-        head(&head_cmd, &picked_n);
+            n: Some(seen.len()),
+        }
+        .run(command.format);
     }
 }
 
@@ -249,12 +227,11 @@ fn move_item(command: &Command, dest_stack: &str) {
             command.log("Move", dest_stack);
             data::save(&command.stack, items).unwrap();
 
-            let command = Command {
-                action: Create(item.clone()),
-                format: OutputFormat::Silent,
-                stack: String::from(dest_stack),
-            };
-            create(&command, &item);
+            effects::Push {
+                stack: dest_stack.to_string(),
+                item,
+            }
+            .run(OutputFormat::Silent);
         }
     }
 }
@@ -284,81 +261,5 @@ fn move_all(command: &Command, dest_stack: &str) {
                 data::save(&command.stack, vec![]).unwrap();
             }
         }
-    }
-}
-
-fn next_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "next",
-        description: "Cycle to the next item; the current item becomes last",
-        aliases: vec!["later", "cycle", "bury"],
-        input: None,
-    }
-}
-
-fn next(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        let mut items = items;
-        if items.is_empty() {
-            return;
-        }
-        let to_the_back = items.pop().unwrap();
-        items.insert(0, to_the_back);
-
-        data::save(&command.stack, items).unwrap();
-        peek(command)
-    }
-}
-
-fn swap_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "swap",
-        description: "Swap the two most-current items",
-        aliases: vec![],
-        input: None,
-    }
-}
-
-fn swap(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        let mut items = items;
-        if items.len() < 2 {
-            return;
-        }
-        let a = items.pop().unwrap();
-        let b = items.pop().unwrap();
-        items.push(a);
-        items.push(b);
-
-        data::save(&command.stack, items).unwrap();
-        head(command, &Some(2));
-    }
-}
-
-fn rot_data<'a>() -> ActionMetadata<'a> {
-    ActionMetadata {
-        name: "rot",
-        description: "Rotate the three most-current items",
-        aliases: vec!["rotate"],
-        input: None,
-    }
-}
-
-fn rot(command: &Command) {
-    if let Ok(items) = data::load(&command.stack) {
-        let mut items = items;
-        if items.len() < 3 {
-            swap(command);
-            return;
-        }
-        let a = items.pop().unwrap();
-        let b = items.pop().unwrap();
-        let c = items.pop().unwrap();
-        items.push(a);
-        items.push(c);
-        items.push(b);
-
-        data::save(&command.stack, items).unwrap();
-        head(command, &Some(3));
     }
 }

@@ -79,7 +79,9 @@ impl OutputFormat {
             OutputFormat::Json => {
                 println!("json: TODO")
             }
-            OutputFormat::Silent => unreachable!("[BUG] Sigi should always exit outputting before this point."),
+            OutputFormat::Silent => {
+                unreachable!("[BUG] Sigi should always exit outputting before this point.")
+            }
             OutputFormat::Tsv => {
                 let tsv = joining("\t");
                 println!("{}", tsv(labels));
