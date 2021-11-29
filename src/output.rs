@@ -91,25 +91,27 @@ impl OutputFormat {
             },
             OutputFormat::Json => {
                 let keys = labels;
-                let objs = values.into_iter().map(|vals| {
-                    let mut obj = json::JsonValue::new_object();
-                    keys.iter()
-                        .zip(vals)
-                        .for_each(|(k,v)| obj[*k] = v.into());
-                    obj
-                }).collect::<Vec<_>>();
+                let objs = values
+                    .into_iter()
+                    .map(|vals| {
+                        let mut obj = json::JsonValue::new_object();
+                        keys.iter().zip(vals).for_each(|(k, v)| obj[*k] = v.into());
+                        obj
+                    })
+                    .collect::<Vec<_>>();
 
                 println!("{}", json::stringify_pretty(objs, 2));
-            },
+            }
             OutputFormat::JsonCompact => {
                 let keys = labels;
-                let objs = values.into_iter().map(|vals| {
-                    let mut obj = json::JsonValue::new_object();
-                    keys.iter()
-                        .zip(vals)
-                        .for_each(|(k,v)| obj[*k] = v.into());
-                    obj
-                }).collect::<Vec<_>>();
+                let objs = values
+                    .into_iter()
+                    .map(|vals| {
+                        let mut obj = json::JsonValue::new_object();
+                        keys.iter().zip(vals).for_each(|(k, v)| obj[*k] = v.into());
+                        obj
+                    })
+                    .collect::<Vec<_>>();
 
                 println!("{}", json::stringify(objs));
             }

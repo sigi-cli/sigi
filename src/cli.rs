@@ -9,11 +9,12 @@ use std::iter;
 pub const SIGI_VERSION: &str = "2.0.1";
 
 const DEFAULT_STACK_NAME: &str = "sigi";
+const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 
 fn get_app() -> App<'static, 'static> {
     let peek_names = Peek::names();
 
-    App::new("sigi")
+    let app = App::new("sigi")
         .version(SIGI_VERSION)
         .about("An organizational tool.")
         .arg(
@@ -25,56 +26,37 @@ fn get_app() -> App<'static, 'static> {
                 .help("Manage items in a specific stack")
                 .takes_value(true),
         )
-        .arg(
-            Arg::with_name("quiet")
-                .short("q")
-                .long("quiet")
-                .help("Omit any leading labels or symbols. Recommended for use in shell scripts"),
-        )
-        .arg(
-            Arg::with_name("silent")
-                .short("s")
-                .long("silent")
-                .help("Omit any output at all."),
-        )
-        .arg(
-            Arg::with_name("verbose")
-                .short("v")
-                .long("verbose")
-                .visible_alias("noisy")
-                .help("Print more information, like when an item was created."),
-        )
-        .arg(
-            Arg::with_name("format")
-                .short("f")
-                .long("format")
-                .takes_value(true)
-                .help("Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.")
-        )
         .subcommand(
             SubCommand::with_name(peek_names.name)
-                .about("Show the first item. (This is the default behavior when no command is given)")
-                .visible_aliases(peek_names.aliases)
+                .about(
+                    "Show the first item. (This is the default behavior when no command is given)",
+                )
+                .visible_aliases(peek_names.aliases),
         )
-        .subcommands(vec![
-            Push::names(),
-            Complete::names(),
-            Delete::names(),
-            DeleteAll::names(),
-            ListAll::names(),
-            Head::names(),
-            Tail::names(),
-            Pick::names(),
-            Count::names(),
-            Move::names(),
-            MoveAll::names(),
-            IsEmpty::names(),
-            Next::names(),
-            Swap::names(),
-            Rot::names(),
-        ]
-        .into_iter()
-        .map(subcommand_for))
+        .subcommands(
+            vec![
+                Push::names(),
+                Complete::names(),
+                Delete::names(),
+                DeleteAll::names(),
+                ListAll::names(),
+                Head::names(),
+                Tail::names(),
+                Pick::names(),
+                Count::names(),
+                Move::names(),
+                MoveAll::names(),
+                IsEmpty::names(),
+                Next::names(),
+                Swap::names(),
+                Rot::names(),
+            ]
+            .into_iter()
+            .map(subcommand_for)
+            .map(with_formatting_flags),
+        );
+
+    with_formatting_flags(app)
 }
 
 /// Parses command line arguments and executes a single `sigi::effects::StackEffect`.
@@ -86,39 +68,40 @@ pub fn run() {
         .unwrap_or(DEFAULT_STACK_NAME)
         .to_string();
 
-    let effect = get_push_effect(&stack, &matches)
+    let (effect, maybe_format) = get_push_effect(&stack, &matches)
         .or_else(|| get_head_effect(&stack, &matches))
         .or_else(|| get_tail_effect(&stack, &matches))
         .or_else(|| get_move_effect(&stack, &matches))
         .or_else(|| get_move_all_effect(&stack, &matches))
         .or_else(|| get_pick_effect(&stack, &matches))
         .or_else(|| get_noarg_effect(&stack, &matches))
-        .unwrap_or_else(|| get_peek_effect(&stack));
+        .unwrap_or_else(|| just_peek_effect(&stack, &matches));
 
-    let output = get_format(matches);
+    // Format settings of a subcommand take precedence over main command.
+    let output = maybe_format
+        .or_else(|| get_format(&matches))
+        .unwrap_or(DEFAULT_FORMAT);
 
     effect.run(output);
 }
 
-fn get_format(matches: ArgMatches) -> OutputFormat {
-    let default_format = OutputFormat::Human(NoiseLevel::Normal);
-
+fn get_format(matches: &ArgMatches) -> Option<OutputFormat> {
     if matches.is_present("verbose") {
-        OutputFormat::Human(NoiseLevel::Verbose)
+        Some(OutputFormat::Human(NoiseLevel::Verbose))
     } else if matches.is_present("silent") {
-        OutputFormat::Silent
+        Some(OutputFormat::Silent)
     } else if matches.is_present("quiet") {
-        OutputFormat::Human(NoiseLevel::Quiet)
+        Some(OutputFormat::Human(NoiseLevel::Quiet))
     } else if let Some(fmt) = matches.value_of("format") {
         match fmt {
-            "csv" => OutputFormat::Csv,
-            "json" => OutputFormat::Json,
-            "json-compact" => OutputFormat::JsonCompact,
-            "tsv" => OutputFormat::Tsv,
-            _ => default_format,
+            "csv" => Some(OutputFormat::Csv),
+            "json" => Some(OutputFormat::Json),
+            "json-compact" => Some(OutputFormat::JsonCompact),
+            "tsv" => Some(OutputFormat::Tsv),
+            _ => None,
         }
     } else {
-        default_format
+        None
     }
 }
 
@@ -153,13 +136,47 @@ fn subcommand_for<'a, 'b>(names: EffectNames<'a>) -> App<'a, 'b> {
     )
 }
 
+fn with_formatting_flags<'a, 'b>(app: App<'a, 'b>) -> App<'a, 'b> {
+    app
+    .arg(
+        Arg::with_name("quiet")
+            .short("q")
+            .long("quiet")
+            .help("Omit any leading labels or symbols. Recommended for use in shell scripts"),
+    )
+    .arg(
+        Arg::with_name("silent")
+            .short("s")
+            .long("silent")
+            .help("Omit any output at all."),
+    )
+    .arg(
+        Arg::with_name("verbose")
+            .short("v")
+            .long("verbose")
+            .visible_alias("noisy")
+            .help("Print more information, like when an item was created."),
+    )
+    .arg(
+        Arg::with_name("format")
+            .short("f")
+            .long("format")
+            .takes_value(true)
+            .help("Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.")
+    )
+}
+
 // ===== Clap compat =====
 
-fn get_push_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+fn get_push_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
     let names = Push::names();
 
-    matches
-        .subcommand_matches(&names.name)
+    let push_matches = matches.subcommand_matches(&names.name);
+
+    push_matches
         .map(|matches| matches.values_of(names.input.arg_name()).unwrap())
         .map(|contents| {
             let contents = contents.collect::<Vec<_>>().join(" ");
@@ -172,11 +189,16 @@ fn get_push_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEff
 
             push
         })
+        .map(|push| (push, push_matches.and_then(get_format)))
 }
 
-fn get_pick_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
-    matches
-        .subcommand_matches(&Pick::names().name)
+fn get_pick_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+    let pick_matches = matches.subcommand_matches(&Pick::names().name);
+
+    pick_matches
         .map(|matches| {
             let indices = matches
                 .values_of(Pick::names().input.arg_name())
@@ -191,72 +213,105 @@ fn get_pick_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEff
 
             pick
         })
+        .map(|pick| (pick, pick_matches.and_then(get_format)))
 }
 
-fn get_head_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+fn get_head_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
     let names = Head::names();
-    matches.subcommand_matches(names.name).map(|matches| {
-        let n = matches
-            .value_of(names.input.arg_name())
-            .map(only_digits)
-            .map(|i| usize::from_str_radix(&i, 10).ok())
-            .flatten();
+    let head_matches = matches.subcommand_matches(names.name);
 
-        let head: Box<dyn StackEffect> = Box::new(Head {
-            stack: stack.to_string(),
-            n,
-        });
-        head
-    })
+    head_matches
+        .map(|matches| {
+            let n = matches
+                .value_of(names.input.arg_name())
+                .map(only_digits)
+                .map(|i| usize::from_str_radix(&i, 10).ok())
+                .flatten();
+
+            let head: Box<dyn StackEffect> = Box::new(Head {
+                stack: stack.to_string(),
+                n,
+            });
+            head
+        })
+        .map(|head| (head, head_matches.and_then(get_format)))
 }
 
-fn get_tail_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+fn get_tail_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
     let names = Tail::names();
-    matches.subcommand_matches(names.name).map(|matches| {
-        let n = matches
-            .value_of(names.input.arg_name())
-            .map(only_digits)
-            .map(|i| usize::from_str_radix(&i, 10).ok())
-            .flatten();
-        let tail: Box<dyn StackEffect> = Box::new(Tail {
-            stack: stack.to_string(),
-            n,
-        });
-        tail
-    })
+    let tail_matches = matches.subcommand_matches(names.name);
+
+    tail_matches
+        .map(|matches| {
+            let n = matches
+                .value_of(names.input.arg_name())
+                .map(only_digits)
+                .map(|i| usize::from_str_radix(&i, 10).ok())
+                .flatten();
+            let tail: Box<dyn StackEffect> = Box::new(Tail {
+                stack: stack.to_string(),
+                n,
+            });
+            tail
+        })
+        .map(|tail| (tail, tail_matches.and_then(get_format)))
 }
 
-fn get_move_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+fn get_move_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
     let names = Move::names();
-    matches.subcommand_matches(names.name).map(|matches| {
-        let dest_stack = matches
-            .value_of(names.input.arg_name())
-            .unwrap()
-            .to_string();
-        let move_: Box<dyn StackEffect> = Box::new(Move {
-            stack: stack.to_string(),
-            dest_stack,
-        });
-        move_
-    })
+    let move_matches = matches.subcommand_matches(names.name);
+
+    move_matches
+        .map(|matches| {
+            let dest_stack = matches
+                .value_of(names.input.arg_name())
+                .unwrap()
+                .to_string();
+            let move_: Box<dyn StackEffect> = Box::new(Move {
+                stack: stack.to_string(),
+                dest_stack,
+            });
+            move_
+        })
+        .map(|move_| (move_, move_matches.and_then(get_format)))
 }
 
-fn get_move_all_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+fn get_move_all_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
     let names = MoveAll::names();
-    matches.subcommand_matches(names.name).map(|matches| {
-        let dest_stack = matches
-            .value_of(names.input.arg_name())
-            .unwrap()
-            .to_string();
-        let move_all: Box<dyn StackEffect> = Box::new(MoveAll {
-            stack: stack.to_string(),
-            dest_stack,
-        });
-        move_all
-    })
+    let move_all_matches = matches.subcommand_matches(names.name);
+
+    move_all_matches
+        .map(|matches| {
+            let dest_stack = matches
+                .value_of(names.input.arg_name())
+                .unwrap()
+                .to_string();
+            let move_all: Box<dyn StackEffect> = Box::new(MoveAll {
+                stack: stack.to_string(),
+                dest_stack,
+            });
+            move_all
+        })
+        .map(|move_all| (move_all, move_all_matches.and_then(get_format)))
 }
 
-fn get_noarg_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEffect>> {
+fn get_noarg_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+    // TODO: How can I avoid allocating all this?
     let candidates: Vec<(EffectNames, Box<dyn StackEffect>)> = vec![
         (Complete::names(), Box::new(Complete::from(stack))),
         (Delete::names(), Box::new(Delete::from(stack))),
@@ -271,12 +326,22 @@ fn get_noarg_effect(stack: &str, matches: &ArgMatches) -> Option<Box<dyn StackEf
 
     candidates
         .into_iter()
-        .find(|(names, _)| matches.subcommand_matches(names.name).is_some())
-        .map(|(_, b)| b)
+        .map(|(names, effect)| (effect, matches.subcommand_matches(names.name)))
+        .find(|(_, effect_matches)| effect_matches.is_some())
+        .map(|(effect, effect_matches)| (effect, effect_matches.and_then(get_format)))
 }
 
-fn get_peek_effect(stack: &str) -> Box<dyn StackEffect> {
-    Box::new(Peek {
+fn just_peek_effect(
+    stack: &str,
+    matches: &ArgMatches,
+) -> (Box<dyn StackEffect>, Option<OutputFormat>) {
+    let peek = Box::new(Peek {
         stack: stack.to_string(),
-    })
+    });
+
+    let matches = matches.subcommand_matches(Peek::names().name);
+
+    let format = matches.and_then(get_format);
+
+    (peek, format)
 }
