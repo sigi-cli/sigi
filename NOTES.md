@@ -17,7 +17,7 @@ for improvement. Most in this list predate sigi by several years.
 - [tax](https://github.com/netgusto/tax) - CLI task list manager
 - [todo cli](https://gitlab.com/bigfiga99/todo-cli) - Todo CLI is a simple program that uses a sqlite3 database to keep track of your tasks
 - [todo.txt](http://todotxt.org) - Future-proof task tracking in a file you control
-  - [todo.txt=cli](https://github.com/todotxt/todo.txt-cli)
+  - [todo.txt cli](https://github.com/todotxt/todo.txt-cli)
 - [ultralist](https://ultralist.io) - Command-line task management for tech folks
 - [yokadi](https://yokadi.github.io) - Yokadi is a command line oriented, sqlite powered, todo-list
 
