@@ -7,8 +7,10 @@ pub enum OutputFormat {
     Csv,
     /// Human readable formats. Accepts a "noise level" for how much to output.
     Human(NoiseLevel),
-    /// JSON (JavaScript Object Notation).
+    /// JSON (JavaScript Object Notation) - Pretty-printed with newlines and two-space indentation.
     Json,
+    /// JSON (JavaScript Object Notation) - No newlines or indentation.
+    JsonCompact,
     /// Print nothing at all.
     Silent,
     /// Tab-separated values.
@@ -88,7 +90,28 @@ impl OutputFormat {
                 }),
             },
             OutputFormat::Json => {
-                println!("json: TODO")
+                let keys = labels;
+                let objs = values.into_iter().map(|vals| {
+                    let mut obj = json::JsonValue::new_object();
+                    keys.iter()
+                        .zip(vals)
+                        .for_each(|(k,v)| obj[*k] = v.into());
+                    obj
+                }).collect::<Vec<_>>();
+
+                println!("{}", json::stringify_pretty(objs, 2));
+            },
+            OutputFormat::JsonCompact => {
+                let keys = labels;
+                let objs = values.into_iter().map(|vals| {
+                    let mut obj = json::JsonValue::new_object();
+                    keys.iter()
+                        .zip(vals)
+                        .for_each(|(k,v)| obj[*k] = v.into());
+                    obj
+                }).collect::<Vec<_>>();
+
+                println!("{}", json::stringify(objs));
             }
             OutputFormat::Silent => {
                 unreachable!("[BUG] Sigi should always exit outputting before this point.")

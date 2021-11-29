@@ -49,7 +49,7 @@ fn get_app() -> App<'static, 'static> {
                 .short("f")
                 .long("format")
                 .takes_value(true)
-                .help("Use a programmatic format. Options include [csv, json, tsv]. Not compatible with quiet/silent/verbose.")
+                .help("Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.")
         )
         .subcommand(
             SubCommand::with_name(peek_names.name)
@@ -113,6 +113,7 @@ fn get_format(matches: ArgMatches) -> OutputFormat {
         match fmt {
             "csv" => OutputFormat::Csv,
             "json" => OutputFormat::Json,
+            "json-compact" => OutputFormat::JsonCompact,
             "tsv" => OutputFormat::Tsv,
             _ => default_format,
         }
