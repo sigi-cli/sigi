@@ -8,6 +8,7 @@ for improvement. Most in this list predate sigi by several years.
 
 - [devtodo](https://swapoff.org/devtodo.html) - A hierarchical command-line task manager
 - [dstask](https://github.com/naggie/dstask) - Single binary terminal-based TODO manager with git-based sync + markdown notes per task
+- [geek-life](https://github.com/ajaxray/geek-life) - The CLI To-Do List / Task Manager for Geeks
 - [grit](https://github.com/climech/grit) - Multitree-based task manager
 - [node-todo-cli](https://www.npmjs.com/package/node-todo-cli) - A command line program that manages todo tasks
 - [py-todo-cli](https://github.com/Mantaseus/Todo-CLI) - A simple command line Todo program written in Python
@@ -16,6 +17,9 @@ for improvement. Most in this list predate sigi by several years.
 - [tax](https://github.com/netgusto/tax) - CLI task list manager
 - [todo cli](https://gitlab.com/bigfiga99/todo-cli) - Todo CLI is a simple program that uses a sqlite3 database to keep track of your tasks
 - [todo.txt](http://todotxt.org) - Future-proof task tracking in a file you control
+  - [todo.txt=cli](https://github.com/todotxt/todo.txt-cli)
+- [ultralist](https://ultralist.io) - Command-line task management for tech folks
+- [yokadi](https://yokadi.github.io) - Yokadi is a command line oriented, sqlite powered, todo-list
 
 ### Similar CLI Definitions
 
@@ -25,7 +29,9 @@ for improvement. Most in this list predate sigi by several years.
 
 ## Similar non-CLI apps
 
-- Too many to count. TODO apps are kind of the canonical JavaScript "first big project." They're also ubiquitous in mobile app stores.
+- [GTG (Getting Things GNOME!)](https://wiki.gnome.org/Apps/GTG)
+- [KTimeTracker](https://userbase.kde.org/KTimeTracker)
+- But really... Just too many to list? TODO apps are kind of the canonical JavaScript "first big project." They're also ubiquitous in mobile app stores.
 
 ## Similar Databases
 
