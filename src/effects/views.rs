@@ -22,13 +22,22 @@ impl NamedEffect for Peek {
 
 impl StackEffect for Peek {
     fn run(&self, output: OutputFormat) {
-        if let Ok(items) = data::load(&self.stack) {
-            let top_item = items
-                .last()
-                .map(|i| i.contents.as_str())
-                .unwrap_or("NOTHING");
+        if let OutputFormat::Silent = output {
+            return;
+        }
 
-            output.log(vec!["position", "item"], vec![vec!["Now", top_item]]);
+        if let Ok(items) = data::load(&self.stack) {
+            let top_item = items.last().map(|i| i.contents.as_str());
+
+            let output_it = |it| output.log(vec!["position", "item"], it);
+
+            match top_item {
+                Some(contents) => output_it(vec![vec!["Now", contents]]),
+                None => match output {
+                    OutputFormat::Human(_) => output_it(vec![vec!["Now", "NOTHING"]]),
+                    _ => output_it(vec![]),
+                },
+            }
         }
     }
 }
@@ -256,6 +265,10 @@ impl NamedEffect for Count {
 
 impl StackEffect for Count {
     fn run(&self, output: OutputFormat) {
+        if let OutputFormat::Silent = output {
+            return;
+        }
+
         if let Ok(items) = data::load(&self.stack) {
             let len = items.len().to_string();
             output.log(vec!["items"], vec![vec![&len]])
