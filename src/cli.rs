@@ -6,7 +6,7 @@ use std::iter;
 
 // TODO: Get the version from Cargo.toml? (If possible, at compile time)
 /// The current version of the CLI.
-pub const SIGI_VERSION: &str = "2.1.0";
+pub const SIGI_VERSION: &str = "2.1.1";
 
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
