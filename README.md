@@ -10,7 +10,7 @@ It's primarily intended for you to use as extra memory. Use it to organize your
 tasks, groceries, or the next board games you want to play.
 
 ```
-sigi 2.0.1
+sigi 2.1.0
 An organizational tool.
 
 USAGE:
@@ -24,8 +24,8 @@ FLAGS:
     -v, --verbose    Print more information, like when an item was created. [aliases: noisy]
 
 OPTIONS:
-    -f, --format <format>    Use a programmatic format. Options include [csv, json, tsv]. Not compatible with
-                             quiet/silent/verbose.
+    -f, --format <format>    Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible
+                             with quiet/silent/verbose.
     -t, --stack <STACK>      Manage items in a specific stack [aliases: topic, about, namespace]
 
 SUBCOMMANDS:
