@@ -136,7 +136,13 @@ Creating: Alien race lives backwards through time.
 ## Sigi as a local stack-based database
 
 Sigi understands the programmer-familiar `push` (create an item) and `pop`
-(remove an item and return it) idioms.
+(remove an item and return it) idioms. It can be used for simple, persistent,
+small-scale stack use-cases.
+
+Sigi is not intending to be highly performant. While no limits are enforced,
+it would not handle high, concurrent throughput well. It also is not suitable
+for enormous amounts of data. For something beefier with stack semantics,
+check out Redis.
 
 Using the `--quiet` (or `-q`) flag is recommended for shell scripts, as it
 leaves out any leading labels or symbols.
