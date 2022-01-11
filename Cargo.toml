@@ -1,7 +1,7 @@
 [package]
 name = "sigi"
 version = "3.0.0"
-authors = ["♪ hiljusti 🎮 <hiljusti@pm.me>"]
+authors = ["J.R. Hill <hiljusti@so.dang.cool>"]
 edition = "2018"
 license = "GPL-2.0-only"
 description = "Sigi: An organizing tool and no-frills stack database."
