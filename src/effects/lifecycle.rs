@@ -49,7 +49,7 @@ impl NamedEffect for Complete {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "complete",
-            description: "Move the current item to \"<STACK>_history\" and mark as completed.",
+            description: "Move the current item to \"<STACK>_history\" and mark as completed",
             aliases: &["done", "finish", "fulfill"],
             input: EffectInput::NoInput,
         }
@@ -110,7 +110,7 @@ impl NamedEffect for Delete {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "delete",
-            description: "Move the current item to \"<STACK>_history\" and mark as deleted.",
+            description: "Move the current item to \"<STACK>_history\" and mark as deleted",
             aliases: &["pop", "remove", "cancel", "drop"],
             input: EffectInput::NoInput,
         }
@@ -173,7 +173,7 @@ impl NamedEffect for DeleteAll {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "delete-all",
-            description: "Move all items to \"<STACK>_history\" and mark as deleted.",
+            description: "Move all items to \"<STACK>_history\" and mark as deleted",
             aliases: &["purge", "pop-all", "remove-all", "cancel-all", "drop-all"],
             input: EffectInput::NoInput,
         }

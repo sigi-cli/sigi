@@ -295,7 +295,7 @@ impl NamedEffect for IsEmpty {
     fn names<'a>() -> EffectNames<'a> {
         EffectNames {
             name: "is-empty",
-            description: "\"true\" if stack has zero items, \"false\" (and nonzero exit code) if the stack does have items",
+            description: "Print \"true\" if stack has zero items, or print \"false\" (and exit with a nonzero exit code) if the stack does have items",
             aliases: &["empty"],
             input: EffectInput::NoInput
         }

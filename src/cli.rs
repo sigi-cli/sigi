@@ -4,9 +4,8 @@ use crate::output::{NoiseLevel, OutputFormat};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use std::iter;
 
-// TODO: Get the version from Cargo.toml? (If possible, at compile time)
-/// The current version of the CLI.
-pub const SIGI_VERSION: &str = "2.1.1";
+/// The current version of the CLI. (As defined in Cargo.toml)
+pub const SIGI_VERSION: &'static str = std::env!("CARGO_PKG_VERSION");
 
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
@@ -148,20 +147,21 @@ fn with_formatting_flags<'a, 'b>(app: App<'a, 'b>) -> App<'a, 'b> {
         Arg::with_name("silent")
             .short("s")
             .long("silent")
-            .help("Omit any output at all."),
+            .help("Omit any output at all"),
     )
     .arg(
         Arg::with_name("verbose")
             .short("v")
             .long("verbose")
             .visible_alias("noisy")
-            .help("Print more information, like when an item was created."),
+            .help("Print more information, like when an item was created"),
     )
     .arg(
         Arg::with_name("format")
             .short("f")
             .long("format")
             .takes_value(true)
+            .value_name("FORMAT")
             .help("Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.")
     )
 }
