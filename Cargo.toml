@@ -1,9 +1,9 @@
 [package]
 name = "sigi"
-version = "2.1.1"
+version = "3.0.0"
 authors = ["♪ hiljusti 🎮 <hiljusti@pm.me>"]
 edition = "2018"
-license = "GPL-3.0-or-later"
+license = "GPL-2.0-only"
 description = "Sigi: An organizing tool and no-frills stack database."
 readme = "README.md"
 homepage = "https://github.com/hiljusti/sigi"

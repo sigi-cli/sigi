@@ -6,11 +6,12 @@
 
 Sigi is an organizing tool.
 
-It's primarily intended for you to use as extra memory. Use it to organize your
-tasks, groceries, or the next board games you want to play.
+Use sigi as extra memory. Use it to organize your tasks, groceries, or the next
+board games you want to play... as stacks! Shell aliases are strongly
+encouraged to organize your various stacks.
 
 ```
-sigi 2.1.1
+sigi 3.0.0
 An organizational tool.
 
 USAGE:
@@ -167,10 +168,12 @@ Instructions on installing cargo can be found here:
 Please package it up for your Linux/BSD/etc distribution. And open an issue
 to let us know (and/or work on man pages)!
 
-# More
+# Contributing and support
 
 Please [open an issue](https://github.com/hiljusti/sigi/issues) if you see
-bugs or have ideas! Use [our wiki](https://github.com/hiljusti/sigi/wiki) to
-see and share tips, tricks, and examples.
+bugs or have ideas!
+
+I'm looking for people to use [the sigi wiki](https://github.com/hiljusti/sigi/wiki)
+to share their tips, tricks, and examples.
 
 Thanks for checking it out!
