@@ -1,0 +1,115 @@
+.TH sigi 1 "January 9, 2022" "version 3.0.0" "USER COMMANDS"
+.\"
+.SH NAME
+sigi \- an organization tool
+.\"
+.SH SYNOPSIS
+.B sigi
+[FLAGS] [OPTIONS] [SUBCOMMAND]
+.\"
+.\" ================================
+.\"
+.SH DESCRIPTION
+Use sigi as extra memory. Use it to organize your tasks, groceries, or the next
+board games you want to play... as stacks! Shell aliases are strongly
+encouraged to organize your various stacks.
+.PP
+.I Sigi
+is the Chamorro word for
+.I continue.
+I hope it will help you to plan more, forget less, get things done, and relax.
+.\"
+.\" ================================
+.\"
+.SH FLAGS
+.TP
+\-h, \-\-help
+Prints help information.
+.TP
+\-q, \-\-quiet
+Omit any leading labels or symbols. Recommended for use in shell scripts.
+.TP
+\-s, \-\-silent
+Omit any output at all.
+.TP
+\-V, \-\-version
+Prints version information.
+.TP
+\-v, \-\-verbose [Aliases: \-\-noisy]
+Prints more information, like when an item was created.
+.\"
+.\" ================================
+.\"
+.SH OPTIONS
+.TP
+\-f, \-\-format <FORMAT>
+Use a programmatic FORMAT. Options include: [csv, json, json-compact, tsv]
+.TP
+\-t, \-\-stack <STACK> [Or: \-\-topic, \-\-about, \-\-namespace <STACK>]
+Manage items in a specific STACK. If no STACK is provided, it will use "sigi"
+by default. It's recommended to use shell aliases to access your stacks. (See
+.B EXAMPLES
+below.)
+.\"
+.\" ================================
+.\"
+.SH SUBCOMMANDS
+.TP
+complete
+Move the current item to "<STACK>_history" and mark as completed [aliases: done, finish, fulfill]
+.TP
+count
+Print the total number of items in the stack [aliases: size, length]
+.TP
+delete
+Move the current item to "<STACK>_history" and mark as deleted. [aliases: pop, remove, cancel, drop]
+.TP
+delete-all
+Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-all, remove-all, cancel-all, drop-all]
+.TP
+head N
+List the first N items [aliases: top, first]
+.TP
+help
+Prints a help message or the help of the given subcommand(s)
+.TP
+is-empty
+Prints "true" if stack has zero items, or prints "false" (fails with a nonzero exit code) if the stack does have items [aliases: empty]
+.TP
+list
+List all items [aliases: ls, snoop, show, all]
+.TP
+move
+Move current item to another stack
+.TP
+move-all
+Move all items to another stack
+.TP
+next
+Cycle to the next item; the current item becomes last [aliases: later, cycle, bury]
+.TP
+peek
+Show the first item. (This is the default behavior when no command is given) [aliases: show]
+.TP
+pick
+Move items to the top of stack by their number
+.TP
+push
+Create a new item [aliases: create, add, do, start, new]
+.TP
+rot
+Rotate the three most-current items [aliases: rotate]
+.TP
+swap
+Swap the two most-current items
+.TP
+tail
+List the last N items [aliases: bottom, last]
+.\"
+.\" ================================
+.\"
+.SH EXAMPLES, CONTRIBUTING, AND SUPPORT
+See: https://github.com/hiljusti/sigi
+.\"
+.SH AUTHOR
+J.R. Hill (hiljusti (at) so.dang.cool)
