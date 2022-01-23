@@ -1,7 +1,7 @@
 use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
-use clap::{App, Arg, ArgMatches, SubCommand};
+use clap::{App, Arg, ArgMatches};
 use std::iter;
 
 /// The current version of the CLI. (As defined in Cargo.toml)
@@ -10,15 +10,15 @@ pub const SIGI_VERSION: &'static str = std::env!("CARGO_PKG_VERSION");
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 
-fn get_app() -> App<'static, 'static> {
+fn get_app() -> App<'static> {
     let peek_names = Peek::names();
 
     let app = App::new("sigi")
         .version(SIGI_VERSION)
         .about("An organizational tool.")
         .arg(
-            Arg::with_name("stack")
-                .short("t")
+            Arg::new("stack")
+                .short('t')
                 .long("stack")
                 .value_name("STACK")
                 .visible_aliases(&["topic", "about", "namespace"])
@@ -26,7 +26,7 @@ fn get_app() -> App<'static, 'static> {
                 .takes_value(true),
         )
         .subcommand(
-            SubCommand::with_name(peek_names.name)
+            App::new(peek_names.name)
                 .about(
                     "Show the first item. (This is the default behavior when no command is given)",
                 )
@@ -111,8 +111,8 @@ fn only_digits(s: &str) -> String {
         .collect::<String>()
 }
 
-fn subcommand_for<'a, 'b>(names: EffectNames<'a>) -> App<'a, 'b> {
-    let cmd = SubCommand::with_name(names.name)
+fn subcommand_for<'a>(names: EffectNames<'a>) -> App<'a> {
+    let cmd = App::new(names.name)
         .about(names.description)
         .visible_aliases(names.aliases);
 
@@ -128,37 +128,37 @@ fn subcommand_for<'a, 'b>(names: EffectNames<'a>) -> App<'a, 'b> {
     };
 
     cmd.arg(
-        Arg::with_name(names.input.arg_name())
+        Arg::new(names.input.arg_name())
             .takes_value(true)
             .required(is_required)
-            .multiple(is_multiple),
+            .multiple_occurrences(is_multiple),
     )
 }
 
-fn with_formatting_flags<'a, 'b>(app: App<'a, 'b>) -> App<'a, 'b> {
+fn with_formatting_flags<'a>(app: App<'a>) -> App<'a> {
     app
     .arg(
-        Arg::with_name("quiet")
-            .short("q")
+        Arg::new("quiet")
+            .short('q')
             .long("quiet")
             .help("Omit any leading labels or symbols. Recommended for use in shell scripts"),
     )
     .arg(
-        Arg::with_name("silent")
-            .short("s")
+        Arg::new("silent")
+            .short('s')
             .long("silent")
             .help("Omit any output at all"),
     )
     .arg(
-        Arg::with_name("verbose")
-            .short("v")
+        Arg::new("verbose")
+            .short('v')
             .long("verbose")
             .visible_alias("noisy")
             .help("Print more information, like when an item was created"),
     )
     .arg(
-        Arg::with_name("format")
-            .short("f")
+        Arg::new("format")
+            .short('f')
             .long("format")
             .takes_value(true)
             .value_name("FORMAT")
