@@ -20,6 +20,9 @@ pub mod effects;
 /// The CLI implementation.
 pub mod cli;
 
+/// The GUI implementation.
+pub mod gui;
+
 /// The item, stack, and persistence implementation.
 pub mod data;
 
