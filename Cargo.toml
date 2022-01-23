@@ -13,7 +13,7 @@ keywords = ["organization", "planning", "stack", "todo", "cli"]
 categories = ["command-line-interface", "database-implementations"]
 
 [badges]
-maintenance = { status = "passively-maintained" }
+maintenance = { status = "actively-developed" }
 
 [profile.release]
 codegen-units = 1
