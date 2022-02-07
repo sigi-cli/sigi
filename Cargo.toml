@@ -2,7 +2,7 @@
 name = "sigi"
 version = "3.0.1-beta"
 authors = ["J.R. Hill <hiljusti@so.dang.cool>"]
-edition = "2018"
+edition = "2021"
 license = "GPL-2.0-only"
 description = "Sigi: An organizing tool and no-frills stack database."
 readme = "README.md"
