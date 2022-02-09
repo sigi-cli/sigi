@@ -81,7 +81,7 @@ pub fn run() {
         .or_else(|| get_format(&matches))
         .unwrap_or(DEFAULT_FORMAT);
 
-    effect.run(output);
+    effect.run_logged(output);
 }
 
 fn get_format(matches: &ArgMatches) -> Option<OutputFormat> {
@@ -171,7 +171,7 @@ fn with_formatting_flags<'a>(app: App<'a>) -> App<'a> {
 fn get_push_effect(
     stack: &str,
     matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+) -> Option<(Box<dyn LoggableStackEffect>, Option<OutputFormat>)> {
     let names = Push::names();
 
     let push_matches = matches.subcommand_matches(&names.name);
@@ -182,7 +182,7 @@ fn get_push_effect(
             let contents = contents.collect::<Vec<_>>().join(" ");
             let item = Item::new(&contents);
 
-            let push: Box<dyn StackEffect> = Box::new(Push {
+            let push: Box<dyn LoggableStackEffect> = Box::new(Push {
                 stack: stack.to_string(),
                 item,
             });
@@ -195,7 +195,7 @@ fn get_push_effect(
 fn get_pick_effect(
     stack: &str,
     matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+) -> Option<(Box<dyn LoggableStackEffect>, Option<OutputFormat>)> {
     let pick_matches = matches.subcommand_matches(&Pick::names().name);
 
     pick_matches
@@ -206,7 +206,7 @@ fn get_pick_effect(
                 .map(|i| usize::from_str_radix(&i, 10).unwrap())
                 .collect();
 
-            let pick: Box<dyn StackEffect> = Box::new(Pick {
+            let pick: Box<dyn LoggableStackEffect> = Box::new(Pick {
                 stack: stack.to_string(),
                 indices,
             });
@@ -219,7 +219,7 @@ fn get_pick_effect(
 fn get_head_effect(
     stack: &str,
     matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+) -> Option<(Box<dyn LoggableStackEffect>, Option<OutputFormat>)> {
     let names = Head::names();
     let head_matches = matches.subcommand_matches(names.name);
 
@@ -231,7 +231,7 @@ fn get_head_effect(
                 .map(|i| usize::from_str_radix(&i, 10).ok())
                 .flatten();
 
-            let head: Box<dyn StackEffect> = Box::new(Head {
+            let head: Box<dyn LoggableStackEffect> = Box::new(Head {
                 stack: stack.to_string(),
                 n,
             });
@@ -243,7 +243,7 @@ fn get_head_effect(
 fn get_tail_effect(
     stack: &str,
     matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+) -> Option<(Box<dyn LoggableStackEffect>, Option<OutputFormat>)> {
     let names = Tail::names();
     let tail_matches = matches.subcommand_matches(names.name);
 
@@ -254,7 +254,7 @@ fn get_tail_effect(
                 .map(only_digits)
                 .map(|i| usize::from_str_radix(&i, 10).ok())
                 .flatten();
-            let tail: Box<dyn StackEffect> = Box::new(Tail {
+            let tail: Box<dyn LoggableStackEffect> = Box::new(Tail {
                 stack: stack.to_string(),
                 n,
             });
@@ -266,7 +266,7 @@ fn get_tail_effect(
 fn get_move_effect(
     stack: &str,
     matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+) -> Option<(Box<dyn LoggableStackEffect>, Option<OutputFormat>)> {
     let names = Move::names();
     let move_matches = matches.subcommand_matches(names.name);
 
@@ -276,7 +276,7 @@ fn get_move_effect(
                 .value_of(names.input.arg_name())
                 .unwrap()
                 .to_string();
-            let move_: Box<dyn StackEffect> = Box::new(Move {
+            let move_: Box<dyn LoggableStackEffect> = Box::new(Move {
                 stack: stack.to_string(),
                 dest_stack,
             });
@@ -288,7 +288,7 @@ fn get_move_effect(
 fn get_move_all_effect(
     stack: &str,
     matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+) -> Option<(Box<dyn LoggableStackEffect>, Option<OutputFormat>)> {
     let names = MoveAll::names();
     let move_all_matches = matches.subcommand_matches(names.name);
 
@@ -298,7 +298,7 @@ fn get_move_all_effect(
                 .value_of(names.input.arg_name())
                 .unwrap()
                 .to_string();
-            let move_all: Box<dyn StackEffect> = Box::new(MoveAll {
+            let move_all: Box<dyn LoggableStackEffect> = Box::new(MoveAll {
                 stack: stack.to_string(),
                 dest_stack,
             });
@@ -310,9 +310,9 @@ fn get_move_all_effect(
 fn get_noarg_effect(
     stack: &str,
     matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
+) -> Option<(Box<dyn LoggableStackEffect>, Option<OutputFormat>)> {
     // TODO: How can I avoid allocating all this?
-    let candidates: Vec<(EffectNames, Box<dyn StackEffect>)> = vec![
+    let candidates: Vec<(EffectNames, Box<dyn LoggableStackEffect>)> = vec![
         (Complete::names(), Box::new(Complete::from(stack))),
         (Delete::names(), Box::new(Delete::from(stack))),
         (DeleteAll::names(), Box::new(DeleteAll::from(stack))),

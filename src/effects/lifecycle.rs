@@ -1,6 +1,6 @@
 use crate::data;
 use crate::effects::{stack_history_of, EffectInput, EffectNames, NamedEffect, Peek, StackEffect};
-use crate::output::OutputFormat;
+use crate::output::SimpleTableData;
 
 // ===== Create (Push) =====
 
@@ -22,7 +22,7 @@ impl NamedEffect for Push {
 }
 
 impl StackEffect for Push {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         let new_items = if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
             items.push(self.item.clone());
@@ -31,10 +31,10 @@ impl StackEffect for Push {
             vec![self.item.clone()]
         };
         data::save(&self.stack, new_items).unwrap();
-        output.log(
-            vec!["action", "item"],
-            vec![vec!["Created", &self.item.contents]],
-        );
+        return vec![SimpleTableData {
+            labels: vec!["action", "item"],
+            values: vec![vec!["Created", &self.item.contents]],
+        }];
     }
 }
 
@@ -57,7 +57,7 @@ impl NamedEffect for Complete {
 }
 
 impl StackEffect for Complete {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
             if let Some(item) = items.pop() {
@@ -65,29 +65,33 @@ impl StackEffect for Complete {
                 item.mark_completed();
 
                 // Push the now-marked-completed item to history stack.
+                // Intentionally silent.
                 Push {
                     stack: stack_history_of(&self.stack),
                     item: item.clone(),
                 }
-                .run(OutputFormat::Silent);
+                .run();
 
                 // Save the original stack without that item.
                 data::save(&self.stack, items).unwrap();
 
-                output.log(
-                    vec!["action", "item"],
-                    vec![vec!["Completed", &item.contents]],
-                );
+                let std = SimpleTableData {
+                    labels: vec!["action", "item"],
+                    values: vec![vec!["Completed", &item.contents]],
+                };
 
-                // Peek the current stack only for human output.
-                if let OutputFormat::Human(_) = output {
-                    Peek {
-                        stack: self.stack.clone(),
-                    }
-                    .run(output);
+                let mut peekRes = Peek {
+                    stack: self.stack.clone(),
                 }
+                .run();
+
+                let mut res = vec![std];
+                res.append(&mut peekRes);
+                return res;
             }
         }
+
+        vec![]
     }
 }
 
@@ -118,7 +122,7 @@ impl NamedEffect for Delete {
 }
 
 impl StackEffect for Delete {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
             if let Some(item) = items.pop() {
@@ -126,29 +130,33 @@ impl StackEffect for Delete {
                 item.mark_deleted();
 
                 // Push the now-marked-deleted item to history stack.
+                // Intentionally silent.
                 Push {
                     stack: stack_history_of(&self.stack),
                     item: item.clone(),
                 }
-                .run(OutputFormat::Silent);
+                .run();
 
                 // Save the original stack without that item.
                 data::save(&self.stack, items).unwrap();
 
-                output.log(
-                    vec!["action", "item"],
-                    vec![vec!["Deleted", &item.contents]],
-                );
+                let std = SimpleTableData {
+                    labels: vec!["action", "item"],
+                    values: vec![vec!["Deleted", &item.contents]],
+                };
 
-                // Peek the current stack only for human output.
-                if let OutputFormat::Human(_) = output {
-                    Peek {
-                        stack: self.stack.clone(),
-                    }
-                    .run(output);
+                let mut peekRes = Peek {
+                    stack: self.stack.clone(),
                 }
+                .run();
+                
+                let mut res = vec![std];
+                res.append(&mut peekRes);
+                return res;
             }
         }
+
+        vec![]
     }
 }
 
@@ -181,7 +189,7 @@ impl NamedEffect for DeleteAll {
 }
 
 impl StackEffect for DeleteAll {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
             items.iter_mut().for_each(|item| item.mark_deleted());
@@ -195,11 +203,13 @@ impl StackEffect for DeleteAll {
             // Save the original stack as empty now.
             data::save(&self.stack, vec![]).unwrap();
 
-            output.log(
-                vec!["action", "item"],
-                vec![vec!["Deleted", &format!("{} items", items.len())]],
-            );
+            return vec![SimpleTableData {
+                labels: vec!["action", "stack", "history-stack", "num-deleted"],
+                values: vec![vec!["Deleted", &self.stack, &history_stack, &format!("{} items", items.len())]],
+            }];
         }
+
+        vec![]
     }
 }
 

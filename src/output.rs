@@ -25,6 +25,11 @@ pub enum NoiseLevel {
     Quiet,
 }
 
+pub struct SimpleTableData<'a> {
+    labels: Vec<&'a str>,
+    values: Vec<Vec<&'a str>>,
+}
+
 pub enum StrOrDt<'a> {
     Str(&'a str),
     Dt(DateTime<Local>),
@@ -37,10 +42,13 @@ impl OutputFormat {
         dt.to_rfc2822()
     }
 
-    pub fn log(&self, labels: Vec<&str>, values: Vec<Vec<&str>>) {
+    pub fn log(&self, data: SimpleTableData) {
         if let OutputFormat::Silent = self {
             return;
         }
+
+        let labels = data.labels;
+        let values = data.values;
 
         let joining = |sep: &str| {
             let sep = sep.to_string();

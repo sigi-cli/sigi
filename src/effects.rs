@@ -1,4 +1,4 @@
-use crate::output::OutputFormat;
+use crate::output::{OutputFormat, SimpleTableData};
 
 pub mod lifecycle;
 pub use lifecycle::*;
@@ -12,7 +12,18 @@ pub use housekeeping::*;
 const HISTORY_SUFFIX: &str = "_history";
 
 pub trait StackEffect {
-    fn run(&self, output: OutputFormat);
+    fn run(&self) -> Vec<SimpleTableData>;
+}
+
+pub trait LoggableStackEffect {
+    fn run_logged(&self, output: OutputFormat);
+} 
+
+impl<T> LoggableStackEffect for T
+where T: StackEffect {
+    fn run_logged(&self, output: OutputFormat) {
+        self.run().into_iter().for_each(|data| output.log(data));
+    }
 }
 
 pub trait NamedEffect {

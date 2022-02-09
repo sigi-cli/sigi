@@ -1,6 +1,6 @@
 use crate::data;
 use crate::effects::{EffectInput, EffectNames, Head, NamedEffect, Push, StackEffect};
-use crate::output::OutputFormat;
+use crate::output::SimpleTableData;
 
 // ===== Pick =====
 
@@ -22,7 +22,7 @@ impl NamedEffect for Pick {
 }
 
 impl StackEffect for Pick {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(stack) = data::load(&self.stack) {
             let mut stack = stack;
             let mut seen: Vec<usize> = vec![];
@@ -48,12 +48,14 @@ impl StackEffect for Pick {
 
             data::save(&self.stack, stack).unwrap();
 
-            Head {
+            return Head {
                 stack: self.stack.clone(),
                 n: Some(seen.len()),
             }
-            .run(output);
+            .run();
         }
+
+        vec![]
     }
 }
 
@@ -77,24 +79,29 @@ impl NamedEffect for Move {
 }
 
 impl StackEffect for Move {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
             if let Some(item) = items.pop() {
                 data::save(&self.stack, items).unwrap();
 
-                output.log(
-                    vec!["action", "new-stack", "old-stack"],
-                    vec![vec!["Move", &self.dest_stack, &self.stack]],
-                );
+                let std = SimpleTableData {
+                    labels: vec!["action", "new-stack", "old-stack", "item-moved"],
+                    values: vec![vec!["Move", &self.dest_stack, &self.stack, &item.contents]],
+                };
 
+                // Intentionally silent.
                 Push {
                     stack: self.dest_stack.clone(),
                     item,
                 }
-                .run(OutputFormat::Silent);
+                .run();
+
+                return vec![std];
             }
         }
+
+        vec![]
     }
 }
 
@@ -118,7 +125,7 @@ impl NamedEffect for MoveAll {
 }
 
 impl StackEffect for MoveAll {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(src_items) = data::load(&self.stack) {
             let count = src_items.len();
 
@@ -138,15 +145,16 @@ impl StackEffect for MoveAll {
                 data::save(&self.stack, vec![]).unwrap();
             }
 
-            output.log(
-                vec!["action", "new-stack", "old-stack", "num-moved"],
-                vec![vec![
+            return vec![SimpleTableData {
+                labels: vec!["action", "new-stack", "old-stack", "num-moved"],
+                values: vec![vec![
                     "Move All",
                     &self.dest_stack,
                     &self.stack,
                     &count.to_string(),
                 ]],
-            );
+            }];
         }
+        vec![]
     }
 }

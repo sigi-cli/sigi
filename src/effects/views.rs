@@ -1,6 +1,6 @@
 use crate::data;
 use crate::effects::{EffectInput, EffectNames, NamedEffect, StackEffect};
-use crate::output::OutputFormat;
+use crate::output::SimpleTableData;
 
 // ===== Peek =====
 
@@ -21,24 +21,17 @@ impl NamedEffect for Peek {
 }
 
 impl StackEffect for Peek {
-    fn run(&self, output: OutputFormat) {
-        if let OutputFormat::Silent = output {
-            return;
-        }
-
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
-            let top_item = items.last().map(|i| i.contents.as_str());
+            let top_item = items.last().map(|i| i.contents.as_str()).unwrap_or("NOTHING");
 
-            let output_it = |it| output.log(vec!["position", "item"], it);
-
-            match top_item {
-                Some(contents) => output_it(vec![vec!["Now", contents]]),
-                None => match output {
-                    OutputFormat::Human(_) => output_it(vec![vec!["Now", "NOTHING"]]),
-                    _ => output_it(vec![]),
-                },
-            }
+            return vec![SimpleTableData {
+                labels: vec!["position", "item"],
+                values: vec![vec!["Now", top_item]]
+            }];
         }
+
+        vec![]
     }
 }
 
@@ -64,11 +57,7 @@ struct ListRange<'a> {
     from_end: bool,
 }
 
-fn list_range(listable: &impl Listable, output: OutputFormat) {
-    if let OutputFormat::Silent = output {
-        return;
-    }
-
+fn list_range(listable: &impl Listable) -> Vec<SimpleTableData> {
     let range = listable.range();
 
     if let Ok(items) = data::load(range.stack) {
@@ -124,6 +113,8 @@ fn list_range(listable: &impl Listable, output: OutputFormat) {
 
         output.log(vec!["position", "item", "created"], lines);
     }
+
+    vec![]
 }
 
 // ===== ListAll =====

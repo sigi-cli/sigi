@@ -1,6 +1,6 @@
 use crate::data;
 use crate::effects::{EffectInput, EffectNames, Head, NamedEffect, Peek, StackEffect};
-use crate::output::OutputFormat;
+use crate::output::SimpleTableData;
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
@@ -23,26 +23,28 @@ impl NamedEffect for Swap {
 }
 
 impl StackEffect for Swap {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
-            if items.len() < 2 {
-                return;
-            }
-            let a = items.pop().unwrap();
-            let b = items.pop().unwrap();
-            items.push(a);
-            items.push(b);
 
-            data::save(&self.stack, items).unwrap();
+            if items.len() > 1 {
+                let a = items.pop().unwrap();
+                let b = items.pop().unwrap();
+                items.push(a);
+                items.push(b);
+
+                data::save(&self.stack, items).unwrap();
+            }
 
             // Now show the first two items in their new order.
-            Head {
+            return Head {
                 stack: self.stack.clone(),
                 n: Some(2),
             }
-            .run(output);
+            .run();
         }
+
+        vec![]
     }
 }
 
@@ -73,16 +75,15 @@ impl NamedEffect for Rot {
 }
 
 impl StackEffect for Rot {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
 
             if items.len() < 3 {
-                Swap {
+                return Swap {
                     stack: self.stack.clone(),
                 }
-                .run(output);
-                return;
+                .run();
             }
 
             let a = items.pop().unwrap();
@@ -94,12 +95,15 @@ impl StackEffect for Rot {
             items.push(b);
 
             data::save(&self.stack, items).unwrap();
-            Head {
+            
+            return Head {
                 stack: self.stack.clone(),
                 n: Some(3),
             }
-            .run(output);
+            .run();
         }
+
+        vec![]
     }
 }
 
@@ -131,21 +135,26 @@ impl NamedEffect for Next {
 }
 
 impl StackEffect for Next {
-    fn run(&self, output: OutputFormat) {
+    fn run(&self) -> Vec<SimpleTableData> {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
+
             if items.is_empty() {
-                return;
+                return vec![];
             }
+
             let to_the_back = items.pop().unwrap();
             items.insert(0, to_the_back);
 
             data::save(&self.stack, items).unwrap();
-            Peek {
+            
+            return Peek {
                 stack: self.stack.clone(),
             }
-            .run(output);
+            .run();
         }
+
+        vec![]
     }
 }
 
