@@ -45,13 +45,11 @@ fn get_app() -> App<'static> {
             ]
             .into_iter()
             .map(subcommand_for)
-            .chain(vec![
-                App::new(peek_names.name)
+            .chain(vec![App::new(peek_names.name)
                 .about(
                     "Show the first item. (This is the default behavior when no command is given)",
                 )
-                .visible_aliases(peek_names.aliases)
-            ])
+                .visible_aliases(peek_names.aliases)])
             .map(with_formatting_flags),
         );
 

@@ -116,13 +116,22 @@ fn list_range(listable: &impl Listable, output: OutputFormat) {
             })
             .collect::<Vec<_>>();
 
+        let labels = vec!["position", "item", "created"];
+
+        if lines.is_empty() {
+            if let OutputFormat::Human(_) = output {
+                output.log(labels, vec![vec!["Now", "NOTHING"]]);
+            }
+            return;
+        }
+
         // Get the lines into a "borrow" state (&str instead of String) to make log happy.
         let lines = lines
             .iter()
             .map(|line| line.iter().map(|s| s.as_str()).collect())
             .collect();
 
-        output.log(vec!["position", "item", "created"], lines);
+        output.log(labels, lines);
     }
 }
 
