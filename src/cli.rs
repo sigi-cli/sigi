@@ -1,7 +1,7 @@
 use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
-use clap::{arg, App, Arg, ArgMatches};
+use clap::{App, Arg, ArgMatches};
 use std::iter;
 
 /// The current version of the CLI. (As defined in Cargo.toml)
@@ -17,11 +17,13 @@ fn get_app() -> App<'static> {
         .version(SIGI_VERSION)
         .about("An organizational tool.")
         .arg(
-            arg!(
-                -t --stack <STACK> "Manage items in a specific stack. When unspecified, a default stack named \"sigi\" is used"
-            )
-            .required(false)
-            .visible_aliases(&["topic", "about", "namespace"]),
+            Arg::new("stack")
+                .short('t')
+                .long("stack")
+                .value_name("STACK")
+                .visible_aliases(&["topic", "about", "namespace"])
+                .help("Manage items in a specific stack")
+                .takes_value(true),
         )
         .subcommand(
             App::new(peek_names.name)
@@ -135,20 +137,32 @@ fn subcommand_for<'a>(names: EffectNames<'a>) -> App<'a> {
 
 fn with_formatting_flags<'a>(app: App<'a>) -> App<'a> {
     app
-    .arg(arg!(
-        -q --quiet "Omit any leading labels or symbols. Recommended for use in shell scripts"
-    ))
-    .arg(arg!(
-        -s --silent "Omit any output at all")
+    .arg(
+        Arg::new("quiet")
+            .short('q')
+            .long("quiet")
+            .help("Omit any leading labels or symbols. Recommended for use in shell scripts"),
     )
-    .arg(arg!(
-        -v --verbose "Print more information, like when an item was created")
+    .arg(
+        Arg::new("silent")
+            .short('s')
+            .long("silent")
+            .help("Omit any output at all"),
+    )
+    .arg(
+        Arg::new("verbose")
+            .short('v')
+            .long("verbose")
             .visible_alias("noisy")
+            .help("Print more information, like when an item was created"),
     )
-    .arg(arg!(
-        -f --format <FORMAT> "Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose"
-    )
-    .required(false)
+    .arg(
+        Arg::new("format")
+            .short('f')
+            .long("format")
+            .takes_value(true)
+            .value_name("FORMAT")
+            .help("Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.")
     )
 }
 
