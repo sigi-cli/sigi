@@ -10,17 +10,6 @@ pub struct Push {
     pub item: data::Item,
 }
 
-impl NamedEffect for Push {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "push",
-            description: "Create a new item",
-            aliases: &["create", "add", "do", "start", "new"],
-            input: EffectInput::RequiredSlurpy("item"),
-        }
-    }
-}
-
 impl StackEffect for Push {
     fn run(&self, output: OutputFormat) {
         let new_items = if let Ok(items) = data::load(&self.stack) {

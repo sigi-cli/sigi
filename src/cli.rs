@@ -1,7 +1,8 @@
 use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
-use clap::{arg, App, Arg, ArgMatches};
+use clap;
+use clap::{Arg, ArgMatches, Command};
 use std::iter;
 
 /// The current version of the CLI. (As defined in Cargo.toml)
@@ -10,29 +11,38 @@ pub const SIGI_VERSION: &'static str = std::env!("CARGO_PKG_VERSION");
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 
-fn get_app() -> App<'static> {
+fn get_app() -> Command<'static> {
     let peek_names = Peek::names();
 
-    let app = App::new("sigi")
+    let app = Command::new("sigi")
         .version(SIGI_VERSION)
         .about("An organizational tool.")
         .arg(
-            arg!(
+            clap::arg!(
                 -t --stack <STACK> "Manage items in a specific stack. When unspecified, a default stack named \"sigi\" is used"
             )
             .required(false)
             .visible_aliases(&["topic", "about", "namespace"]),
         )
         .subcommand(
-            App::new(peek_names.name)
+            Command::new(peek_names.name)
                 .about(
                     "Show the first item. (This is the default behavior when no command is given)",
                 )
                 .visible_aliases(peek_names.aliases),
         )
+        .subcommand(
+            Command::new("push")
+            .about("Create a new item")
+            .visible_aliases(&["create", "add", "do", "start", "new"])
+            .arg(
+                Arg::new("ITEM")
+                    .required(true)
+                    .multiple_values(true)
+            )
+        )
         .subcommands(
             vec![
-                Push::names(),
                 Complete::names(),
                 Delete::names(),
                 DeleteAll::names(),
@@ -65,8 +75,32 @@ pub fn run() {
         .unwrap_or(DEFAULT_STACK_NAME)
         .to_string();
 
-    let (effect, maybe_format) = get_push_effect(&stack, &matches)
-        .or_else(|| get_head_effect(&stack, &matches))
+    let subcommand = matches.subcommand();
+
+    // Format settings of a subcommand take precedence over main command.
+    let get_fmt = |subcommand_matches: &ArgMatches| {
+        get_format(subcommand_matches)
+            .or_else(|| get_format(&matches))
+            .unwrap_or(DEFAULT_FORMAT)
+    };
+
+    if let Some(("push", matches)) = subcommand {
+        let contents = matches
+            .values_of("ITEM")
+            .unwrap()
+            .collect::<Vec<_>>()
+            .join(" ");
+
+        let push = Push {
+            stack: stack.to_string(),
+            item: Item::new(&contents),
+        };
+
+        let fmt = get_fmt(matches);
+        push.run(fmt);
+    }
+
+    let (effect, maybe_format) = get_head_effect(&stack, &matches)
         .or_else(|| get_tail_effect(&stack, &matches))
         .or_else(|| get_move_effect(&stack, &matches))
         .or_else(|| get_move_all_effect(&stack, &matches))
@@ -109,8 +143,8 @@ fn only_digits(s: &str) -> String {
         .collect::<String>()
 }
 
-fn subcommand_for<'a>(names: EffectNames<'a>) -> App<'a> {
-    let cmd = App::new(names.name)
+fn subcommand_for<'a>(names: EffectNames<'a>) -> Command<'a> {
+    let cmd = Command::new(names.name)
         .about(names.description)
         .visible_aliases(names.aliases);
 
@@ -133,50 +167,31 @@ fn subcommand_for<'a>(names: EffectNames<'a>) -> App<'a> {
     )
 }
 
-fn with_formatting_flags<'a>(app: App<'a>) -> App<'a> {
-    app
-    .arg(arg!(
-        -q --quiet "Omit any leading labels or symbols. Recommended for use in shell scripts"
-    ))
-    .arg(arg!(
-        -s --silent "Omit any output at all")
-    )
-    .arg(arg!(
-        -v --verbose "Print more information, like when an item was created")
-            .visible_alias("noisy")
-    )
-    .arg(arg!(
-        -f --format <FORMAT> "Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose"
-    )
-    .required(false)
-    )
+fn with_formatting_flags<'a>(command: Command<'a>) -> Command<'a> {
+    command
+    .args(&[
+        clap::arg!(
+            -q --quiet "Omit any leading labels or symbols. Recommended for use in shell scripts"
+        )
+        .id("quiet"),
+        clap::arg!(
+            -s --silent "Omit any output at all"
+        )
+        .id("silent"),
+        clap::arg!(
+            -v --verbose "Print more information, like when an item was created"
+        )
+        .id("verbose")
+        .visible_alias("noisy"),
+        clap::arg!(
+            -f --format <FORMAT> "Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose"
+        )
+        .id("format")
+        .required(false),
+    ])
 }
 
 // ===== Clap compat =====
-
-fn get_push_effect(
-    stack: &str,
-    matches: &ArgMatches,
-) -> Option<(Box<dyn StackEffect>, Option<OutputFormat>)> {
-    let names = Push::names();
-
-    let push_matches = matches.subcommand_matches(&names.name);
-
-    push_matches
-        .map(|matches| matches.values_of(names.input.arg_name()).unwrap())
-        .map(|contents| {
-            let contents = contents.collect::<Vec<_>>().join(" ");
-            let item = Item::new(&contents);
-
-            let push: Box<dyn StackEffect> = Box::new(Push {
-                stack: stack.to_string(),
-                item,
-            });
-
-            push
-        })
-        .map(|push| (push, push_matches.and_then(get_format)))
-}
 
 fn get_pick_effect(
     stack: &str,
