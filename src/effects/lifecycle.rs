@@ -78,15 +78,15 @@ impl StackEffect for Complete {
                     vec!["action", "item"],
                     vec![vec!["Completed", &item.contents]],
                 );
-
-                // Peek the current stack only for human output.
-                if let OutputFormat::Human(_) = output {
-                    Peek {
-                        stack: self.stack.clone(),
-                    }
-                    .run(output);
-                }
             }
+        }
+
+        // Peek the current stack only for human output.
+        if let OutputFormat::Human(_) = output {
+            Peek {
+                stack: self.stack.clone(),
+            }
+            .run(output);
         }
     }
 }
@@ -139,15 +139,15 @@ impl StackEffect for Delete {
                     vec!["action", "item"],
                     vec![vec!["Deleted", &item.contents]],
                 );
-
-                // Peek the current stack only for human output.
-                if let OutputFormat::Human(_) = output {
-                    Peek {
-                        stack: self.stack.clone(),
-                    }
-                    .run(output);
-                }
             }
+        }
+
+        // Peek the current stack only for human output.
+        if let OutputFormat::Human(_) = output {
+            Peek {
+                stack: self.stack.clone(),
+            }
+            .run(output);
         }
     }
 }
@@ -185,6 +185,7 @@ impl StackEffect for DeleteAll {
         if let Ok(items) = data::load(&self.stack) {
             let mut items = items;
             items.iter_mut().for_each(|item| item.mark_deleted());
+            let n_deleted = items.len();
 
             // Push the now-marked-deleted items to history stack.
             let history_stack = &stack_history_of(&self.stack);
@@ -197,7 +198,7 @@ impl StackEffect for DeleteAll {
 
             output.log(
                 vec!["action", "item"],
-                vec![vec!["Deleted", &format!("{} items", items.len())]],
+                vec![vec!["Deleted", &format!("{} items", n_deleted)]],
             );
         }
     }
