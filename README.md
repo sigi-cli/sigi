@@ -11,7 +11,7 @@ board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
 
 ```
-sigi 3.0.1
+sigi 3.0.2
 An organizational tool.
 
 USAGE:
