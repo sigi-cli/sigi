@@ -1,9 +1,12 @@
 use std::process::Command;
 
 #[test]
-fn bats_tests_all_pass() {
-    let exit_code = Command::new("bats")
-        .arg("./tests/test.bats")
+fn bats_tests_pass() {
+    let bats = "./tests/bats/bin/bats";
+    let bats_test_file = "./tests/basic-synchronous-tests.bats";
+
+    let exit_code = Command::new(bats)
+        .arg(bats_test_file)
         .spawn()
         .expect("Was unable to create child process for BATS tests.")
         .wait()
