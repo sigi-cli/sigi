@@ -23,7 +23,7 @@ sigi='target/debug/sigi'
     assert_output --regexp 'sigi 3\..+'
 }
 
-sigi_integ="$sigi --stack _integ"
+sigi_integ="$sigi --stack __basic_synchronous_tests"
 
 @test "SETUP: '$sigi_integ delete-all' clears the integ stack" {
     run $sigi_integ delete-all
@@ -327,7 +327,3 @@ sigi_integ="$sigi --stack _integ"
     assert_success
     assert_output 'Deleted: 2 items'
 }
-
-# TODO: More with multi-element stacks (lifecycle/views/shuffle)
-# TODO: JSON tests
-# TODO: CSV/TSV tests

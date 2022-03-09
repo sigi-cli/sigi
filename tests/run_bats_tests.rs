@@ -1,12 +1,19 @@
 use std::process::Command;
 
-#[test]
-fn bats_tests_pass() {
-    let bats = "./tests/bats/bin/bats";
-    let bats_test_file = "./tests/basic-synchronous-tests.bats";
+const BATS: &str = "./tests/bats/bin/bats";
 
-    let exit_code = Command::new(bats)
-        .arg(bats_test_file)
+#[test]
+fn basic_syncronous_tests() {
+    run_bats_test_file("./tests/basic-synchronous-tests.bats");
+}
+
+// TODO: More tests on multi-element stacks (parallelizable lifecycle/views/shuffle tests)
+
+// TODO: Format tests for JSON, CSV, TSV
+
+fn run_bats_test_file(test_file_path: &str) {
+    let exit_code = Command::new(BATS)
+        .arg(test_file_path)
         .spawn()
         .expect("Was unable to create child process for BATS tests.")
         .wait()
@@ -14,5 +21,5 @@ fn bats_tests_pass() {
         .code()
         .expect("BATS tests terminated by signal.");
 
-    assert_eq!(exit_code, 0, "BATS tests did not exit successfully.");
+    assert_eq!(exit_code, 0, "BATS tests did not exit successfully.")
 }
