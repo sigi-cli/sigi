@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: snickerbockers/submodules-init@v4
+    - uses: snickerbockers/submodules-init@v4
     - name: Build
       run: cargo build --verbose
     - name: Run tests
