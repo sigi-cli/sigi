@@ -15,7 +15,11 @@ fn run_bats_test_file(test_file_path: &str) {
     let exit_code = Command::new(BATS)
         .arg(test_file_path)
         .spawn()
-        .expect("Was unable to create child process for BATS tests.")
+        .expect(&format!(
+            "\n{}\n{}\n",
+            "Unable to create child process for BATS tests.",
+            "Do you need to run 'git submodule update --init'?"
+        ))
         .wait()
         .expect("BATS tests never started.")
         .code()
