@@ -1,7 +1,7 @@
 use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
-use clap::{App, Arg, ArgMatches};
+use clap::{Arg, ArgMatches, Command};
 use std::iter;
 
 /// The current version of the CLI. (As defined in Cargo.toml)
@@ -10,10 +10,10 @@ pub const SIGI_VERSION: &'static str = std::env!("CARGO_PKG_VERSION");
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 
-fn get_app() -> App<'static> {
+fn get_app() -> Command<'static> {
     let peek_names = Peek::names();
 
-    let app = App::new("sigi")
+    let command = Command::new("sigi")
         .version(SIGI_VERSION)
         .about("An organizational tool.")
         .arg(
@@ -45,7 +45,7 @@ fn get_app() -> App<'static> {
             ]
             .into_iter()
             .map(subcommand_for)
-            .chain(vec![App::new(peek_names.name)
+            .chain(vec![Command::new(peek_names.name)
                 .about(
                     "Show the first item. (This is the default behavior when no command is given)",
                 )
@@ -53,7 +53,7 @@ fn get_app() -> App<'static> {
             .map(with_formatting_flags),
         );
 
-    with_formatting_flags(app)
+    with_formatting_flags(command)
 }
 
 /// Parses command line arguments and executes a single `sigi::effects::StackEffect`.
@@ -109,8 +109,8 @@ fn only_digits(s: &str) -> String {
         .collect::<String>()
 }
 
-fn subcommand_for<'a>(names: EffectNames<'a>) -> App<'a> {
-    let cmd = App::new(names.name)
+fn subcommand_for<'a>(names: EffectNames<'a>) -> Command<'a> {
+    let cmd = Command::new(names.name)
         .about(names.description)
         .visible_aliases(names.aliases);
 
@@ -133,8 +133,8 @@ fn subcommand_for<'a>(names: EffectNames<'a>) -> App<'a> {
     )
 }
 
-fn with_formatting_flags<'a>(app: App<'a>) -> App<'a> {
-    app
+fn with_formatting_flags<'a>(command: Command<'a>) -> Command<'a> {
+    command
     .arg(
         Arg::new("quiet")
             .short('q')

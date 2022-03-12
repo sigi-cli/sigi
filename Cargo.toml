@@ -1,6 +1,6 @@
 [package]
 name = "sigi"
-version = "3.0.2"
+version = "3.0.3-rc"
 authors = ["J.R. Hill <hiljusti@so.dang.cool>"]
 edition = "2021"
 license = "GPL-2.0-only"
@@ -22,7 +22,7 @@ opt-level = 'z'
 
 [dependencies]
 chrono = { version = "0.4", features = [ "serde", "unstable-locales" ] }
-clap = "3.0.6"
+clap = { version = "3.1", features = [ "derive" ] }
 json = "0.12.4"
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
