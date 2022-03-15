@@ -22,7 +22,7 @@ pub fn run() {
         return;
     }
 
-    let with_fallback = args.fc.as_fallback();
+    let with_fallback = args.fc.into_fallback();
 
     let command = args.command.unwrap();
     match command {
@@ -273,7 +273,7 @@ impl FormatConfig {
             })
     }
 
-    fn as_fallback(self) -> impl FnOnce(FormatConfig) -> OutputFormat {
+    fn into_fallback(self) -> impl FnOnce(FormatConfig) -> OutputFormat {
         |fc: FormatConfig| {
             fc.resolve()
                 .or_else(|| self.resolve())

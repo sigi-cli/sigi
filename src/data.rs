@@ -112,7 +112,7 @@ pub type V1Stack = Vec<V1Item>;
 
 /// Attempt to read a V1 format file.
 fn v1_load(json_blob: &str) -> Result<V1Stack, impl Error> {
-    serde_json::from_str(&json_blob)
+    serde_json::from_str(json_blob)
 }
 
 fn v1_to_modern(v1stack: V1Stack) -> Stack {
@@ -126,7 +126,7 @@ fn v1_to_modern(v1stack: V1Stack) -> Stack {
                 v1item.failed.map(|dt| ("deleted", dt)),
             ]
             .into_iter()
-            .filter_map(|entry| entry)
+            .flatten()
             .map(|(s, dt)| (s.to_string(), dt))
             .collect();
             history.sort_by_key(|(_, dt)| *dt);
