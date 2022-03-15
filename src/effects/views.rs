@@ -31,14 +31,6 @@ impl StackEffect for Peek {
     }
 }
 
-impl From<&str> for Peek {
-    fn from(stack: &str) -> Peek {
-        Peek {
-            stack: stack.to_string(),
-        }
-    }
-}
-
 // ===== Some help for doing ListAll/Head/Tail =====
 
 trait Listable {
@@ -148,14 +140,6 @@ impl StackEffect for ListAll {
     }
 }
 
-impl From<&str> for ListAll {
-    fn from(stack: &str) -> ListAll {
-        ListAll {
-            stack: stack.to_string(),
-        }
-    }
-}
-
 // ===== Head =====
 
 /// List the first N stack items.
@@ -230,14 +214,6 @@ impl StackEffect for Count {
     }
 }
 
-impl From<&str> for Count {
-    fn from(stack: &str) -> Count {
-        Count {
-            stack: stack.to_string(),
-        }
-    }
-}
-
 // ===== IsEmpty =====
 
 /// Determine if the stack is empty or not.
@@ -258,13 +234,5 @@ impl StackEffect for IsEmpty {
             }
         }
         output.log(vec!["empty"], vec![vec!["true"]]);
-    }
-}
-
-impl From<&str> for IsEmpty {
-    fn from(stack: &str) -> IsEmpty {
-        IsEmpty {
-            stack: stack.to_string(),
-        }
     }
 }
