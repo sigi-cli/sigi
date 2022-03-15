@@ -4,22 +4,22 @@
 
 # `sigi`
 
-`sigi` is an organizing tool for terminal lovers who don't love organizing.
+`sigi` is an organizing tool for terminal lovers who hate organizing
 
 Use `sigi` as extra memory. Use it to toss your tasks, groceries, or the next
 board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
 
 ```
-sigi 3.0.2
-An organizational tool.
+sigi 3.0.3
+An organizing tool for terminal lovers who hate organizing
 
 USAGE:
     sigi [OPTIONS] [SUBCOMMAND]
 
 OPTIONS:
     -f, --format <FORMAT>    Use a programmatic format. Options include [csv, json, json-compact,
-                             tsv]. Not compatible with quiet/silent/verbose.
+                             tsv]. Not compatible with quiet/silent/verbose
     -h, --help               Print help information
     -q, --quiet              Omit any leading labels or symbols. Recommended for use in shell
                              scripts
@@ -30,28 +30,28 @@ OPTIONS:
 
 SUBCOMMANDS:
     complete      Move the current item to "<STACK>_history" and mark as completed [aliases:
-                  done, finish, fulfill]
+                      done, finish, fulfill]
     count         Print the total number of items in the stack [aliases: size, length]
     delete        Move the current item to "<STACK>_history" and mark as deleted [aliases: pop,
-                  remove, cancel, drop]
+                      remove, cancel, drop]
     delete-all    Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-
-                  all, remove-all, cancel-all, drop-all]
-    head          List the first N items [aliases: top, first]
+                      all, remove-all, cancel-all, drop-all]
+    head          List the first N items (default is 10) [aliases: top, first]
     help          Print this message or the help of the given subcommand(s)
     is-empty      Print "true" if stack has zero items, or print "false" (and exit with a
-                  nonzero exit code) if the stack does have items [aliases: empty]
+                      nonzero exit code) if the stack does have items [aliases: empty]
     list          List all items [aliases: ls, snoop, show, all]
     move          Move current item to another stack
     move-all      Move all items to another stack
     next          Cycle to the next item; the current item becomes last [aliases: later, cycle,
-                  bury]
-    peek          Show the first item. (This is the default behavior when no command is given)
-                  [aliases: show]
+                      bury]
+    peek          Show the first item. This is the default behavior when no command is given
+                      [aliases: show]
     pick          Move items to the top of stack by their number
     push          Create a new item [aliases: create, add, do, start, new]
     rot           Rotate the three most-current items [aliases: rotate]
     swap          Swap the two most-current items
-    tail          List the last N items [aliases: bottom, last]
+    tail          List the last N items (default is 10) [aliases: bottom, last]
 ```
 
 # The big idea
