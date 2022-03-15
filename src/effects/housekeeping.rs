@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::{EffectInput, EffectNames, Head, NamedEffect, Push, StackEffect};
+use crate::effects::{Head, Push, StackEffect};
 use crate::output::OutputFormat;
 
 // ===== Pick =====
@@ -8,17 +8,6 @@ use crate::output::OutputFormat;
 pub struct Pick {
     pub stack: String,
     pub indices: Vec<usize>,
-}
-
-impl NamedEffect for Pick {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "pick",
-            description: "Move items to the top of stack by their number",
-            aliases: &[],
-            input: EffectInput::RequiredSlurpy("number"),
-        }
-    }
 }
 
 impl StackEffect for Pick {
@@ -65,17 +54,6 @@ pub struct Move {
     pub dest_stack: String,
 }
 
-impl NamedEffect for Move {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "move",
-            description: "Move current item to another stack",
-            aliases: &[],
-            input: EffectInput::RequiredSlurpy("destination"),
-        }
-    }
-}
-
 impl StackEffect for Move {
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
@@ -104,17 +82,6 @@ impl StackEffect for Move {
 pub struct MoveAll {
     pub stack: String,
     pub dest_stack: String,
-}
-
-impl NamedEffect for MoveAll {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "move-all",
-            description: "Move all items to another stack",
-            aliases: &[],
-            input: EffectInput::RequiredSlurpy("destination"),
-        }
-    }
 }
 
 impl StackEffect for MoveAll {

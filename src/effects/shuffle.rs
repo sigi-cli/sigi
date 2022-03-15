@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::{EffectInput, EffectNames, Head, NamedEffect, Peek, StackEffect};
+use crate::effects::{Head, Peek, StackEffect};
 use crate::output::OutputFormat;
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
@@ -9,17 +9,6 @@ use crate::output::OutputFormat;
 /// Swap the two most-recent items.
 pub struct Swap {
     pub stack: String,
-}
-
-impl NamedEffect for Swap {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "swap",
-            description: "Swap the two most-current items",
-            aliases: &[],
-            input: EffectInput::NoInput,
-        }
-    }
 }
 
 impl StackEffect for Swap {
@@ -59,17 +48,6 @@ impl From<&str> for Swap {
 /// Rotate the three most-recent items.
 pub struct Rot {
     pub stack: String,
-}
-
-impl NamedEffect for Rot {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "rot",
-            description: "Rotate the three most-current items",
-            aliases: &["rotate"],
-            input: EffectInput::NoInput,
-        }
-    }
 }
 
 impl StackEffect for Rot {
@@ -117,17 +95,6 @@ impl From<&str> for Rot {
 /// The previously most-recent item is sent to the end of the stack.
 pub struct Next {
     pub stack: String,
-}
-
-impl NamedEffect for Next {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "next",
-            description: "Cycle to the next item; the current item becomes last",
-            aliases: &["later", "cycle", "bury"],
-            input: EffectInput::NoInput,
-        }
-    }
 }
 
 impl StackEffect for Next {

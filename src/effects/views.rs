@@ -1,5 +1,5 @@
 use crate::data;
-use crate::effects::{EffectInput, EffectNames, NamedEffect, StackEffect};
+use crate::effects::StackEffect;
 use crate::output::OutputFormat;
 
 // ===== Peek =====
@@ -7,17 +7,6 @@ use crate::output::OutputFormat;
 /// Look at the most-recent item.
 pub struct Peek {
     pub stack: String,
-}
-
-impl NamedEffect for Peek {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "peek",
-            description: "Show the current item",
-            aliases: &["show"],
-            input: EffectInput::NoInput,
-        }
-    }
 }
 
 impl StackEffect for Peek {
@@ -153,17 +142,6 @@ impl Listable for ListAll {
     }
 }
 
-impl NamedEffect for ListAll {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "list",
-            description: "List all items",
-            aliases: &["ls", "snoop", "show", "all"],
-            input: EffectInput::NoInput,
-        }
-    }
-}
-
 impl StackEffect for ListAll {
     fn run(&self, output: OutputFormat) {
         list_range(self, output);
@@ -199,17 +177,6 @@ impl Listable for Head {
     }
 }
 
-impl NamedEffect for Head {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "head",
-            description: "List the first N items",
-            aliases: &["top", "first"],
-            input: EffectInput::OptionalSingle("n"),
-        }
-    }
-}
-
 impl StackEffect for Head {
     fn run(&self, output: OutputFormat) {
         list_range(self, output);
@@ -237,17 +204,6 @@ impl Listable for Tail {
     }
 }
 
-impl NamedEffect for Tail {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "tail",
-            description: "List the last N items",
-            aliases: &["bottom", "last"],
-            input: EffectInput::OptionalSingle("n"),
-        }
-    }
-}
-
 impl StackEffect for Tail {
     fn run(&self, output: OutputFormat) {
         list_range(self, output);
@@ -259,17 +215,6 @@ impl StackEffect for Tail {
 /// Count the stack's items.
 pub struct Count {
     pub stack: String,
-}
-
-impl NamedEffect for Count {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "count",
-            description: "Print the total number of items in the stack",
-            aliases: &["size", "length"],
-            input: EffectInput::NoInput,
-        }
-    }
 }
 
 impl StackEffect for Count {
@@ -298,17 +243,6 @@ impl From<&str> for Count {
 /// Determine if the stack is empty or not.
 pub struct IsEmpty {
     pub stack: String,
-}
-
-impl NamedEffect for IsEmpty {
-    fn names<'a>() -> EffectNames<'a> {
-        EffectNames {
-            name: "is-empty",
-            description: "Print \"true\" if stack has zero items, or print \"false\" (and exit with a nonzero exit code) if the stack does have items",
-            aliases: &["empty"],
-            input: EffectInput::NoInput
-        }
-    }
 }
 
 impl StackEffect for IsEmpty {
