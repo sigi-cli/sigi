@@ -22,58 +22,58 @@ pub fn run() {
         return;
     }
 
-    let fmt = base_fmt(args.fc);
+    let with_fallback = args.fc.as_fallback();
 
     let command = args.command.unwrap();
     match command {
         Command::Complete { fc } => {
-            Complete { stack }.run(fmt(fc));
+            Complete { stack }.run(with_fallback(fc));
         }
         Command::Count { fc } => {
-            Count { stack }.run(fmt(fc));
+            Count { stack }.run(with_fallback(fc));
         }
         Command::Delete { fc } => {
-            Delete { stack }.run(fmt(fc));
+            Delete { stack }.run(with_fallback(fc));
         }
         Command::DeleteAll { fc } => {
-            DeleteAll { stack }.run(fmt(fc));
+            DeleteAll { stack }.run(with_fallback(fc));
         }
         Command::Head { n, fc } => {
-            Head { n, stack }.run(fmt(fc));
+            Head { n, stack }.run(with_fallback(fc));
         }
         Command::IsEmpty { fc } => {
-            IsEmpty { stack }.run(fmt(fc));
+            IsEmpty { stack }.run(with_fallback(fc));
         }
         Command::List { fc } => {
-            ListAll { stack }.run(fmt(fc));
+            ListAll { stack }.run(with_fallback(fc));
         }
         Command::Move { dest, fc } => {
-            Move { stack, dest }.run(fmt(fc));
+            Move { stack, dest }.run(with_fallback(fc));
         }
         Command::MoveAll { dest, fc } => {
-            MoveAll { stack, dest }.run(fmt(fc));
+            MoveAll { stack, dest }.run(with_fallback(fc));
         }
         Command::Next { fc } => {
-            Next { stack }.run(fmt(fc));
+            Next { stack }.run(with_fallback(fc));
         }
         Command::Peek { fc } => {
-            Peek { stack }.run(fmt(fc));
+            Peek { stack }.run(with_fallback(fc));
         }
         Command::Pick { ns, fc } => {
-            Pick { stack, indices: ns }.run(fmt(fc));
+            Pick { stack, indices: ns }.run(with_fallback(fc));
         }
         Command::Push { content, fc } => {
             let item = Item::new(&content.join(" "));
-            Push { stack, item }.run(fmt(fc));
+            Push { stack, item }.run(with_fallback(fc));
         }
         Command::Rot { fc } => {
-            Rot { stack }.run(fmt(fc));
+            Rot { stack }.run(with_fallback(fc));
         }
         Command::Swap { fc } => {
-            Swap { stack }.run(fmt(fc));
+            Swap { stack }.run(with_fallback(fc));
         }
         Command::Tail { n, fc } => {
-            Tail { stack, n }.run(fmt(fc));
+            Tail { stack, n }.run(with_fallback(fc));
         }
     };
 }
@@ -91,25 +91,6 @@ struct Cli {
 
     #[clap(subcommand)]
     command: Option<Command>,
-}
-
-#[derive(Args)]
-struct FormatConfig {
-    #[clap(short, long)]
-    /// Omit any leading labels or symbols. Recommended for use in shell scripts
-    quiet: bool,
-
-    #[clap(short, long)]
-    /// Omit any output at all
-    silent: bool,
-
-    #[clap(short, long, visible_alias = "noisy")]
-    /// Print more information, like when an item was created
-    verbose: bool,
-
-    #[clap(short, long)]
-    /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-    format: Option<ProgrammaticFormat>,
 }
 
 #[derive(Subcommand)]
@@ -245,6 +226,25 @@ enum Command {
     },
 }
 
+#[derive(Args)]
+struct FormatConfig {
+    #[clap(short, long)]
+    /// Omit any leading labels or symbols. Recommended for use in shell scripts
+    quiet: bool,
+
+    #[clap(short, long)]
+    /// Omit any output at all
+    silent: bool,
+
+    #[clap(short, long, visible_alias = "noisy")]
+    /// Print more information, like when an item was created
+    verbose: bool,
+
+    #[clap(short, long)]
+    /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
+    format: Option<ProgrammaticFormat>,
+}
+
 impl FormatConfig {
     fn resolve(self) -> Option<OutputFormat> {
         let FormatConfig {
@@ -272,13 +272,13 @@ impl FormatConfig {
                 }
             })
     }
-}
 
-fn base_fmt(base_fc: FormatConfig) -> impl FnOnce(FormatConfig) -> OutputFormat {
-    |fc: FormatConfig| {
-        fc.resolve()
-            .or_else(|| base_fc.resolve())
-            .unwrap_or(DEFAULT_FORMAT)
+    fn as_fallback(self) -> impl FnOnce(FormatConfig) -> OutputFormat {
+        |fc: FormatConfig| {
+            fc.resolve()
+                .or_else(|| self.resolve())
+                .unwrap_or(DEFAULT_FORMAT)
+        }
     }
 }
 
