@@ -1,3 +1,6 @@
+use crate::data::Item;
+use crate::effects::*;
+use crate::output::{NoiseLevel, OutputFormat};
 use clap::{ArgEnum, Parser, Subcommand};
 use std::str::FromStr;
 use std::{error, fmt};
@@ -5,17 +8,233 @@ use std::{error, fmt};
 /// The current version of the CLI. (As defined in Cargo.toml)
 pub const SIGI_VERSION: &str = std::env!("CARGO_PKG_VERSION");
 
+const DEFAULT_STACK_NAME: &str = "sigi";
+const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
+
+// TODO: Use ArgGroup for quiet/silent/verbose/format after https://github.com/clap-rs/clap/issues/2621
+
 pub fn run() {
     let args = Cli::parse();
 
-    match &args.command {
-        _ => {
-            todo!("ALL THE THINGS");
-        }
+    let stack = args.stack.unwrap_or_else(|| DEFAULT_STACK_NAME.into());
+
+    let base_fmt = get_format(args.verbose, args.silent, args.quiet, args.format);
+
+    if args.command.is_none() {
+        let fmt = base_fmt.unwrap_or(DEFAULT_FORMAT);
+        Peek { stack }.run(fmt);
+        return;
     }
+
+    let command = args.command.unwrap();
+    match command {
+        Command::Complete {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Complete { stack }.run(fmt);
+        }
+        Command::Count {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Count { stack }.run(fmt);
+        }
+        Command::Delete {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Delete { stack }.run(fmt);
+        }
+        Command::DeleteAll {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            DeleteAll { stack }.run(fmt);
+        }
+        Command::Head {
+            n,
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Head { n, stack }.run(fmt);
+        }
+        Command::IsEmpty {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            IsEmpty { stack }.run(fmt);
+        }
+        Command::List {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            ListAll { stack }.run(fmt);
+        }
+        Command::Move {
+            destination,
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Move {
+                stack,
+                dest_stack: destination,
+            }
+            .run(fmt);
+        }
+        Command::MoveAll {
+            destination,
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            MoveAll {
+                stack,
+                dest_stack: destination,
+            }
+            .run(fmt);
+        }
+        Command::Next {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Next { stack }.run(fmt);
+        }
+        Command::Peek {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Peek { stack }.run(fmt);
+        }
+        Command::Pick {
+            ns,
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Pick { stack, indices: ns }.run(fmt);
+        }
+        Command::Push {
+            content,
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            let item = Item::new(&content.join(" "));
+            Push { stack, item }.run(fmt);
+        }
+        Command::Rot {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Rot { stack }.run(fmt);
+        }
+        Command::Swap {
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Swap { stack }.run(fmt);
+        }
+        Command::Tail {
+            n,
+            quiet,
+            silent,
+            verbose,
+            format,
+        } => {
+            let cmd_fmt = get_format(verbose, silent, quiet, format);
+            let fmt = resolve_formats(base_fmt, cmd_fmt);
+            Tail { stack, n }.run(fmt);
+        }
+    };
 }
 
-// TODO: Use ArgGroup for quiet/silent/verbose/format after https://github.com/clap-rs/clap/issues/2621
+fn get_format(
+    verbose: bool,
+    silent: bool,
+    quiet: bool,
+    format: Option<Format>,
+) -> Option<OutputFormat> {
+    format
+        .map(|format| match format {
+            Format::Csv => OutputFormat::Csv,
+            Format::Json => OutputFormat::Json,
+            Format::JsonCompact => OutputFormat::JsonCompact,
+            Format::Tsv => OutputFormat::Tsv,
+        })
+        .or_else(|| {
+            if verbose {
+                Some(OutputFormat::Human(NoiseLevel::Verbose))
+            } else if silent {
+                Some(OutputFormat::Silent)
+            } else if quiet {
+                Some(OutputFormat::Human(NoiseLevel::Quiet))
+            } else {
+                None
+            }
+        })
+}
+
+fn resolve_formats(base: Option<OutputFormat>, command: Option<OutputFormat>) -> OutputFormat {
+    command.or(base).unwrap_or(DEFAULT_FORMAT)
+}
 
 #[derive(Parser)]
 #[clap(name = "sigi", version = SIGI_VERSION)]
@@ -297,6 +516,18 @@ enum Command {
     #[clap(visible_aliases = &["show"])]
     Peek {
         #[clap(short, long)]
+        /// Omit any leading labels or symbols. Recommended for use in shell scripts
+        quiet: bool,
+
+        #[clap(short, long)]
+        /// Omit any output at all
+        silent: bool,
+
+        #[clap(short, long, visible_alias = "noisy")]
+        /// Print more information, like when an item was created
+        verbose: bool,
+
+        #[clap(short, long)]
         /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
         format: Option<Format>,
     },
@@ -325,6 +556,9 @@ enum Command {
     /// Create a new item
     #[clap(visible_aliases = &["create", "add", "do", "start", "new"])]
     Push {
+        // The content to add as an item. Multiple arguments will be interpreted as a single string
+        content: Vec<String>,
+
         #[clap(short, long)]
         /// Omit any leading labels or symbols. Recommended for use in shell scripts
         quiet: bool,

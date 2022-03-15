@@ -18,7 +18,7 @@
 pub mod effects;
 
 /// The CLI implementation.
-pub mod cli;
+pub mod cli_v2;
 
 /// The item, stack, and persistence implementation.
 pub mod data;

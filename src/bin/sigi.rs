@@ -1,4 +1,4 @@
 /// Run the CLI
 fn main() {
-    sigi::cli::run();
+    sigi::cli_v2::run();
 }
