@@ -51,7 +51,7 @@ impl StackEffect for Pick {
 /// Move the current item to a different stack.
 pub struct Move {
     pub stack: String,
-    pub dest_stack: String,
+    pub dest: String,
 }
 
 impl StackEffect for Move {
@@ -63,11 +63,11 @@ impl StackEffect for Move {
 
                 output.log(
                     vec!["action", "new-stack", "old-stack"],
-                    vec![vec!["Move", &self.dest_stack, &self.stack]],
+                    vec![vec!["Move", &self.dest, &self.stack]],
                 );
 
                 Push {
-                    stack: self.dest_stack.clone(),
+                    stack: self.dest.clone(),
                     item,
                 }
                 .run(OutputFormat::Silent);
@@ -81,7 +81,7 @@ impl StackEffect for Move {
 /// Move all items to a different stack.
 pub struct MoveAll {
     pub stack: String,
-    pub dest_stack: String,
+    pub dest: String,
 }
 
 impl StackEffect for MoveAll {
@@ -90,7 +90,7 @@ impl StackEffect for MoveAll {
             let count = src_items.len();
 
             if !src_items.is_empty() {
-                let all_items = match data::load(&self.dest_stack) {
+                let all_items = match data::load(&self.dest) {
                     Ok(dest_items) => {
                         let mut all_items = dest_items;
                         for item in src_items {
@@ -101,7 +101,7 @@ impl StackEffect for MoveAll {
                     _ => src_items,
                 };
 
-                data::save(&self.dest_stack, all_items).unwrap();
+                data::save(&self.dest, all_items).unwrap();
                 data::save(&self.stack, vec![]).unwrap();
             }
 
@@ -109,7 +109,7 @@ impl StackEffect for MoveAll {
                 vec!["action", "new-stack", "old-stack", "num-moved"],
                 vec![vec![
                     "Move All",
-                    &self.dest_stack,
+                    &self.dest,
                     &self.stack,
                     &count.to_string(),
                 ]],

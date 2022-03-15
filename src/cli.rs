@@ -1,7 +1,7 @@
 use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
-use clap::{ArgEnum, Parser, Subcommand};
+use clap::{ArgEnum, Args, Parser, Subcommand};
 use std::str::FromStr;
 use std::{error, fmt};
 
@@ -11,235 +11,98 @@ pub const SIGI_VERSION: &str = std::env!("CARGO_PKG_VERSION");
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 
-// TODO: Use ArgGroup for quiet/silent/verbose/format after https://github.com/clap-rs/clap/issues/2621
-
 pub fn run() {
     let args = Cli::parse();
 
     let stack = args.stack.unwrap_or_else(|| DEFAULT_STACK_NAME.into());
 
-    let base_fmt = get_format(args.verbose, args.silent, args.quiet, args.format);
-
     if args.command.is_none() {
-        let fmt = base_fmt.unwrap_or(DEFAULT_FORMAT);
+        let fmt = args.fc.resolve().unwrap_or(DEFAULT_FORMAT);
         Peek { stack }.run(fmt);
         return;
     }
 
+    let fmt = base_fmt(args.fc);
+
     let command = args.command.unwrap();
     match command {
-        Command::Complete {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Complete { stack }.run(fmt);
+        Command::Complete { fc } => {
+            Complete { stack }.run(fmt(fc));
         }
-        Command::Count {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Count { stack }.run(fmt);
+        Command::Count { fc } => {
+            Count { stack }.run(fmt(fc));
         }
-        Command::Delete {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Delete { stack }.run(fmt);
+        Command::Delete { fc } => {
+            Delete { stack }.run(fmt(fc));
         }
-        Command::DeleteAll {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            DeleteAll { stack }.run(fmt);
+        Command::DeleteAll { fc } => {
+            DeleteAll { stack }.run(fmt(fc));
         }
-        Command::Head {
-            n,
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Head { n, stack }.run(fmt);
+        Command::Head { n, fc } => {
+            Head { n, stack }.run(fmt(fc));
         }
-        Command::IsEmpty {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            IsEmpty { stack }.run(fmt);
+        Command::IsEmpty { fc } => {
+            IsEmpty { stack }.run(fmt(fc));
         }
-        Command::List {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            ListAll { stack }.run(fmt);
+        Command::List { fc } => {
+            ListAll { stack }.run(fmt(fc));
         }
-        Command::Move {
-            destination,
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Move {
-                stack,
-                dest_stack: destination,
-            }
-            .run(fmt);
+        Command::Move { dest, fc } => {
+            Move { stack, dest }.run(fmt(fc));
         }
-        Command::MoveAll {
-            destination,
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            MoveAll {
-                stack,
-                dest_stack: destination,
-            }
-            .run(fmt);
+        Command::MoveAll { dest, fc } => {
+            MoveAll { stack, dest }.run(fmt(fc));
         }
-        Command::Next {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Next { stack }.run(fmt);
+        Command::Next { fc } => {
+            Next { stack }.run(fmt(fc));
         }
-        Command::Peek {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Peek { stack }.run(fmt);
+        Command::Peek { fc } => {
+            Peek { stack }.run(fmt(fc));
         }
-        Command::Pick {
-            ns,
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Pick { stack, indices: ns }.run(fmt);
+        Command::Pick { ns, fc } => {
+            Pick { stack, indices: ns }.run(fmt(fc));
         }
-        Command::Push {
-            content,
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
+        Command::Push { content, fc } => {
             let item = Item::new(&content.join(" "));
-            Push { stack, item }.run(fmt);
+            Push { stack, item }.run(fmt(fc));
         }
-        Command::Rot {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Rot { stack }.run(fmt);
+        Command::Rot { fc } => {
+            Rot { stack }.run(fmt(fc));
         }
-        Command::Swap {
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Swap { stack }.run(fmt);
+        Command::Swap { fc } => {
+            Swap { stack }.run(fmt(fc));
         }
-        Command::Tail {
-            n,
-            quiet,
-            silent,
-            verbose,
-            format,
-        } => {
-            let cmd_fmt = get_format(verbose, silent, quiet, format);
-            let fmt = resolve_formats(base_fmt, cmd_fmt);
-            Tail { stack, n }.run(fmt);
+        Command::Tail { n, fc } => {
+            Tail { stack, n }.run(fmt(fc));
         }
     };
 }
 
-fn get_format(
-    verbose: bool,
-    silent: bool,
-    quiet: bool,
-    format: Option<Format>,
-) -> Option<OutputFormat> {
-    format
-        .map(|format| match format {
-            Format::Csv => OutputFormat::Csv,
-            Format::Json => OutputFormat::Json,
-            Format::JsonCompact => OutputFormat::JsonCompact,
-            Format::Tsv => OutputFormat::Tsv,
-        })
-        .or_else(|| {
-            if verbose {
-                Some(OutputFormat::Human(NoiseLevel::Verbose))
-            } else if silent {
-                Some(OutputFormat::Silent)
-            } else if quiet {
-                Some(OutputFormat::Human(NoiseLevel::Quiet))
-            } else {
-                None
-            }
-        })
-}
-
-fn resolve_formats(base: Option<OutputFormat>, command: Option<OutputFormat>) -> OutputFormat {
-    command.or(base).unwrap_or(DEFAULT_FORMAT)
+fn base_fmt(base_fc: FormatConfig) -> impl FnOnce(FormatConfig) -> OutputFormat {
+    |fc: FormatConfig| {
+        fc.resolve()
+            .or_else(|| base_fc.resolve())
+            .unwrap_or(DEFAULT_FORMAT)
+    }
 }
 
 #[derive(Parser)]
 #[clap(name = "sigi", version = SIGI_VERSION)]
 /// An organizing tool for terminal lovers who hate organizing
 struct Cli {
+    #[clap(flatten)]
+    fc: FormatConfig,
+
+    #[clap(short='t', long, visible_aliases = &["topic", "about", "namespace"])]
+    /// Manage items in a specific stack
+    stack: Option<String>,
+
+    #[clap(subcommand)]
+    command: Option<Command>,
+}
+
+#[derive(Args)]
+struct FormatConfig {
     #[clap(short, long)]
     /// Omit any leading labels or symbols. Recommended for use in shell scripts
     quiet: bool,
@@ -254,19 +117,41 @@ struct Cli {
 
     #[clap(short, long)]
     /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-    format: Option<Format>,
+    format: Option<ProgrammaticFormat>,
+}
 
-    #[clap(short='t', long, visible_aliases = &["topic", "about", "namespace"])]
-    /// Manage items in a specific stack
-    stack: Option<String>,
-
-    #[clap(subcommand)]
-    command: Option<Command>,
+impl FormatConfig {
+    fn resolve(self) -> Option<OutputFormat> {
+        let FormatConfig {
+            verbose,
+            silent,
+            quiet,
+            format,
+        } = self;
+        format
+            .map(|format| match format {
+                ProgrammaticFormat::Csv => OutputFormat::Csv,
+                ProgrammaticFormat::Json => OutputFormat::Json,
+                ProgrammaticFormat::JsonCompact => OutputFormat::JsonCompact,
+                ProgrammaticFormat::Tsv => OutputFormat::Tsv,
+            })
+            .or_else(|| {
+                if verbose {
+                    Some(OutputFormat::Human(NoiseLevel::Verbose))
+                } else if silent {
+                    Some(OutputFormat::Silent)
+                } else if quiet {
+                    Some(OutputFormat::Human(NoiseLevel::Quiet))
+                } else {
+                    None
+                }
+            })
+    }
 }
 
 #[derive(ArgEnum, Clone)]
 #[clap(arg_enum)]
-enum Format {
+enum ProgrammaticFormat {
     Csv,
     Json,
     JsonCompact,
@@ -286,7 +171,7 @@ impl fmt::Display for UnknownFormat {
 
 impl error::Error for UnknownFormat {}
 
-impl FromStr for Format {
+impl FromStr for ProgrammaticFormat {
     type Err = UnknownFormat;
     fn from_str(format: &str) -> Result<Self, Self::Err> {
         let format = format.to_ascii_lowercase();
@@ -305,81 +190,29 @@ enum Command {
     /// Move the current item to "<STACK>_history" and mark as completed
     #[clap(visible_aliases = &["done", "finish", "fulfill"])]
     Complete {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Print the total number of items in the stack
     #[clap(visible_aliases = &["size", "length"])]
     Count {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Move the current item to "<STACK>_history" and mark as deleted
     #[clap(visible_aliases = &["pop", "remove", "cancel", "drop"])]
     Delete {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Move all items to "<STACK>_history" and mark as deleted
     #[clap(visible_aliases = &["purge", "pop-all", "remove-all", "cancel-all", "drop-all"])]
     DeleteAll {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// List the first N items (default is 10)
@@ -388,169 +221,67 @@ enum Command {
         /// The number of items to display
         n: Option<usize>,
 
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Print "true" if stack has zero items, or print "false" (and exit with a
     /// nonzero exit code) if the stack does have items
     #[clap(visible_aliases = &["empty"])]
     IsEmpty {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// List all items
     #[clap(visible_aliases = &["ls", "snoop", "show", "all"])]
     List {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Move current item to another stack
     #[clap(arg_required_else_help = true)]
     Move {
+        #[clap(name = "destination")]
         /// The stack that will get the source stack's current item
-        destination: String,
+        dest: String,
 
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Move all items to another stack
     #[clap(arg_required_else_help = true)]
     MoveAll {
+        #[clap(name = "destination")]
         /// The stack that will get all the source stack's items
-        destination: String,
+        dest: String,
 
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Cycle to the next item; the current item becomes last
     #[clap(visible_aliases = &["later", "cycle", "bury"])]
     Next {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Show the first item. This is the default behavior when no command is given
     #[clap(visible_aliases = &["show"])]
     Peek {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Move items to the top of stack by their number
     Pick {
         ns: Vec<usize>,
 
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Create a new item
@@ -559,60 +290,21 @@ enum Command {
         // The content to add as an item. Multiple arguments will be interpreted as a single string
         content: Vec<String>,
 
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Rotate the three most-current items
     #[clap(visible_aliases = &["rotate"])]
     Rot {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// Swap the two most-current items
     Swap {
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 
     /// List the last N items (default is 10)
@@ -621,20 +313,7 @@ enum Command {
         /// The number of items to display
         n: Option<usize>,
 
-        #[clap(short, long)]
-        /// Omit any leading labels or symbols. Recommended for use in shell scripts
-        quiet: bool,
-
-        #[clap(short, long)]
-        /// Omit any output at all
-        silent: bool,
-
-        #[clap(short, long, visible_alias = "noisy")]
-        /// Print more information, like when an item was created
-        verbose: bool,
-
-        #[clap(short, long)]
-        /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
-        format: Option<Format>,
+        #[clap(flatten)]
+        fc: FormatConfig,
     },
 }
