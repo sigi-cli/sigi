@@ -78,14 +78,6 @@ pub fn run() {
     };
 }
 
-fn base_fmt(base_fc: FormatConfig) -> impl FnOnce(FormatConfig) -> OutputFormat {
-    |fc: FormatConfig| {
-        fc.resolve()
-            .or_else(|| base_fc.resolve())
-            .unwrap_or(DEFAULT_FORMAT)
-    }
-}
-
 #[derive(Parser)]
 #[clap(name = "sigi", version = SIGI_VERSION)]
 /// An organizing tool for terminal lovers who hate organizing
@@ -118,71 +110,6 @@ struct FormatConfig {
     #[clap(short, long)]
     /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
     format: Option<ProgrammaticFormat>,
-}
-
-impl FormatConfig {
-    fn resolve(self) -> Option<OutputFormat> {
-        let FormatConfig {
-            verbose,
-            silent,
-            quiet,
-            format,
-        } = self;
-        format
-            .map(|format| match format {
-                ProgrammaticFormat::Csv => OutputFormat::Csv,
-                ProgrammaticFormat::Json => OutputFormat::Json,
-                ProgrammaticFormat::JsonCompact => OutputFormat::JsonCompact,
-                ProgrammaticFormat::Tsv => OutputFormat::Tsv,
-            })
-            .or_else(|| {
-                if verbose {
-                    Some(OutputFormat::Human(NoiseLevel::Verbose))
-                } else if silent {
-                    Some(OutputFormat::Silent)
-                } else if quiet {
-                    Some(OutputFormat::Human(NoiseLevel::Quiet))
-                } else {
-                    None
-                }
-            })
-    }
-}
-
-#[derive(ArgEnum, Clone)]
-#[clap(arg_enum)]
-enum ProgrammaticFormat {
-    Csv,
-    Json,
-    JsonCompact,
-    Tsv,
-}
-
-#[derive(Debug)]
-struct UnknownFormat {
-    format: String,
-}
-
-impl fmt::Display for UnknownFormat {
-    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(out, "Unknown format: {}", self.format)
-    }
-}
-
-impl error::Error for UnknownFormat {}
-
-impl FromStr for ProgrammaticFormat {
-    type Err = UnknownFormat;
-    fn from_str(format: &str) -> Result<Self, Self::Err> {
-        let format = format.to_ascii_lowercase();
-        match format.as_str() {
-            "csv" => Ok(Self::Csv),
-            "json" => Ok(Self::Json),
-            "json-compact" => Ok(Self::JsonCompact),
-            "tsv" => Ok(Self::Tsv),
-            _ => Err(UnknownFormat { format }),
-        }
-    }
 }
 
 #[derive(Subcommand)]
@@ -316,4 +243,77 @@ enum Command {
         #[clap(flatten)]
         fc: FormatConfig,
     },
+}
+
+impl FormatConfig {
+    fn resolve(self) -> Option<OutputFormat> {
+        let FormatConfig {
+            verbose,
+            silent,
+            quiet,
+            format,
+        } = self;
+        format
+            .map(|format| match format {
+                ProgrammaticFormat::Csv => OutputFormat::Csv,
+                ProgrammaticFormat::Json => OutputFormat::Json,
+                ProgrammaticFormat::JsonCompact => OutputFormat::JsonCompact,
+                ProgrammaticFormat::Tsv => OutputFormat::Tsv,
+            })
+            .or_else(|| {
+                if verbose {
+                    Some(OutputFormat::Human(NoiseLevel::Verbose))
+                } else if silent {
+                    Some(OutputFormat::Silent)
+                } else if quiet {
+                    Some(OutputFormat::Human(NoiseLevel::Quiet))
+                } else {
+                    None
+                }
+            })
+    }
+}
+
+fn base_fmt(base_fc: FormatConfig) -> impl FnOnce(FormatConfig) -> OutputFormat {
+    |fc: FormatConfig| {
+        fc.resolve()
+            .or_else(|| base_fc.resolve())
+            .unwrap_or(DEFAULT_FORMAT)
+    }
+}
+
+#[derive(ArgEnum, Clone)]
+#[clap(arg_enum)]
+enum ProgrammaticFormat {
+    Csv,
+    Json,
+    JsonCompact,
+    Tsv,
+}
+
+#[derive(Debug)]
+struct UnknownFormat {
+    format: String,
+}
+
+impl fmt::Display for UnknownFormat {
+    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(out, "Unknown format: {}", self.format)
+    }
+}
+
+impl error::Error for UnknownFormat {}
+
+impl FromStr for ProgrammaticFormat {
+    type Err = UnknownFormat;
+    fn from_str(format: &str) -> Result<Self, Self::Err> {
+        let format = format.to_ascii_lowercase();
+        match format.as_str() {
+            "csv" => Ok(Self::Csv),
+            "json" => Ok(Self::Json),
+            "json-compact" => Ok(Self::JsonCompact),
+            "tsv" => Ok(Self::Tsv),
+            _ => Err(UnknownFormat { format }),
+        }
+    }
 }
