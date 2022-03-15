@@ -15,6 +15,8 @@ pub fn run() {
     }
 }
 
+// TODO: Use ArgGroup for quiet/silent/verbose/format after https://github.com/clap-rs/clap/issues/2621
+
 #[derive(Parser)]
 #[clap(name = "sigi", version = SIGI_VERSION)]
 /// An organizing tool for terminal lovers who hate organizing
@@ -41,6 +43,42 @@ struct Cli {
 
     #[clap(subcommand)]
     command: Option<Command>,
+}
+
+#[derive(ArgEnum, Clone)]
+#[clap(arg_enum)]
+enum Format {
+    Csv,
+    Json,
+    JsonCompact,
+    Tsv,
+}
+
+#[derive(Debug)]
+struct UnknownFormat {
+    format: String,
+}
+
+impl fmt::Display for UnknownFormat {
+    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(out, "Unknown format: {}", self.format)
+    }
+}
+
+impl error::Error for UnknownFormat {}
+
+impl FromStr for Format {
+    type Err = UnknownFormat;
+    fn from_str(format: &str) -> Result<Self, Self::Err> {
+        let format = format.to_ascii_lowercase();
+        match format.as_str() {
+            "csv" => Ok(Self::Csv),
+            "json" => Ok(Self::Json),
+            "json-compact" => Ok(Self::JsonCompact),
+            "tsv" => Ok(Self::Tsv),
+            _ => Err(UnknownFormat { format }),
+        }
+    }
 }
 
 #[derive(Subcommand)]
@@ -365,40 +403,4 @@ enum Command {
         /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
         format: Option<Format>,
     },
-}
-
-#[derive(ArgEnum, Clone)]
-#[clap(arg_enum)]
-enum Format {
-    Csv,
-    Json,
-    JsonCompact,
-    Tsv,
-}
-
-#[derive(Debug)]
-struct UnknownFormat {
-    format: String,
-}
-
-impl fmt::Display for UnknownFormat {
-    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(out, "Unknown format: {}", self.format)
-    }
-}
-
-impl error::Error for UnknownFormat {}
-
-impl FromStr for Format {
-    type Err = UnknownFormat;
-    fn from_str(format: &str) -> Result<Self, Self::Err> {
-        let format = format.to_ascii_lowercase();
-        match format.as_str() {
-            "csv" => Ok(Self::Csv),
-            "json" => Ok(Self::Json),
-            "json-compact" => Ok(Self::JsonCompact),
-            "tsv" => Ok(Self::Tsv),
-            _ => Err(UnknownFormat { format }),
-        }
-    }
 }
