@@ -22,60 +22,11 @@ pub fn run() {
         return;
     }
 
+    let (effect, fc) = args.command.unwrap().into_effect_and_fc(stack);
+
     let with_fallback = args.fc.into_fallback();
 
-    let command = args.command.unwrap();
-    match command {
-        Command::Complete { fc } => {
-            Complete { stack }.run(with_fallback(fc));
-        }
-        Command::Count { fc } => {
-            Count { stack }.run(with_fallback(fc));
-        }
-        Command::Delete { fc } => {
-            Delete { stack }.run(with_fallback(fc));
-        }
-        Command::DeleteAll { fc } => {
-            DeleteAll { stack }.run(with_fallback(fc));
-        }
-        Command::Head { n, fc } => {
-            Head { n, stack }.run(with_fallback(fc));
-        }
-        Command::IsEmpty { fc } => {
-            IsEmpty { stack }.run(with_fallback(fc));
-        }
-        Command::List { fc } => {
-            ListAll { stack }.run(with_fallback(fc));
-        }
-        Command::Move { dest, fc } => {
-            Move { stack, dest }.run(with_fallback(fc));
-        }
-        Command::MoveAll { dest, fc } => {
-            MoveAll { stack, dest }.run(with_fallback(fc));
-        }
-        Command::Next { fc } => {
-            Next { stack }.run(with_fallback(fc));
-        }
-        Command::Peek { fc } => {
-            Peek { stack }.run(with_fallback(fc));
-        }
-        Command::Pick { ns, fc } => {
-            Pick { stack, indices: ns }.run(with_fallback(fc));
-        }
-        Command::Push { content, fc } => {
-            let item = Item::new(&content.join(" "));
-            Push { stack, item }.run(with_fallback(fc));
-        }
-        Command::Rot { fc } => {
-            Rot { stack }.run(with_fallback(fc));
-        }
-        Command::Swap { fc } => {
-            Swap { stack }.run(with_fallback(fc));
-        }
-        Command::Tail { n, fc } => {
-            Tail { stack, n }.run(with_fallback(fc));
-        }
-    };
+    effect.run(with_fallback(fc));
 }
 
 #[derive(Parser)]
@@ -224,6 +175,32 @@ enum Command {
         #[clap(flatten)]
         fc: FormatConfig,
     },
+}
+
+impl Command {
+    fn into_effect_and_fc(self, stack: String) -> (Box<dyn StackEffect>, FormatConfig) {
+        match self {
+            Command::Complete { fc } => (Box::new(Complete { stack }), fc),
+            Command::Count { fc } => (Box::new(Count { stack }), fc),
+            Command::Delete { fc } => (Box::new(Delete { stack }), fc),
+            Command::DeleteAll { fc } => (Box::new(DeleteAll { stack }), fc),
+            Command::Head { n, fc } => (Box::new(Head { n, stack }), fc),
+            Command::IsEmpty { fc } => (Box::new(IsEmpty { stack }), fc),
+            Command::List { fc } => (Box::new(ListAll { stack }), fc),
+            Command::Move { dest, fc } => (Box::new(Move { stack, dest }), fc),
+            Command::MoveAll { dest, fc } => (Box::new(MoveAll { stack, dest }), fc),
+            Command::Next { fc } => (Box::new(Next { stack }), fc),
+            Command::Peek { fc } => (Box::new(Peek { stack }), fc),
+            Command::Pick { ns, fc } => (Box::new(Pick { stack, indices: ns }), fc),
+            Command::Push { content, fc } => {
+                let item = Item::new(&content.join(" "));
+                (Box::new(Push { stack, item }), fc)
+            }
+            Command::Rot { fc } => (Box::new(Rot { stack }), fc),
+            Command::Swap { fc } => (Box::new(Swap { stack }), fc),
+            Command::Tail { n, fc } => (Box::new(Tail { stack, n }), fc),
+        }
+    }
 }
 
 #[derive(Args)]
