@@ -17,7 +17,7 @@ pub fn run() {
     let stack = args.stack.unwrap_or_else(|| DEFAULT_STACK_NAME.into());
 
     if args.command.is_none() {
-        let fmt = args.fc.resolve().unwrap_or(DEFAULT_FORMAT);
+        let fmt = args.fc.into_output_format().unwrap_or(DEFAULT_FORMAT);
         Peek { stack }.run(fmt);
         return;
     }
@@ -223,7 +223,7 @@ struct FormatConfig {
 }
 
 impl FormatConfig {
-    fn resolve(self) -> Option<OutputFormat> {
+    fn into_output_format(self) -> Option<OutputFormat> {
         let FormatConfig {
             verbose,
             silent,
@@ -252,8 +252,8 @@ impl FormatConfig {
 
     fn into_fallback(self) -> impl FnOnce(FormatConfig) -> OutputFormat {
         |fc: FormatConfig| {
-            fc.resolve()
-                .or_else(|| self.resolve())
+            fc.into_output_format()
+                .or_else(|| self.into_output_format())
                 .unwrap_or(DEFAULT_FORMAT)
         }
     }
@@ -268,18 +268,11 @@ enum ProgrammaticFormat {
     Tsv,
 }
 
-#[derive(Debug)]
-struct UnknownFormat {
-    format: String,
-}
-
 impl fmt::Display for UnknownFormat {
     fn fmt(&self, out: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         write!(out, "Unknown format: {}", self.format)
     }
 }
-
-impl error::Error for UnknownFormat {}
 
 impl FromStr for ProgrammaticFormat {
     type Err = UnknownFormat;
@@ -294,3 +287,10 @@ impl FromStr for ProgrammaticFormat {
         }
     }
 }
+
+#[derive(Debug)]
+struct UnknownFormat {
+    format: String,
+}
+
+impl error::Error for UnknownFormat {}
