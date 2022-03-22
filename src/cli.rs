@@ -268,12 +268,6 @@ enum ProgrammaticFormat {
     Tsv,
 }
 
-impl fmt::Display for UnknownFormat {
-    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(out, "Unknown format: {}", self.format)
-    }
-}
-
 impl FromStr for ProgrammaticFormat {
     type Err = UnknownFormat;
     fn from_str(format: &str) -> Result<Self, Self::Err> {
@@ -294,3 +288,9 @@ struct UnknownFormat {
 }
 
 impl error::Error for UnknownFormat {}
+
+impl fmt::Display for UnknownFormat {
+    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(out, "Unknown format: {}", self.format)
+    }
+}
