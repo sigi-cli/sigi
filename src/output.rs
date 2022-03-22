@@ -37,17 +37,11 @@ impl OutputFormat {
             return;
         }
 
-        let joining = |sep: &str| {
-            let sep = sep.to_string();
-            move |tokens: Vec<&str>| tokens.join(&sep)
-        };
         match &self {
             OutputFormat::Csv => {
-                let csv = joining(",");
-                println!("{}", csv(labels));
-                values
-                    .into_iter()
-                    .for_each(|line| println!("{}", csv(line)))
+                let print_csv = join_and_print(",");
+                print_csv(labels);
+                values.into_iter().for_each(print_csv)
             }
             OutputFormat::Human(noise) => match noise {
                 NoiseLevel::Verbose => {
@@ -114,12 +108,15 @@ impl OutputFormat {
                 unreachable!("[BUG] Sigi should always exit outputting before this point.")
             }
             OutputFormat::Tsv => {
-                let tsv = joining("\t");
-                println!("{}", tsv(labels));
-                values
-                    .into_iter()
-                    .for_each(|line| println!("{}", tsv(line)))
+                let print_tsv = join_and_print("\t");
+                print_tsv(labels);
+                values.into_iter().for_each(print_tsv)
             }
         }
     }
+}
+
+fn join_and_print(sep: &str) -> impl Fn(Vec<&str>) -> () {
+    let sep = sep.to_string();
+    move |tokens: Vec<&str>| println!("{}", tokens.join(&sep))
 }
