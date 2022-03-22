@@ -25,11 +25,6 @@ pub enum NoiseLevel {
     Quiet,
 }
 
-pub enum StrOrDt<'a> {
-    Str(&'a str),
-    Dt(DateTime<Local>),
-}
-
 impl OutputFormat {
     pub fn format_time(&self, dt: DateTime<Local>) -> String {
         // TODO: This should be configurable.
