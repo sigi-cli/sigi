@@ -1,5 +1,6 @@
+use super::{Head, Peek, StackEffect};
 use crate::data;
-use crate::effects::{Head, Peek, StackEffect};
+use crate::data::Stack;
 use crate::output::OutputFormat;
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
@@ -12,25 +13,38 @@ pub struct Swap {
 }
 
 impl StackEffect for Swap {
+    fn execute(&self, items: Stack) -> Stack {
+        if items.len() < 2 {
+            return vec![];
+        }
+
+        let mut items = items;
+        let a = items.pop().unwrap();
+        let b = items.pop().unwrap();
+        items.push(a);
+        items.push(b);
+
+        items
+    }
+
+    fn after_execute(&self) -> Option<Box<dyn StackEffect>> {
+        let head = Head {
+            stack: self.stack,
+            n: Some(2),
+        };
+
+        Some(Box::new(head))
+    }
+
     fn run(&self, output: OutputFormat) {
-        if let Ok(items) = data::load(&self.stack) {
-            let mut items = items;
-            if items.len() < 2 {
-                return;
-            }
-            let a = items.pop().unwrap();
-            let b = items.pop().unwrap();
-            items.push(a);
-            items.push(b);
+        if let Ok(stack) = data::load(&self.stack) {
+            let result = self.execute(stack);
 
-            data::save(&self.stack, items).unwrap();
+            data::save(&self.stack, result).unwrap();
 
-            // Now show the first two items in their new order.
-            Head {
-                stack: self.stack.clone(),
-                n: Some(2),
+            if let Some(effect) = self.after_execute() {
+                effect.run(output);
             }
-            .run(output);
         }
     }
 }
@@ -43,32 +57,44 @@ pub struct Rot {
 }
 
 impl StackEffect for Rot {
+    fn execute(&self, items: Stack) -> Stack {
+        if items.len() < 3 {
+            let stack = self.stack;
+            let swap = Swap { stack };
+            return swap.execute(items);
+        }
+
+        let mut items = items;
+
+        let a = items.pop().unwrap();
+        let b = items.pop().unwrap();
+        let c = items.pop().unwrap();
+
+        items.push(a);
+        items.push(c);
+        items.push(b);
+
+        items
+    }
+
+    fn after_execute(&self) -> Option<Box<dyn StackEffect>> {
+        let head = Head {
+            stack: self.stack,
+            n: Some(3),
+        };
+
+        Some(Box::new(head))
+    }
+
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
-            let mut items = items;
+            let result = self.execute(items);
 
-            if items.len() < 3 {
-                Swap {
-                    stack: self.stack.clone(),
-                }
-                .run(output);
-                return;
+            data::save(&self.stack, result).unwrap();
+
+            if let Some(effect) = self.after_execute() {
+                effect.run(output);
             }
-
-            let a = items.pop().unwrap();
-            let b = items.pop().unwrap();
-            let c = items.pop().unwrap();
-
-            items.push(a);
-            items.push(c);
-            items.push(b);
-
-            data::save(&self.stack, items).unwrap();
-            Head {
-                stack: self.stack.clone(),
-                n: Some(3),
-            }
-            .run(output);
         }
     }
 }
@@ -82,20 +108,35 @@ pub struct Next {
 }
 
 impl StackEffect for Next {
+    fn execute(&self, items: Stack) -> Stack {
+        if items.is_empty() {
+            return items;
+        }
+
+        let mut items = items;
+        let to_the_back = items.pop().unwrap();
+        items.insert(0, to_the_back);
+
+        items
+    }
+
+    fn after_execute(&self) -> Option<Box<dyn StackEffect>> {
+        let peek = Peek {
+            stack: self.stack.clone(),
+        };
+
+        Some(Box::new(peek))
+    }
+
     fn run(&self, output: OutputFormat) {
         if let Ok(items) = data::load(&self.stack) {
-            let mut items = items;
-            if items.is_empty() {
-                return;
-            }
-            let to_the_back = items.pop().unwrap();
-            items.insert(0, to_the_back);
+            let result = self.execute(items);
 
             data::save(&self.stack, items).unwrap();
-            Peek {
-                stack: self.stack.clone(),
+
+            if let Some(effect) = self.after_execute() {
+                effect.run(output);
             }
-            .run(output);
         }
     }
 }
