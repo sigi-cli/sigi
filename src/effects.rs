@@ -35,10 +35,7 @@ pub enum StackEffect {
 impl StackEffect {
     pub fn run(self, backend: &Backend, output: &OutputFormat) {
         match self {
-            StackEffect::Push { stack, content } => {
-                let item = Item::new(&content);
-                push_item(stack, item, backend, output)
-            },
+            StackEffect::Push { stack, content } => push_content(stack, content, backend, output),
             StackEffect::Complete { stack } => complete_latest_item(stack, backend, output),
             StackEffect::Delete { stack } => delete_latest_item(stack, backend, output),
             StackEffect::DeleteAll { stack } => delete_all_items(stack, backend, output),
@@ -58,7 +55,12 @@ impl StackEffect {
     }
 }
 
-pub fn push_item(stack: String, item: Item, backend: &Backend, output: &OutputFormat) {
+fn push_content(stack: String, content: String, backend: &Backend, output: &OutputFormat) {
+    let item = Item::new(&content);
+    push_item(stack, item, backend, output);
+}
+
+fn push_item(stack: String, item: Item, backend: &Backend, output: &OutputFormat) {
     let contents = item.contents.clone();
 
     let items = if let Ok(items) = backend.load(&stack) {
