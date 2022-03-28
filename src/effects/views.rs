@@ -1,5 +1,5 @@
-use crate::data;
-use crate::effects::StackEffect;
+use crate::data::Backend;
+use crate::effects::StackAction;
 use crate::output::OutputFormat;
 
 // ===== Peek =====
@@ -9,13 +9,13 @@ pub struct Peek {
     pub stack: String,
 }
 
-impl StackEffect for Peek {
-    fn run(&self, output: OutputFormat) {
+impl StackAction for Peek {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
         if let OutputFormat::Silent = output {
             return;
         }
 
-        if let Ok(items) = data::load(&self.stack) {
+        if let Ok(items) = backend.load(&self.stack) {
             let top_item = items.last().map(|i| i.contents.as_str());
 
             let output_it = |it| output.log(vec!["position", "item"], it);
@@ -34,25 +34,25 @@ impl StackEffect for Peek {
 // ===== Some help for doing ListAll/Head/Tail =====
 
 trait Listable {
-    fn range(&self) -> ListRange;
+    fn range(self) -> ListRange;
 }
 
-struct ListRange<'a> {
-    stack: &'a str,
+struct ListRange {
+    stack: String,
     // Ignored if starting "from_end".
     start: usize,
     limit: Option<usize>,
     from_end: bool,
 }
 
-fn list_range(listable: &impl Listable, output: OutputFormat) {
+fn list_range(listable: impl Listable, backend: &Backend, output: &OutputFormat) {
     if let OutputFormat::Silent = output {
         return;
     }
 
     let range = listable.range();
 
-    if let Ok(items) = data::load(range.stack) {
+    if let Ok(items) = backend.load(&range.stack) {
         let limit = match range.limit {
             Some(n) => n,
             None => items.len(),
@@ -124,9 +124,9 @@ pub struct ListAll {
 }
 
 impl Listable for ListAll {
-    fn range(&self) -> ListRange {
+    fn range(self) -> ListRange {
         ListRange {
-            stack: &self.stack,
+            stack: self.stack,
             start: 0,
             limit: None,
             from_end: false,
@@ -134,9 +134,9 @@ impl Listable for ListAll {
     }
 }
 
-impl StackEffect for ListAll {
-    fn run(&self, output: OutputFormat) {
-        list_range(self, output);
+impl StackAction for ListAll {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
+        list_range(self, backend, output);
     }
 }
 
@@ -151,9 +151,9 @@ pub struct Head {
 }
 
 impl Listable for Head {
-    fn range(&self) -> ListRange {
+    fn range(self) -> ListRange {
         ListRange {
-            stack: &self.stack,
+            stack: self.stack,
             start: 0,
             limit: Some(self.n.unwrap_or(HEAD_DEFAULT_LIMIT)),
             from_end: false,
@@ -161,9 +161,9 @@ impl Listable for Head {
     }
 }
 
-impl StackEffect for Head {
-    fn run(&self, output: OutputFormat) {
-        list_range(self, output);
+impl StackAction for Head {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
+        list_range(self, backend, output);
     }
 }
 
@@ -178,9 +178,9 @@ pub struct Tail {
 }
 
 impl Listable for Tail {
-    fn range(&self) -> ListRange {
+    fn range(self) -> ListRange {
         ListRange {
-            stack: &self.stack,
+            stack: self.stack,
             start: 0,
             limit: Some(self.n.unwrap_or(TAIL_DEFAULT_LIMIT)),
             from_end: true,
@@ -188,9 +188,9 @@ impl Listable for Tail {
     }
 }
 
-impl StackEffect for Tail {
-    fn run(&self, output: OutputFormat) {
-        list_range(self, output);
+impl StackAction for Tail {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
+        list_range(self, backend, output);
     }
 }
 
@@ -201,13 +201,13 @@ pub struct Count {
     pub stack: String,
 }
 
-impl StackEffect for Count {
-    fn run(&self, output: OutputFormat) {
+impl StackAction for Count {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
         if let OutputFormat::Silent = output {
             return;
         }
 
-        if let Ok(items) = data::load(&self.stack) {
+        if let Ok(items) = backend.load(&self.stack) {
             let len = items.len().to_string();
             output.log(vec!["items"], vec![vec![&len]])
         }
@@ -221,9 +221,9 @@ pub struct IsEmpty {
     pub stack: String,
 }
 
-impl StackEffect for IsEmpty {
-    fn run(&self, output: OutputFormat) {
-        if let Ok(items) = data::load(&self.stack) {
+impl StackAction for IsEmpty {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
+        if let Ok(items) = backend.load(&self.stack) {
             if !items.is_empty() {
                 output.log(vec!["empty"], vec![vec!["false"]]);
                 // Exit with a failure (nonzero status) when not empty.

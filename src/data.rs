@@ -51,9 +51,27 @@ impl Item {
 // per CLI invocation, so there isn't a huge need for stack optimization yet.
 pub type Stack = Vec<Item>;
 
+pub enum Backend {
+    HomeDir,
+}
+
+impl Backend {
+    pub fn load(&self, stack_name: &str) -> Result<Stack, impl Error> {
+        match self {
+            Backend::HomeDir => load_from_homedir(stack_name),
+        }
+    }
+
+    pub fn save(&self, stack_name: &str, items: Stack) -> Result<(), impl Error> {
+        match self {
+            Backend::HomeDir => save_to_homedir(stack_name, items),
+        }
+    }
+}
+
 /// Save a stack of items.
 // TODO: Create a custom error. This is returning raw filesystem errors.
-pub fn save(stack_name: &str, items: Stack) -> Result<(), impl Error> {
+fn save_to_homedir(stack_name: &str, items: Stack) -> Result<(), impl Error> {
     let data_path: String = sigi_file(stack_name);
     let json: String = serde_json::to_string(&items).unwrap();
     let result = fs::write(&data_path, &json);
@@ -67,7 +85,7 @@ pub fn save(stack_name: &str, items: Stack) -> Result<(), impl Error> {
 
 /// Load a stack of items.
 // TODO: Create a custom error. This is returning raw serialization errors.
-pub fn load(stack_name: &str) -> Result<Stack, impl Error> {
+fn load_from_homedir(stack_name: &str) -> Result<Stack, impl Error> {
     let data_path: String = sigi_file(stack_name);
     let read_result = fs::read_to_string(data_path);
     if read_result.is_err() && read_result.as_ref().unwrap_err().kind() == ErrorKind::NotFound {
@@ -100,15 +118,15 @@ fn sigi_file(filename: &str) -> String {
 
 /// A single stack item. Used for backwards compatibility with versions of Sigi v1.
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct V1Item {
-    pub name: String,
-    pub created: DateTime<Local>,
-    pub succeeded: Option<DateTime<Local>>,
-    pub failed: Option<DateTime<Local>>,
+struct V1Item {
+    name: String,
+    created: DateTime<Local>,
+    succeeded: Option<DateTime<Local>>,
+    failed: Option<DateTime<Local>>,
 }
 
 /// A stack of items. Used for backwards compatibility with versions of Sigi v1.
-pub type V1Stack = Vec<V1Item>;
+type V1Stack = Vec<V1Item>;
 
 /// Attempt to read a V1 format file.
 fn v1_load(json_blob: &str) -> Result<V1Stack, impl Error> {

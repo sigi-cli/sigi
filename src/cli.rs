@@ -1,3 +1,4 @@
+use crate::data::Backend;
 use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
@@ -10,6 +11,7 @@ pub const SIGI_VERSION: &str = std::env!("CARGO_PKG_VERSION");
 
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
+const DEFAULT_BACKEND: Backend = Backend::HomeDir;
 
 pub fn run() {
     let args = Cli::parse();
@@ -17,16 +19,17 @@ pub fn run() {
     let stack = args.stack.unwrap_or_else(|| DEFAULT_STACK_NAME.into());
 
     if args.command.is_none() {
-        let fmt = args.fc.into_output_format().unwrap_or(DEFAULT_FORMAT);
-        Peek { stack }.run(fmt);
+        let output = args.fc.into_output_format().unwrap_or(DEFAULT_FORMAT);
+        let peek = Peek { stack };
+        peek.run(&DEFAULT_BACKEND, &output);
         return;
     }
 
-    let (effect, fc) = args.command.unwrap().into_effect_and_fc(stack);
+    let (effect, effect_fc) = args.command.unwrap().into_effect_and_fc(stack);
 
-    let with_fallback = args.fc.into_fallback();
+    let output = args.fc.into_fallback_for(effect_fc);
 
-    effect.run(with_fallback(fc));
+    effect.run(&DEFAULT_BACKEND, &output);
 }
 
 #[derive(Parser)]
@@ -178,27 +181,27 @@ enum Command {
 }
 
 impl Command {
-    fn into_effect_and_fc(self, stack: String) -> (Box<dyn StackEffect>, FormatConfig) {
+    fn into_effect_and_fc(self, stack: String) -> (StackEffect, FormatConfig) {
         match self {
-            Command::Complete { fc } => (Box::new(Complete { stack }), fc),
-            Command::Count { fc } => (Box::new(Count { stack }), fc),
-            Command::Delete { fc } => (Box::new(Delete { stack }), fc),
-            Command::DeleteAll { fc } => (Box::new(DeleteAll { stack }), fc),
-            Command::Head { n, fc } => (Box::new(Head { n, stack }), fc),
-            Command::IsEmpty { fc } => (Box::new(IsEmpty { stack }), fc),
-            Command::List { fc } => (Box::new(ListAll { stack }), fc),
-            Command::Move { dest, fc } => (Box::new(Move { stack, dest }), fc),
-            Command::MoveAll { dest, fc } => (Box::new(MoveAll { stack, dest }), fc),
-            Command::Next { fc } => (Box::new(Next { stack }), fc),
-            Command::Peek { fc } => (Box::new(Peek { stack }), fc),
-            Command::Pick { ns, fc } => (Box::new(Pick { stack, indices: ns }), fc),
+            Command::Complete { fc } => (StackEffect::Complete { stack }, fc),
+            Command::Count { fc } => (StackEffect::Count { stack }, fc),
+            Command::Delete { fc } => (StackEffect::Delete { stack }, fc),
+            Command::DeleteAll { fc } => (StackEffect::DeleteAll { stack }, fc),
+            Command::Head { n, fc } => (StackEffect::Head { n, stack }, fc),
+            Command::IsEmpty { fc } => (StackEffect::IsEmpty { stack }, fc),
+            Command::List { fc } => (StackEffect::ListAll { stack }, fc),
+            Command::Move { dest, fc } => (StackEffect::Move { stack, dest }, fc),
+            Command::MoveAll { dest, fc } => (StackEffect::MoveAll { stack, dest }, fc),
+            Command::Next { fc } => (StackEffect::Next { stack }, fc),
+            Command::Peek { fc } => (StackEffect::Peek { stack }, fc),
+            Command::Pick { ns, fc } => (StackEffect::Pick { stack, indices: ns }, fc),
             Command::Push { content, fc } => {
                 let item = Item::new(&content.join(" "));
-                (Box::new(Push { stack, item }), fc)
+                (StackEffect::Push { stack, item }, fc)
             }
-            Command::Rot { fc } => (Box::new(Rot { stack }), fc),
-            Command::Swap { fc } => (Box::new(Swap { stack }), fc),
-            Command::Tail { n, fc } => (Box::new(Tail { stack, n }), fc),
+            Command::Rot { fc } => (StackEffect::Rot { stack }, fc),
+            Command::Swap { fc } => (StackEffect::Swap { stack }, fc),
+            Command::Tail { n, fc } => (StackEffect::Tail { stack, n }, fc),
         }
     }
 }
@@ -250,12 +253,10 @@ impl FormatConfig {
             })
     }
 
-    fn into_fallback(self) -> impl FnOnce(FormatConfig) -> OutputFormat {
-        |fc: FormatConfig| {
-            fc.into_output_format()
-                .or_else(|| self.into_output_format())
-                .unwrap_or(DEFAULT_FORMAT)
-        }
+    fn into_fallback_for(self, fc: FormatConfig) -> OutputFormat {
+        fc.into_output_format()
+            .or_else(|| self.into_output_format())
+            .unwrap_or(DEFAULT_FORMAT)
     }
 }
 

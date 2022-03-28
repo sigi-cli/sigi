@@ -1,5 +1,5 @@
-use crate::data;
-use crate::effects::{Head, Push, StackEffect};
+use crate::data::Backend;
+use crate::effects::{Head, Push, StackAction};
 use crate::output::OutputFormat;
 
 // ===== Pick =====
@@ -10,9 +10,9 @@ pub struct Pick {
     pub indices: Vec<usize>,
 }
 
-impl StackEffect for Pick {
-    fn run(&self, output: OutputFormat) {
-        if let Ok(stack) = data::load(&self.stack) {
+impl StackAction for Pick {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
+        if let Ok(stack) = backend.load(&self.stack) {
             let mut stack = stack;
             let mut seen: Vec<usize> = vec![];
             seen.reserve_exact(self.indices.len());
@@ -35,13 +35,14 @@ impl StackEffect for Pick {
                 seen.push(i);
             }
 
-            data::save(&self.stack, stack).unwrap();
+            backend.save(&self.stack, stack).unwrap();
 
-            Head {
+            let head = Head {
                 stack: self.stack.clone(),
                 n: Some(seen.len()),
-            }
-            .run(output);
+            };
+
+            head.run(backend, output);
         }
     }
 }
@@ -54,23 +55,24 @@ pub struct Move {
     pub dest: String,
 }
 
-impl StackEffect for Move {
-    fn run(&self, output: OutputFormat) {
-        if let Ok(items) = data::load(&self.stack) {
+impl StackAction for Move {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
+        if let Ok(items) = backend.load(&self.stack) {
             let mut items = items;
             if let Some(item) = items.pop() {
-                data::save(&self.stack, items).unwrap();
+                backend.save(&self.stack, items).unwrap();
 
                 output.log(
                     vec!["action", "new-stack", "old-stack"],
                     vec![vec!["Move", &self.dest, &self.stack]],
                 );
 
-                Push {
+                let push = Push {
                     stack: self.dest.clone(),
                     item,
-                }
-                .run(OutputFormat::Silent);
+                };
+
+                push.run(backend, &OutputFormat::Silent);
             }
         }
     }
@@ -84,13 +86,13 @@ pub struct MoveAll {
     pub dest: String,
 }
 
-impl StackEffect for MoveAll {
-    fn run(&self, output: OutputFormat) {
-        if let Ok(src_items) = data::load(&self.stack) {
+impl StackAction for MoveAll {
+    fn run(self, backend: &Backend, output: &OutputFormat) {
+        if let Ok(src_items) = backend.load(&self.stack) {
             let count = src_items.len();
 
             if !src_items.is_empty() {
-                let all_items = match data::load(&self.dest) {
+                let all_items = match backend.load(&self.dest) {
                     Ok(dest_items) => {
                         let mut all_items = dest_items;
                         for item in src_items {
@@ -101,8 +103,8 @@ impl StackEffect for MoveAll {
                     _ => src_items,
                 };
 
-                data::save(&self.dest, all_items).unwrap();
-                data::save(&self.stack, vec![]).unwrap();
+                backend.save(&self.dest, all_items).unwrap();
+                backend.save(&self.stack, vec![]).unwrap();
             }
 
             output.log(
