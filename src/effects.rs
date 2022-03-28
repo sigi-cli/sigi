@@ -5,8 +5,6 @@ pub mod views;
 pub use views::*;
 pub mod shuffle;
 pub use shuffle::*;
-pub mod housekeeping;
-pub use housekeeping::*;
 
 const HISTORY_SUFFIX: &str = "_history";
 
@@ -44,9 +42,9 @@ impl StackEffect {
             StackEffect::Complete { stack } => complete_latest_item(stack, backend, output),
             StackEffect::Delete { stack } => delete_latest_item(stack, backend, output),
             StackEffect::DeleteAll { stack } => delete_all_items(stack, backend, output),
-            StackEffect::Pick { stack, indices } => Pick { stack, indices }.run(backend, output),
-            StackEffect::Move { stack, dest } => Move { stack, dest }.run(backend, output),
-            StackEffect::MoveAll { stack, dest } => MoveAll { stack, dest }.run(backend, output),
+            StackEffect::Pick { stack, indices } => pick_indices(stack, indices, backend, output),
+            StackEffect::Move { stack, dest } => move_latest_item(stack, dest, backend, output),
+            StackEffect::MoveAll { stack, dest } => move_all_items(stack, dest, backend, output),
             StackEffect::Swap { stack } => Swap { stack }.run(backend, output),
             StackEffect::Rot { stack } => Rot { stack }.run(backend, output),
             StackEffect::Next { stack } => Next { stack }.run(backend, output),
@@ -158,6 +156,86 @@ fn delete_all_items(stack: String, backend: &Backend, output: &OutputFormat) {
         output.log(
             vec!["action", "item"],
             vec![vec!["Deleted", &format!("{} items", n_deleted)]],
+        );
+    }
+}
+
+fn pick_indices(stack:String, indices: Vec<usize>, backend: &Backend, output: &OutputFormat) {
+    if let Ok(items) = backend.load(&stack) {
+        let mut items = items;
+        let mut seen: Vec<usize> = vec![];
+        seen.reserve_exact(indices.len());
+        let indices: Vec<usize> = indices
+            .iter()
+            .map(|i| items.len() - 1 - i)
+            .rev()
+            .collect();
+        for i in indices {
+            if i > items.len() || seen.contains(&i) {
+                // TODO: What should be the output here? Some stderr?
+                // command.log("Pick", "ignoring out-of-bounds index");
+                // command.log("Pick", "ignoring duplicate index");
+                continue;
+            }
+            let i = i - seen.iter().filter(|j| j < &&i).count();
+            let picked = items.remove(i);
+            items.push(picked);
+            seen.push(i);
+        }
+
+        backend.save(&stack, items).unwrap();
+
+        let n = Some(seen.len());
+        let head = Head { stack, n };
+
+        head.run(backend, output);
+    }
+}
+
+fn move_latest_item(source: String, dest: String, backend: &Backend, output: &OutputFormat) {
+    if let Ok(items) = backend.load(&source) {
+        let mut items = items;
+        if let Some(item) = items.pop() {
+            backend.save(&source, items).unwrap();
+
+            output.log(
+                vec!["action", "new-stack", "old-stack"],
+                vec![vec!["Move", &dest, &source]],
+            );
+
+            push_item(dest, item, backend, &OutputFormat::Silent);
+        }
+    }
+}
+
+fn move_all_items(source: String, dest: String, backend: &Backend, output: &OutputFormat) {
+    if let Ok(src_items) = backend.load(&source) {
+        let count = src_items.len();
+
+        if !src_items.is_empty() {
+            let all_items = match backend.load(&dest) {
+                Ok(dest_items) => {
+                    let mut all_items = dest_items;
+                    for item in src_items {
+                        all_items.push(item);
+                    }
+                    all_items
+                }
+                _ => src_items,
+            };
+
+            backend.save(&dest, all_items).unwrap();
+            backend.save(&source, vec![]).unwrap();
+        }
+
+        output.log(
+            vec!["action", "new-stack", "old-stack", "num-moved"],
+            vec![vec![
+                "Move All",
+                &dest,
+                &source,
+                &count.to_string(),
+            ]],
         );
     }
 }
