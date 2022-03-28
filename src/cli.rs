@@ -1,5 +1,5 @@
 use crate::data::Backend;
-use crate::effects::*;
+use crate::effects::StackEffect;
 use crate::output::{NoiseLevel, OutputFormat};
 use clap::{ArgEnum, Args, Parser, Subcommand};
 use std::str::FromStr;
@@ -20,7 +20,8 @@ pub fn run() {
 
     if args.command.is_none() {
         let output = args.fc.into_output_format().unwrap_or(DEFAULT_FORMAT);
-        peek_latest_item(stack, &DEFAULT_BACKEND, &output);
+        let peek = StackEffect::Peek { stack };
+        peek.run(&DEFAULT_BACKEND, &output);
         return;
     }
 

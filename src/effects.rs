@@ -278,7 +278,7 @@ fn next_to_latest(stack: String, backend: &Backend, output: &OutputFormat) {
     }
 }
 
-pub fn peek_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
+fn peek_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
     if let OutputFormat::Silent = output {
         return;
     }
@@ -325,13 +325,11 @@ fn is_empty(stack: String, backend: &Backend, output: &OutputFormat) {
 
 // ===== ListAll/Head/Tail =====
 
-// TODO: Remove pub
-pub trait Listable {
+trait Listable {
     fn range(self) -> ListRange;
 }
 
-// TODO: Remove pub
-pub struct ListRange {
+struct ListRange {
     stack: String,
     // Ignored if starting "from_end".
     start: usize,
@@ -339,8 +337,7 @@ pub struct ListRange {
     from_end: bool,
 }
 
-// TODO: Remove pub
-pub fn list_range(range: ListRange, backend: &Backend, output: &OutputFormat) {
+fn list_range(range: ListRange, backend: &Backend, output: &OutputFormat) {
     if let OutputFormat::Silent = output {
         return;
     }
