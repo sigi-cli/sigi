@@ -160,16 +160,12 @@ fn delete_all_items(stack: String, backend: &Backend, output: &OutputFormat) {
     }
 }
 
-fn pick_indices(stack:String, indices: Vec<usize>, backend: &Backend, output: &OutputFormat) {
+fn pick_indices(stack: String, indices: Vec<usize>, backend: &Backend, output: &OutputFormat) {
     if let Ok(items) = backend.load(&stack) {
         let mut items = items;
         let mut seen: Vec<usize> = vec![];
         seen.reserve_exact(indices.len());
-        let indices: Vec<usize> = indices
-            .iter()
-            .map(|i| items.len() - 1 - i)
-            .rev()
-            .collect();
+        let indices: Vec<usize> = indices.iter().map(|i| items.len() - 1 - i).rev().collect();
         for i in indices {
             if i > items.len() || seen.contains(&i) {
                 // TODO: What should be the output here? Some stderr?
@@ -230,12 +226,7 @@ fn move_all_items(source: String, dest: String, backend: &Backend, output: &Outp
 
         output.log(
             vec!["action", "new-stack", "old-stack", "num-moved"],
-            vec![vec![
-                "Move All",
-                &dest,
-                &source,
-                &count.to_string(),
-            ]],
+            vec![vec!["Move All", &dest, &source, &count.to_string()]],
         );
     }
 }
