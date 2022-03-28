@@ -102,6 +102,13 @@ enum Command {
         fc: FormatConfig,
     },
 
+    /// List all stacks
+    #[clap(visible_aliases = &["stacks"])]
+    ListStacks {
+        #[clap(flatten)]
+        fc: FormatConfig,
+    },
+
     /// Move current item to another stack
     #[clap(arg_required_else_help = true)]
     Move {
@@ -193,6 +200,7 @@ impl Command {
             }
             Command::IsEmpty { fc } => (StackEffect::IsEmpty { stack }, fc),
             Command::List { fc } => (StackEffect::ListAll { stack }, fc),
+            Command::ListStacks { fc } => (StackEffect::ListStacks, fc),
             Command::Move { dest, fc } => (StackEffect::Move { stack, dest }, fc),
             Command::MoveAll { dest, fc } => (StackEffect::MoveAll { stack, dest }, fc),
             Command::Next { fc } => (StackEffect::Next { stack }, fc),

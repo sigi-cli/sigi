@@ -67,6 +67,12 @@ impl Backend {
             Backend::HomeDir => save_to_homedir(stack_name, items),
         }
     }
+
+    pub fn list_stacks(&self) -> Result<Vec<String>, impl Error> {
+        match self {
+            Backend::HomeDir => list_stacks_from_homedir(),
+        }
+    }
 }
 
 /// Save a stack of items.
@@ -103,6 +109,16 @@ fn load_from_homedir(stack_name: &str) -> Result<Stack, impl Error> {
     }
 
     result
+}
+
+fn list_stacks_from_homedir() ->  Result<Vec<String>, impl Error> {
+    let dot_json = ".json";
+    fs::read_dir(sigi_path()).map(|files| {
+        files.map(|file| file.unwrap().file_name().into_string().unwrap())
+            .filter(|filename| filename.ends_with(dot_json))
+            .map(|filename| filename.strip_suffix(dot_json).unwrap().to_string())
+            .collect::<Vec<_>>()
+    })
 }
 
 fn sigi_path() -> String {

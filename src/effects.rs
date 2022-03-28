@@ -18,6 +18,7 @@ pub enum StackEffect {
     Next { stack: String },
     Peek { stack: String },
     ListAll { stack: String },
+    ListStacks,
     Head { stack: String, n: usize },
     Tail { stack: String, n: usize },
     Count { stack: String },
@@ -39,6 +40,7 @@ impl StackEffect {
             StackEffect::Next { stack } => next_to_latest(stack, backend, output),
             StackEffect::Peek { stack } => peek_latest_item(stack, backend, output),
             StackEffect::ListAll { stack } => list_all_items(stack, backend, output),
+            StackEffect::ListStacks => list_stacks(backend, output),
             StackEffect::Head { stack, n } => list_n_latest_items(stack, n, backend, output),
             StackEffect::Tail { stack, n } => list_n_oldest_items(stack, n, backend, output),
             StackEffect::Count { stack } => count_all_items(stack, backend, output),
@@ -321,6 +323,15 @@ fn is_empty(stack: String, backend: &Backend, output: &OutputFormat) {
         }
     }
     output.log(vec!["empty"], vec![vec!["true"]]);
+}
+
+fn list_stacks(backend: &Backend, output: &OutputFormat) {
+    if let Ok(stacks) = backend.list_stacks() {
+        let mut stacks = stacks;
+        stacks.sort();
+        let strs = stacks.iter().map(|stack| vec![stack.as_str()]).collect();
+        output.log(vec!["stack"], strs);
+    }
 }
 
 // ===== ListAll/Head/Tail =====
