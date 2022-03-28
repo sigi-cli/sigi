@@ -1,5 +1,5 @@
 use crate::data::Backend;
-use crate::effects::{Head, Push, StackAction};
+use crate::effects::{push_item, Head, StackAction};
 use crate::output::OutputFormat;
 
 // ===== Pick =====
@@ -67,12 +67,7 @@ impl StackAction for Move {
                     vec![vec!["Move", &self.dest, &self.stack]],
                 );
 
-                let push = Push {
-                    stack: self.dest.clone(),
-                    item,
-                };
-
-                push.run(backend, &OutputFormat::Silent);
+                push_item(self.dest, item, backend, &OutputFormat::Silent);
             }
         }
     }

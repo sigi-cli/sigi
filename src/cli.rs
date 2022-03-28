@@ -1,5 +1,4 @@
 use crate::data::Backend;
-use crate::data::Item;
 use crate::effects::*;
 use crate::output::{NoiseLevel, OutputFormat};
 use clap::{ArgEnum, Args, Parser, Subcommand};
@@ -196,8 +195,8 @@ impl Command {
             Command::Peek { fc } => (StackEffect::Peek { stack }, fc),
             Command::Pick { ns, fc } => (StackEffect::Pick { stack, indices: ns }, fc),
             Command::Push { content, fc } => {
-                let item = Item::new(&content.join(" "));
-                (StackEffect::Push { stack, item }, fc)
+                let content = content.join(" ");
+                (StackEffect::Push { stack, content }, fc)
             }
             Command::Rot { fc } => (StackEffect::Rot { stack }, fc),
             Command::Swap { fc } => (StackEffect::Swap { stack }, fc),

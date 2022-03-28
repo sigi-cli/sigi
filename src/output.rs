@@ -116,7 +116,7 @@ impl OutputFormat {
     }
 }
 
-fn join_and_print(sep: &str) -> impl Fn(Vec<&str>) -> () {
+fn join_and_print(sep: &str) -> impl Fn(Vec<&str>) {
     let sep = sep.to_string();
     move |tokens: Vec<&str>| println!("{}", tokens.join(&sep))
 }

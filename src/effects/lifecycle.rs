@@ -1,4 +1,4 @@
-use crate::data::Backend;
+use crate::data::{Backend, Item};
 use crate::effects::{stack_history_of, Peek, StackAction};
 use crate::output::OutputFormat;
 
@@ -7,24 +7,31 @@ use crate::output::OutputFormat;
 /// Add a new item.
 pub struct Push {
     pub stack: String,
-    pub item: crate::data::Item,
+    pub content: String,
 }
 
 impl StackAction for Push {
     fn run(self, backend: &Backend, output: &OutputFormat) {
-        let new_items = if let Ok(items) = backend.load(&self.stack) {
-            let mut items = items;
-            items.push(self.item.clone());
-            items
-        } else {
-            vec![self.item.clone()]
-        };
-        backend.save(&self.stack, new_items).unwrap();
-        output.log(
-            vec!["action", "item"],
-            vec![vec!["Created", &self.item.contents]],
-        );
+        let item = Item::new(&self.content);
+
+        push_item(self.stack, item, backend, output)
     }
+}
+
+pub fn push_item(stack: String, item: Item, backend: &Backend, output: &OutputFormat) {
+    let contents = item.contents.clone();
+
+    let items = if let Ok(items) = backend.load(&stack) {
+        let mut items = items;
+        items.push(item);
+        items
+    } else {
+        vec![item]
+    };
+
+    backend.save(&stack, items).unwrap();
+
+    output.log(vec!["action", "item"], vec![vec!["Created", &contents]]);
 }
 
 // ===== Complete (Pop) =====
@@ -44,12 +51,12 @@ impl StackAction for Complete {
                 item.mark_completed();
 
                 // Push the now-marked-completed item to history stack.
-                let push = Push {
-                    stack: stack_history_of(&stack),
-                    item: item.clone(),
-                };
-
-                push.run(backend, &OutputFormat::Silent);
+                push_item(
+                    stack_history_of(&stack),
+                    item.clone(),
+                    backend,
+                    &OutputFormat::Silent,
+                );
 
                 // Save the original stack without that item.
                 backend.save(&stack, items).unwrap();
@@ -86,12 +93,12 @@ impl StackAction for Delete {
                 item.mark_deleted();
 
                 // Push the now-marked-deleted item to history stack.
-                let push = Push {
-                    stack: stack_history_of(&stack),
-                    item: item.clone(),
-                };
-
-                push.run(backend, &OutputFormat::Silent);
+                push_item(
+                    stack_history_of(&stack),
+                    item.clone(),
+                    backend,
+                    &OutputFormat::Silent,
+                );
 
                 // Save the original stack without that item.
                 backend.save(&stack, items).unwrap();

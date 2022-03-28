@@ -18,66 +18,28 @@ pub trait StackAction {
 }
 
 pub enum StackEffect {
-    Push {
-        stack: String,
-        item: crate::data::Item,
-    },
-    Complete {
-        stack: String,
-    },
-    Delete {
-        stack: String,
-    },
-    DeleteAll {
-        stack: String,
-    },
-    Pick {
-        stack: String,
-        indices: Vec<usize>,
-    },
-    Move {
-        stack: String,
-        dest: String,
-    },
-    MoveAll {
-        stack: String,
-        dest: String,
-    },
-    Swap {
-        stack: String,
-    },
-    Rot {
-        stack: String,
-    },
-    Next {
-        stack: String,
-    },
-    Peek {
-        stack: String,
-    },
-    ListAll {
-        stack: String,
-    },
-    Head {
-        stack: String,
-        n: Option<usize>,
-    },
-    Tail {
-        stack: String,
-        n: Option<usize>,
-    },
-    Count {
-        stack: String,
-    },
-    IsEmpty {
-        stack: String,
-    },
+    Push { stack: String, content: String },
+    Complete { stack: String },
+    Delete { stack: String },
+    DeleteAll { stack: String },
+    Pick { stack: String, indices: Vec<usize> },
+    Move { stack: String, dest: String },
+    MoveAll { stack: String, dest: String },
+    Swap { stack: String },
+    Rot { stack: String },
+    Next { stack: String },
+    Peek { stack: String },
+    ListAll { stack: String },
+    Head { stack: String, n: Option<usize> },
+    Tail { stack: String, n: Option<usize> },
+    Count { stack: String },
+    IsEmpty { stack: String },
 }
 
 impl StackEffect {
     pub fn run(self, backend: &Backend, output: &OutputFormat) {
         match self {
-            StackEffect::Push { stack, item } => Push { stack, item }.run(backend, output),
+            StackEffect::Push { stack, content } => Push { stack, content }.run(backend, output),
             StackEffect::Complete { stack } => Complete { stack }.run(backend, output),
             StackEffect::Delete { stack } => Delete { stack }.run(backend, output),
             StackEffect::DeleteAll { stack } => DeleteAll { stack }.run(backend, output),
