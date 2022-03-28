@@ -111,10 +111,11 @@ fn load_from_homedir(stack_name: &str) -> Result<Stack, impl Error> {
     result
 }
 
-fn list_stacks_from_homedir() ->  Result<Vec<String>, impl Error> {
+fn list_stacks_from_homedir() -> Result<Vec<String>, impl Error> {
     let dot_json = ".json";
     fs::read_dir(sigi_path()).map(|files| {
-        files.map(|file| file.unwrap().file_name().into_string().unwrap())
+        files
+            .map(|file| file.unwrap().file_name().into_string().unwrap())
             .filter(|filename| filename.ends_with(dot_json))
             .map(|filename| filename.strip_suffix(dot_json).unwrap().to_string())
             .collect::<Vec<_>>()
