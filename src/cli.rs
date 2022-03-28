@@ -11,6 +11,7 @@ pub const SIGI_VERSION: &str = std::env!("CARGO_PKG_VERSION");
 const DEFAULT_STACK_NAME: &str = "sigi";
 const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 const DEFAULT_BACKEND: Backend = Backend::HomeDir;
+const DEFAULT_SHORT_LIST_LIMIT: usize = 10;
 
 pub fn run() {
     let args = Cli::parse();
@@ -185,7 +186,10 @@ impl Command {
             Command::Count { fc } => (StackEffect::Count { stack }, fc),
             Command::Delete { fc } => (StackEffect::Delete { stack }, fc),
             Command::DeleteAll { fc } => (StackEffect::DeleteAll { stack }, fc),
-            Command::Head { n, fc } => (StackEffect::Head { n, stack }, fc),
+            Command::Head { n, fc } => {
+                let n = n.unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
+                (StackEffect::Head { n, stack }, fc)
+            }
             Command::IsEmpty { fc } => (StackEffect::IsEmpty { stack }, fc),
             Command::List { fc } => (StackEffect::ListAll { stack }, fc),
             Command::Move { dest, fc } => (StackEffect::Move { stack, dest }, fc),
@@ -199,7 +203,10 @@ impl Command {
             }
             Command::Rot { fc } => (StackEffect::Rot { stack }, fc),
             Command::Swap { fc } => (StackEffect::Swap { stack }, fc),
-            Command::Tail { n, fc } => (StackEffect::Tail { stack, n }, fc),
+            Command::Tail { n, fc } => {
+                let n = n.unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
+                (StackEffect::Tail { n, stack }, fc)
+            }
         }
     }
 }

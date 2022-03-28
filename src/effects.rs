@@ -1,15 +1,7 @@
 use crate::data::{Backend, Item};
 use crate::output::OutputFormat;
 
-pub mod views;
-pub use views::*;
-
 const HISTORY_SUFFIX: &str = "_history";
-
-// TODO: Unify StackAction and StackEffect
-pub trait StackAction {
-    fn run(self, backend: &Backend, output: &OutputFormat);
-}
 
 // TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
@@ -26,8 +18,8 @@ pub enum StackEffect {
     Next { stack: String },
     Peek { stack: String },
     ListAll { stack: String },
-    Head { stack: String, n: Option<usize> },
-    Tail { stack: String, n: Option<usize> },
+    Head { stack: String, n: usize },
+    Tail { stack: String, n: usize },
     Count { stack: String },
     IsEmpty { stack: String },
 }
@@ -46,9 +38,9 @@ impl StackEffect {
             StackEffect::Rot { stack } => rotate_latest_three_items(stack, backend, output),
             StackEffect::Next { stack } => next_to_latest(stack, backend, output),
             StackEffect::Peek { stack } => peek_latest_item(stack, backend, output),
-            StackEffect::ListAll { stack } => ListAll { stack }.run(backend, output),
-            StackEffect::Head { stack, n } => Head { stack, n }.run(backend, output),
-            StackEffect::Tail { stack, n } => Tail { stack, n }.run(backend, output),
+            StackEffect::ListAll { stack } => list_all_items(stack, backend, output),
+            StackEffect::Head { stack, n } => list_n_latest_items(stack, n, backend, output),
+            StackEffect::Tail { stack, n } => list_n_oldest_items(stack, n, backend, output),
             StackEffect::Count { stack } => count_all_items(stack, backend, output),
             StackEffect::IsEmpty { stack } => is_empty(stack, backend, output),
         }
@@ -181,10 +173,7 @@ fn pick_indices(stack: String, indices: Vec<usize>, backend: &Backend, output: &
 
         backend.save(&stack, items).unwrap();
 
-        let n = Some(seen.len());
-        let head = Head { stack, n };
-
-        head.run(backend, output);
+        list_n_latest_items(stack, seen.len(), backend, output);
     }
 }
 
@@ -247,9 +236,7 @@ fn swap_latest_two_items(stack: String, backend: &Backend, output: &OutputFormat
         backend.save(&stack, items).unwrap();
 
         // Now show the first two items in their new order.
-        let n = Some(2);
-        let head = Head { stack, n };
-        head.run(backend, output);
+        list_n_latest_items(stack, 2, backend, output);
     }
 }
 
@@ -272,9 +259,7 @@ fn rotate_latest_three_items(stack: String, backend: &Backend, output: &OutputFo
 
         backend.save(&stack, items).unwrap();
 
-        let n = Some(3);
-        let head = Head { stack, n };
-        head.run(backend, output);
+        list_n_latest_items(stack, 3, backend, output);
     }
 }
 
@@ -336,6 +321,125 @@ fn is_empty(stack: String, backend: &Backend, output: &OutputFormat) {
         }
     }
     output.log(vec!["empty"], vec![vec!["true"]]);
+}
+
+// ===== ListAll/Head/Tail =====
+
+// TODO: Remove pub
+pub trait Listable {
+    fn range(self) -> ListRange;
+}
+
+// TODO: Remove pub
+pub struct ListRange {
+    stack: String,
+    // Ignored if starting "from_end".
+    start: usize,
+    limit: Option<usize>,
+    from_end: bool,
+}
+
+// TODO: Remove pub
+pub fn list_range(range: ListRange, backend: &Backend, output: &OutputFormat) {
+    if let OutputFormat::Silent = output {
+        return;
+    }
+
+    if let Ok(items) = backend.load(&range.stack) {
+        let limit = match range.limit {
+            Some(n) => n,
+            None => items.len(),
+        };
+
+        let start = if range.from_end {
+            if limit <= items.len() {
+                items.len() - limit
+            } else {
+                0
+            }
+        } else {
+            range.start
+        };
+
+        let lines = items
+            .into_iter()
+            .rev()
+            .enumerate()
+            .skip(start)
+            .take(limit)
+            .map(|(i, item)| {
+                let position = match output {
+                    // Pad human output numbers to line up nicely with "Now".
+                    OutputFormat::Human(_) => match i {
+                        0 => "Now".to_string(),
+                        1..=9 => format!("  {}", i),
+                        10..=99 => format!(" {}", i),
+                        _ => i.to_string(),
+                    },
+                    _ => i.to_string(),
+                };
+
+                let created = item
+                    .history
+                    .iter()
+                    .find(|(status, _)| status == "created")
+                    .map(|(_, dt)| output.format_time(*dt))
+                    .unwrap_or_else(|| "unknown".to_string());
+
+                vec![position, item.contents, created]
+            })
+            .collect::<Vec<_>>();
+
+        let labels = vec!["position", "item", "created"];
+
+        if lines.is_empty() {
+            if let OutputFormat::Human(_) = output {
+                output.log(labels, vec![vec!["Now", "NOTHING"]]);
+            }
+            return;
+        }
+
+        // Get the lines into a "borrow" state (&str instead of String) to make log happy.
+        let lines = lines
+            .iter()
+            .map(|line| line.iter().map(|s| s.as_str()).collect())
+            .collect();
+
+        output.log(labels, lines);
+    }
+}
+
+fn list_all_items(stack: String, backend: &Backend, output: &OutputFormat) {
+    let range = ListRange {
+        stack,
+        start: 0,
+        limit: None,
+        from_end: false,
+    };
+
+    list_range(range, backend, output);
+}
+
+fn list_n_latest_items(stack: String, n: usize, backend: &Backend, output: &OutputFormat) {
+    let range = ListRange {
+        stack,
+        start: 0,
+        limit: Some(n),
+        from_end: false,
+    };
+
+    list_range(range, backend, output);
+}
+
+fn list_n_oldest_items(stack: String, n: usize, backend: &Backend, output: &OutputFormat) {
+    let range = ListRange {
+        stack,
+        start: 0,
+        limit: Some(n),
+        from_end: true,
+    };
+
+    list_range(range, backend, output);
 }
 
 // ===== Helper functions =====
