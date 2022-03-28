@@ -3,8 +3,6 @@ use crate::output::OutputFormat;
 
 pub mod views;
 pub use views::*;
-pub mod shuffle;
-pub use shuffle::*;
 
 const HISTORY_SUFFIX: &str = "_history";
 
@@ -12,6 +10,8 @@ const HISTORY_SUFFIX: &str = "_history";
 pub trait StackAction {
     fn run(self, backend: &Backend, output: &OutputFormat);
 }
+
+// TODO: Consider more shuffle words: https://docs.factorcode.org/content/article-shuffle-words.html
 
 pub enum StackEffect {
     Push { stack: String, content: String },
@@ -42,15 +42,15 @@ impl StackEffect {
             StackEffect::Pick { stack, indices } => pick_indices(stack, indices, backend, output),
             StackEffect::Move { stack, dest } => move_latest_item(stack, dest, backend, output),
             StackEffect::MoveAll { stack, dest } => move_all_items(stack, dest, backend, output),
-            StackEffect::Swap { stack } => Swap { stack }.run(backend, output),
-            StackEffect::Rot { stack } => Rot { stack }.run(backend, output),
-            StackEffect::Next { stack } => Next { stack }.run(backend, output),
-            StackEffect::Peek { stack } => Peek { stack }.run(backend, output),
+            StackEffect::Swap { stack } => swap_latest_two_items(stack, backend, output),
+            StackEffect::Rot { stack } => rotate_latest_three_items(stack, backend, output),
+            StackEffect::Next { stack } => next_to_latest(stack, backend, output),
+            StackEffect::Peek { stack } => peek_latest_item(stack, backend, output),
             StackEffect::ListAll { stack } => ListAll { stack }.run(backend, output),
             StackEffect::Head { stack, n } => Head { stack, n }.run(backend, output),
             StackEffect::Tail { stack, n } => Tail { stack, n }.run(backend, output),
-            StackEffect::Count { stack } => Count { stack }.run(backend, output),
-            StackEffect::IsEmpty { stack } => IsEmpty { stack }.run(backend, output),
+            StackEffect::Count { stack } => count_all_items(stack, backend, output),
+            StackEffect::IsEmpty { stack } => is_empty(stack, backend, output),
         }
     }
 }
@@ -103,8 +103,7 @@ fn complete_latest_item(stack: String, backend: &Backend, output: &OutputFormat)
 
     // Peek the current stack only for human output.
     if let OutputFormat::Human(_) = output {
-        let peek = Peek { stack };
-        peek.run(backend, output);
+        peek_latest_item(stack, backend, output);
     }
 }
 
@@ -135,8 +134,7 @@ fn delete_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
 
     // Peek the current stack only for human output.
     if let OutputFormat::Human(_) = output {
-        let peek = Peek { stack };
-        peek.run(backend, output);
+        peek_latest_item(stack, backend, output);
     }
 }
 
@@ -240,6 +238,113 @@ fn move_all_items(source: String, dest: String, backend: &Backend, output: &Outp
             ]],
         );
     }
+}
+
+fn swap_latest_two_items(stack: String, backend: &Backend, output: &OutputFormat) {
+    if let Ok(items) = backend.load(&stack) {
+        let mut items = items;
+
+        if items.len() < 2 {
+            return;
+        }
+
+        let a = items.pop().unwrap();
+        let b = items.pop().unwrap();
+        items.push(a);
+        items.push(b);
+
+        backend.save(&stack, items).unwrap();
+
+        // Now show the first two items in their new order.
+        let n = Some(2);
+        let head = Head { stack, n };
+        head.run(backend, output);
+    }
+}
+
+fn rotate_latest_three_items(stack: String, backend: &Backend, output: &OutputFormat) {
+    if let Ok(items) = backend.load(&stack) {
+        let mut items = items;
+
+        if items.len() < 3 {
+            swap_latest_two_items(stack, backend, output);
+            return;
+        }
+
+        let a = items.pop().unwrap();
+        let b = items.pop().unwrap();
+        let c = items.pop().unwrap();
+
+        items.push(a);
+        items.push(c);
+        items.push(b);
+
+        backend.save(&stack, items).unwrap();
+
+        let n = Some(3);
+        let head = Head { stack, n };
+        head.run(backend, output);
+    }
+}
+
+fn next_to_latest(stack: String, backend: &Backend, output: &OutputFormat) {
+    if let Ok(items) = backend.load(&stack) {
+        let mut items = items;
+        if items.is_empty() {
+            return;
+        }
+        let to_the_back = items.pop().unwrap();
+        items.insert(0, to_the_back);
+
+        backend.save(&stack, items).unwrap();
+
+        peek_latest_item(stack, backend, output);
+    }
+}
+
+pub fn peek_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
+    if let OutputFormat::Silent = output {
+        return;
+    }
+
+    if let Ok(items) = backend.load(&stack) {
+        let top_item = items.last().map(|i| i.contents.as_str());
+
+        let output_it = |it| output.log(vec!["position", "item"], it);
+
+        match top_item {
+            Some(contents) => output_it(vec![vec!["Now", contents]]),
+            None => match output {
+                OutputFormat::Human(_) => output_it(vec![vec!["Now", "NOTHING"]]),
+                _ => output_it(vec![]),
+            },
+        }
+    }
+}
+
+fn count_all_items(stack: String, backend: &Backend, output: &OutputFormat) {
+    if let OutputFormat::Silent = output {
+        return;
+    }
+
+    if let Ok(items) = backend.load(&stack) {
+        let len = items.len().to_string();
+        output.log(vec!["items"], vec![vec![&len]])
+    }
+}
+
+fn is_empty(stack: String, backend: &Backend, output: &OutputFormat) {
+    if let Ok(items) = backend.load(&stack) {
+        if !items.is_empty() {
+            output.log(vec!["empty"], vec![vec!["false"]]);
+            // Exit with a failure (nonzero status) when not empty.
+            // This helps people who do shell scripting do something like:
+            //     while ! sigi -t $stack is-empty ; do <ETC> ; done
+            // TODO: It would be better modeled as an error, if anyone uses as a lib this will surprise.
+            std::process::exit(1);
+        }
+    }
+    output.log(vec!["empty"], vec![vec!["true"]]);
 }
 
 // ===== Helper functions =====

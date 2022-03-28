@@ -19,8 +19,7 @@ pub fn run() {
 
     if args.command.is_none() {
         let output = args.fc.into_output_format().unwrap_or(DEFAULT_FORMAT);
-        let peek = Peek { stack };
-        peek.run(&DEFAULT_BACKEND, &output);
+        peek_latest_item(stack, &DEFAULT_BACKEND, &output);
         return;
     }
 

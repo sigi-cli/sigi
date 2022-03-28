@@ -2,35 +2,6 @@ use crate::data::Backend;
 use crate::effects::StackAction;
 use crate::output::OutputFormat;
 
-// ===== Peek =====
-
-/// Look at the most-recent item.
-pub struct Peek {
-    pub stack: String,
-}
-
-impl StackAction for Peek {
-    fn run(self, backend: &Backend, output: &OutputFormat) {
-        if let OutputFormat::Silent = output {
-            return;
-        }
-
-        if let Ok(items) = backend.load(&self.stack) {
-            let top_item = items.last().map(|i| i.contents.as_str());
-
-            let output_it = |it| output.log(vec!["position", "item"], it);
-
-            match top_item {
-                Some(contents) => output_it(vec![vec!["Now", contents]]),
-                None => match output {
-                    OutputFormat::Human(_) => output_it(vec![vec!["Now", "NOTHING"]]),
-                    _ => output_it(vec![]),
-                },
-            }
-        }
-    }
-}
-
 // ===== Some help for doing ListAll/Head/Tail =====
 
 trait Listable {
@@ -191,48 +162,5 @@ impl Listable for Tail {
 impl StackAction for Tail {
     fn run(self, backend: &Backend, output: &OutputFormat) {
         list_range(self, backend, output);
-    }
-}
-
-// ===== Count =====
-
-/// Count the stack's items.
-pub struct Count {
-    pub stack: String,
-}
-
-impl StackAction for Count {
-    fn run(self, backend: &Backend, output: &OutputFormat) {
-        if let OutputFormat::Silent = output {
-            return;
-        }
-
-        if let Ok(items) = backend.load(&self.stack) {
-            let len = items.len().to_string();
-            output.log(vec!["items"], vec![vec![&len]])
-        }
-    }
-}
-
-// ===== IsEmpty =====
-
-/// Determine if the stack is empty or not.
-pub struct IsEmpty {
-    pub stack: String,
-}
-
-impl StackAction for IsEmpty {
-    fn run(self, backend: &Backend, output: &OutputFormat) {
-        if let Ok(items) = backend.load(&self.stack) {
-            if !items.is_empty() {
-                output.log(vec!["empty"], vec![vec!["false"]]);
-                // Exit with a failure (nonzero status) when not empty.
-                // This helps people who do shell scripting do something like:
-                //     while ! sigi -t $stack is-empty ; do <ETC> ; done
-                // TODO: It would be better modeled as an error, if anyone uses as a lib this will surprise.
-                std::process::exit(1);
-            }
-        }
-        output.log(vec!["empty"], vec![vec!["true"]]);
     }
 }
