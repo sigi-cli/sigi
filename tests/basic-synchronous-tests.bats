@@ -23,7 +23,8 @@ sigi='target/debug/sigi'
     assert_output --regexp 'sigi 3\..+'
 }
 
-sigi_integ="$sigi --stack __basic_synchronous_tests"
+sigi_integ_stack_name='__basic_synchronous_tests'
+sigi_integ="$sigi --stack $sigi_integ_stack_name"
 
 @test "SETUP: '$sigi_integ delete-all' clears the integ stack" {
     run $sigi_integ delete-all
@@ -88,6 +89,12 @@ sigi_integ="$sigi --stack __basic_synchronous_tests"
     run $sigi_integ delete-all
     assert_success
     assert_output 'Deleted: 0 items'
+}
+
+@test "[] 'sigi list-stacks' contains integ test stack" {
+    run $sigi_integ list-stacks
+    assert_success
+    assert_output --partial "$sigi_integ_stack_name"
 }
 
 @test "[hello] 'sigi push hello' creates an item" {
