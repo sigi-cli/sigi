@@ -1,8 +1,6 @@
 use crate::data::{Backend, Item};
 use crate::output::OutputFormat;
 
-pub mod lifecycle;
-pub use lifecycle::*;
 pub mod views;
 pub use views::*;
 pub mod shuffle;
