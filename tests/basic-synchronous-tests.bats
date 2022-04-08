@@ -17,12 +17,6 @@ sigi='target/debug/sigi'
     [[ -x $sigi ]]
 }
 
-@test "SETUP: '$sigi --version' is 'sigi 3.*'" {
-    run $sigi --version
-    assert_success
-    assert_output --regexp 'sigi 3\..+'
-}
-
 sigi_integ_stack_name='__basic_synchronous_tests'
 sigi_integ="$sigi --stack $sigi_integ_stack_name"
 
