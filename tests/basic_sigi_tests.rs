@@ -52,6 +52,11 @@ fn sigi_empty_stack_stuff() {
     res.assert_stdout_eq("0\n");
     res.assert_stderr_empty();
 
+    let res = sigi(stack, &["is-empty"]);
+    res.assert_success();
+    res.assert_stdout_eq("true\n");
+    res.assert_stderr_empty();
+
     let res = sigi(stack, &["complete"]);
     res.assert_success();
     res.assert_stdout_eq("Now: NOTHING\n");
