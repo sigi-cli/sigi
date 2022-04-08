@@ -2,8 +2,10 @@ use std::process::{Command, Output};
 
 pub const SIGI_PATH: &str = std::env!("CARGO_BIN_EXE_sigi");
 
-pub fn sigi(args: &[&str]) -> SigiOutput {
+pub fn sigi(stack: &str, args: &[&str]) -> SigiOutput {
     return Command::new(SIGI_PATH)
+        .arg("--stack")
+        .arg(stack)
         .args(args)
         .output()
         .expect("Error running process")
