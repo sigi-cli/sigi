@@ -27,10 +27,6 @@ impl SigiOutput {
         assert!(!self.success);
     }
 
-    pub fn assert_stdout_empty(&self) {
-        assert_eq!(&self.stdout, "", "sigi stdout was expected to be empty.");
-    }
-
     pub fn assert_stdout_eq(&self, expected_stdout: &str) {
         assert_eq!(
             &self.stdout, expected_stdout,
@@ -75,34 +71,6 @@ impl SigiOutput {
 
     pub fn assert_stderr_empty(&self) {
         assert_eq!(&self.stderr, "", "sigi stderr was expected to be empty.");
-    }
-
-    pub fn assert_stderr_eq(&self, expected_stderr: &str) {
-        assert_eq!(
-            &self.stderr, expected_stderr,
-            "sigi stderr did not exactly match expectation."
-        );
-    }
-
-    pub fn assert_stderr_line_eq(&self, expected_line: &str) {
-        let some_line_eqs = self.stderr.lines().any(|line| line == expected_line);
-        assert!(
-            some_line_eqs,
-            "sigi stderr had no line matching: `{:?}`.",
-            expected_line
-        );
-    }
-
-    pub fn assert_stderr_line_starts_with(&self, expected_prefix: &str) {
-        let some_line_eqs = self
-            .stderr
-            .lines()
-            .any(|line| line.starts_with(expected_prefix));
-        assert!(
-            some_line_eqs,
-            "sigi stderr had no line starting with: {}",
-            expected_prefix
-        );
     }
 }
 
