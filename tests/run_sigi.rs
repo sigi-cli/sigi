@@ -47,6 +47,20 @@ impl SigiOutput {
         );
     }
 
+    pub fn assert_stdout_lines_eq(&self, expected_lines: &[&str]) {
+        self.stdout
+            .lines()
+            .zip(expected_lines.iter())
+            .enumerate()
+            .for_each(|(i, (actual, expected))| {
+                assert_eq!(
+                    &actual, expected,
+                    "sigi stdout did not match expected output on line {}\n",
+                    i
+                )
+            });
+    }
+
     pub fn assert_stdout_line_starts_with(&self, expected_prefix: &str) {
         let some_line_eqs = self
             .stdout
