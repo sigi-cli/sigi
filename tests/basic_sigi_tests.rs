@@ -4,7 +4,7 @@ use run_sigi::sigi;
 
 #[test]
 fn sigi_version() {
-    let res = sigi("_integ_version", &["--version"]);
+    let res = sigi("_integ::version", &["--version"]);
     res.assert_success();
     res.assert_stdout_line_starts_with("sigi 3.1");
     res.assert_stderr_empty();
@@ -12,12 +12,7 @@ fn sigi_version() {
 
 #[test]
 fn sigi_empty_stack_stuff() {
-    let stack = "_integ_empty_stack";
-
-    let res = sigi(stack, &["--version"]);
-    res.assert_success();
-    res.assert_stdout_line_starts_with("sigi 3.1");
-    res.assert_stderr_empty();
+    let stack = "_integ::empty_stack";
 
     let res = sigi(stack, &["delete-all"]);
     res.assert_success();
