@@ -161,10 +161,7 @@ fn sigi_abc_ops() {
 
     let res = sigi(stack, &["delete"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Deleted: a b c",
-        "Now: NOTHING"
-    ]);
+    res.assert_stdout_lines_eq(&["Deleted: a b c", "Now: NOTHING"]);
     res.assert_stderr_empty();
 
     // ['a']
@@ -196,10 +193,7 @@ fn sigi_abc_ops() {
 
     let res = sigi(stack, &["list"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: b",
-        "  1: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: b", "  1: a"]);
     res.assert_stderr_empty();
 
     // ['a', 'b', 'c']
@@ -215,11 +209,7 @@ fn sigi_abc_ops() {
 
     let res = sigi(stack, &["list"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: c",
-        "  1: b",
-        "  2: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: c", "  1: b", "  2: a"]);
     res.assert_stderr_empty();
 
     // ['a', 'b', 'c', 'd']
@@ -235,122 +225,66 @@ fn sigi_abc_ops() {
 
     let res = sigi(stack, &["list"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: d",
-        "  1: c",
-        "  2: b",
-        "  3: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: d", "  1: c", "  2: b", "  3: a"]);
     res.assert_stderr_empty();
 
     // swap
     let res = sigi(stack, &["swap"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: c",
-        "  1: d",
-        "  2: b",
-        "  3: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: c", "  1: d", "  2: b", "  3: a"]);
     res.assert_stderr_empty();
-    
+
     let res = sigi(stack, &["swap"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: d",
-        "  1: c",
-        "  2: b",
-        "  3: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: d", "  1: c", "  2: b", "  3: a"]);
     res.assert_stderr_empty();
 
     // rot
     let res = sigi(stack, &["rot"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: c",
-        "  1: b",
-        "  2: d",
-        "  3: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: c", "  1: b", "  2: d", "  3: a"]);
     res.assert_stderr_empty();
-    
+
     let res = sigi(stack, &["rot"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: b",
-        "  1: d",
-        "  2: c",
-        "  3: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: b", "  1: d", "  2: c", "  3: a"]);
     res.assert_stderr_empty();
-    
+
     let res = sigi(stack, &["rot"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: d",
-        "  1: c",
-        "  2: b",
-        "  3: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: d", "  1: c", "  2: b", "  3: a"]);
     res.assert_stderr_empty();
 
     // next
     let res = sigi(stack, &["next"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: c",
-        "  1: b",
-        "  2: a",
-        "  3: d"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: c", "  1: b", "  2: a", "  3: d"]);
     res.assert_stderr_empty();
-    
+
     let res = sigi(stack, &["next"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: b",
-        "  1: a",
-        "  2: d",
-        "  3: c"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: b", "  1: a", "  2: d", "  3: c"]);
     res.assert_stderr_empty();
-    
+
     let res = sigi(stack, &["next"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: a",
-        "  1: d",
-        "  2: c",
-        "  3: b"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: a", "  1: d", "  2: c", "  3: b"]);
     res.assert_stderr_empty();
-    
+
     let res = sigi(stack, &["next"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Now: d",
-        "  1: c",
-        "  2: b",
-        "  3: a"
-    ]);
+    res.assert_stdout_lines_eq(&["Now: d", "  1: c", "  2: b", "  3: a"]);
     res.assert_stderr_empty();
-    
+
     // removal tests
     let res = sigi(stack, &["delete"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Deleted: d",
-        "Now: c"
-    ]);
+    res.assert_stdout_lines_eq(&["Deleted: d", "Now: c"]);
     res.assert_stderr_empty();
 
     let res = sigi(stack, &["complete"]);
     res.assert_success();
-    res.assert_stdout_lines_eq(&[
-        "Completed: c",
-        "Now: b"
-    ]);
+    res.assert_stdout_lines_eq(&["Completed: c", "Now: b"]);
     res.assert_stderr_empty();
 
     let res = sigi(stack, &["delete-all"]);
