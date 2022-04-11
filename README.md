@@ -11,7 +11,7 @@ board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
 
 ```
-sigi 3.0.3
+sigi 3.1.1
 An organizing tool for terminal lovers who hate organizing
 
 USAGE:
@@ -29,29 +29,30 @@ OPTIONS:
     -V, --version            Print version information
 
 SUBCOMMANDS:
-    complete      Move the current item to "<STACK>_history" and mark as completed [aliases:
-                      done, finish, fulfill]
-    count         Print the total number of items in the stack [aliases: size, length]
-    delete        Move the current item to "<STACK>_history" and mark as deleted [aliases: pop,
-                      remove, cancel, drop]
-    delete-all    Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-
-                      all, remove-all, cancel-all, drop-all]
-    head          List the first N items (default is 10) [aliases: top, first]
-    help          Print this message or the help of the given subcommand(s)
-    is-empty      Print "true" if stack has zero items, or print "false" (and exit with a
-                      nonzero exit code) if the stack does have items [aliases: empty]
-    list          List all items [aliases: ls, snoop, show, all]
-    move          Move current item to another stack
-    move-all      Move all items to another stack
-    next          Cycle to the next item; the current item becomes last [aliases: later, cycle,
-                      bury]
-    peek          Show the first item. This is the default behavior when no command is given
-                      [aliases: show]
-    pick          Move items to the top of stack by their number
-    push          Create a new item [aliases: create, add, do, start, new]
-    rot           Rotate the three most-current items [aliases: rotate]
-    swap          Swap the two most-current items
-    tail          List the last N items (default is 10) [aliases: bottom, last]
+    complete       Move the current item to "<STACK>_history" and mark as completed [aliases:
+                       done, finish, fulfill]
+    count          Print the total number of items in the stack [aliases: size, length]
+    delete         Move the current item to "<STACK>_history" and mark as deleted [aliases: pop,
+                       remove, cancel, drop]
+    delete-all     Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-
+                       all, remove-all, cancel-all, drop-all]
+    head           List the first N items (default is 10) [aliases: top, first]
+    help           Print this message or the help of the given subcommand(s)
+    is-empty       Print "true" if stack has zero items, or print "false" (and exit with a
+                       nonzero exit code) if the stack does have items [aliases: empty]
+    list           List all items [aliases: ls, snoop, show, all]
+    list-stacks    List all stacks [aliases: stacks]
+    move           Move current item to another stack
+    move-all       Move all items to another stack
+    next           Cycle to the next item; the current item becomes last [aliases: later, cycle,
+                       bury]
+    peek           Show the first item. This is the default behavior when no command is given
+                       [aliases: show]
+    pick           Move items to the top of stack by their number
+    push           Create a new item [aliases: create, add, do, start, new]
+    rot            Rotate the three most-current items [aliases: rotate]
+    swap           Swap the two most-current items
+    tail           List the last N items (default is 10) [aliases: bottom, last]
 ```
 
 # The big idea

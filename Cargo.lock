@@ -246,7 +246,7 @@ dependencies = [
 
 [[package]]
 name = "sigi"
-version = "3.1.1-rc"
+version = "3.1.1"
 dependencies = [
  "chrono",
  "clap",
