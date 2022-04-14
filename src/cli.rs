@@ -87,6 +87,13 @@ enum Command {
         fc: FormatConfig,
     },
 
+    /// Run in an interactive mode
+    #[clap(visible_alias = "i")]
+    Interactive {
+        #[clap(flatten)]
+        fc: FormatConfig,
+    },
+
     /// Print "true" if stack has zero items, or print "false" (and exit with a
     /// nonzero exit code) if the stack does have items
     #[clap(visible_aliases = &["empty"])]
@@ -198,6 +205,7 @@ impl Command {
                 let n = n.unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
                 (StackEffect::Head { n, stack }, fc)
             }
+            Command::Interactive { fc: _ } => (unimplemented!()),
             Command::IsEmpty { fc } => (StackEffect::IsEmpty { stack }, fc),
             Command::List { fc } => (StackEffect::ListAll { stack }, fc),
             Command::ListStacks { fc } => (StackEffect::ListStacks, fc),

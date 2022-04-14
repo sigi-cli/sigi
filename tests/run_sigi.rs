@@ -86,49 +86,77 @@ impl From<Output> for SigiOutput {
 
 #[test]
 fn assert_success() {
-    let output = SigiOutput { success: true, stdout: String::new(), stderr: String::new()};
+    let output = SigiOutput {
+        success: true,
+        stdout: String::new(),
+        stderr: String::new(),
+    };
 
     output.assert_success();
 }
 
 #[test]
 fn assert_failure() {
-    let output = SigiOutput { success: false, stdout: String::new(), stderr: String::new()};
+    let output = SigiOutput {
+        success: false,
+        stdout: String::new(),
+        stderr: String::new(),
+    };
 
     output.assert_failure();
 }
 
 #[test]
 fn assert_stdout_eq() {
-    let output = SigiOutput { success: true, stdout: "hello".to_string(), stderr: String::new()};
+    let output = SigiOutput {
+        success: true,
+        stdout: "hello".to_string(),
+        stderr: String::new(),
+    };
 
     output.assert_stdout_eq("hello");
 }
 
 #[test]
 fn assert_stdout_line_eq() {
-    let output = SigiOutput { success: true, stdout: "hey\nhello".to_string(), stderr: String::new()};
+    let output = SigiOutput {
+        success: true,
+        stdout: "hey\nhello".to_string(),
+        stderr: String::new(),
+    };
 
     output.assert_stdout_line_eq("hello");
 }
 
 #[test]
 fn assert_stdout_lines_eq() {
-    let output = SigiOutput { success: true, stdout: "hey\nhello there".to_string(), stderr: String::new()};
+    let output = SigiOutput {
+        success: true,
+        stdout: "hey\nhello there".to_string(),
+        stderr: String::new(),
+    };
 
     output.assert_stdout_lines_eq(&["hey", "hello there"]);
 }
 
 #[test]
 fn assert_stdout_line_starts_with() {
-    let output = SigiOutput { success: true, stdout: "hey\nhello there".to_string(), stderr: String::new()};
+    let output = SigiOutput {
+        success: true,
+        stdout: "hey\nhello there".to_string(),
+        stderr: String::new(),
+    };
 
     output.assert_stdout_line_starts_with("hello");
 }
 
 #[test]
 fn assert_stderr_empty() {
-    let output = SigiOutput { success: true, stdout: "hey\nhello there".to_string(), stderr: String::new()};
+    let output = SigiOutput {
+        success: true,
+        stdout: "hey\nhello there".to_string(),
+        stderr: String::new(),
+    };
 
     output.assert_stderr_empty();
 }
