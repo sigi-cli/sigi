@@ -63,42 +63,53 @@ pub fn run() {
     };
 }
 
-// TODO: Handle output formats well. Right now it's gross
 // TODO: help/?, q/quit/exit
 // TODO: clear (i.e. clear screen)
 // TODO: change-stack (i.e. change working stack)
-// TODO: pagination
+// TODO: pagination/scrollback?
 // TODO: tests
 fn interact(stack: String, output: OutputFormat) {
     println!("sigi {}", SIGI_VERSION);
     let mut rl = Editor::<()>::new();
     loop {
-        let readline = rl.readline("🌴 ▶️ ");
+        let readline = match output {
+            OutputFormat::Human(_) => rl.readline("🌴 ▶️ "),
+            _ => rl.readline(""),
+        };
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
                 let tokens = line.split_ascii_whitespace().collect();
-                if let Some(effect) = parse_effect(tokens, stack.clone()) {
+                if let Some(effect) = parse_effect(tokens, stack.clone(), output) {
                     effect.run(&DEFAULT_BACKEND, &output);
                 }
             }
             Err(ReadlineError::Interrupted) => {
-                println!("Buen biåhe!\n[CTRL-C]");
-                return;
+                output.log(
+                    vec!["exit-message", "reason"],
+                    vec![vec!["Buen biåhe", "CTRL-C"]],
+                );
+                break;
             }
             Err(ReadlineError::Eof) => {
-                println!("Buen biåhe!\n[CTRL-D]");
-                return;
+                output.log(
+                    vec!["exit-message", "reason"],
+                    vec![vec!["Buen biåhe", "CTRL-D"]],
+                );
+                break;
             }
             Err(err) => {
-                println!("Error: {:?}", err);
+                output.log(
+                    vec!["exit-message", "reason"],
+                    vec![vec!["Error"], vec![&format!("{:?}", err)]],
+                );
                 break;
             }
         }
     }
 }
 
-fn parse_effect(tokens: Vec<&str>, stack: String) -> Option<StackEffect> {
+fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Option<StackEffect> {
     let term = tokens.get(0).unwrap_or(&"");
 
     let parse_n = || {
@@ -139,7 +150,7 @@ fn parse_effect(tokens: Vec<&str>, stack: String) -> Option<StackEffect> {
             let dest = dest.to_string();
             return Some(StackEffect::Move { stack, dest });
         }
-        eprintln!("No destination stack was provided");
+        output.log(vec!["error"], vec![vec!["No destination stack was provided"]]);
         return None;
     }
     if &MOVE_ALL_TERM == term {
@@ -147,7 +158,7 @@ fn parse_effect(tokens: Vec<&str>, stack: String) -> Option<StackEffect> {
             let dest = dest.to_string();
             return Some(StackEffect::MoveAll { stack, dest });
         }
-        eprintln!("No destination stack was provided");
+        output.log(vec!["error"], vec![vec!["No destination stack was provided"]]);
         return None;
     }
     if NEXT_TERMS.contains(term) {
@@ -180,7 +191,11 @@ fn parse_effect(tokens: Vec<&str>, stack: String) -> Option<StackEffect> {
         return Some(StackEffect::Tail { stack, n });
     }
 
-    eprintln!("Oops, I don't know {:?}", term);
+    match output {
+        OutputFormat::Human(_) => println!("Ooops, I don't know {:?}", term),
+        _ => output.log(vec!["unknown-command"], vec![vec![term]]),
+    };
+
     None
 }
 
