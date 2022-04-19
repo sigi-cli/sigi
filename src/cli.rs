@@ -2,6 +2,8 @@ use crate::data::Backend;
 use crate::effects::StackEffect;
 use crate::output::{NoiseLevel, OutputFormat};
 use clap::{ArgEnum, Args, Parser, Subcommand};
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
 use std::str::FromStr;
 use std::{error, fmt};
 
@@ -13,23 +15,87 @@ const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 const DEFAULT_BACKEND: Backend = Backend::HomeDir;
 const DEFAULT_SHORT_LIST_LIMIT: usize = 10;
 
+const COMPLETE_TERMS: [&str; 4] = ["complete", "done", "finish", "fulfill"];
+const HEAD_TERMS: [&str; 3] = ["head", "top", "first"];
+const PUSH_TERMS: [&str; 6] = ["push", "create", "add", "do", "start", "new"];
+
 pub fn run() {
     let args = Cli::parse();
 
     let stack = args.stack.unwrap_or_else(|| DEFAULT_STACK_NAME.into());
 
-    if args.command.is_none() {
-        let output = args.fc.into_output_format().unwrap_or(DEFAULT_FORMAT);
-        let peek = StackEffect::Peek { stack };
-        peek.run(&DEFAULT_BACKEND, &output);
-        return;
+    match args.mode {
+        None => {
+            let output = args.fc.into_output_format().unwrap_or(DEFAULT_FORMAT);
+            let peek = StackEffect::Peek { stack };
+            peek.run(&DEFAULT_BACKEND, &output);
+        }
+        Some(Mode::Command(command)) => {
+            let (effect, effect_fc) = command.into_effect_and_fc(stack);
+            let output = args.fc.into_fallback_for(effect_fc);
+            effect.run(&DEFAULT_BACKEND, &output);
+        }
+        Some(Mode::Interactive { fc }) => {
+            let output = args.fc.into_fallback_for(fc);
+            interact(stack, output);
+        }
+    };
+}
+
+// TODO: Handle output formats well. Right now it's gross
+// TODO: help/?, q/quit/exit
+// TODO: other sigi effects
+// TODO: clear (i.e. clear screen)
+// TODO: tests
+fn interact(stack: String, output: OutputFormat) {
+    println!("sigi {}", SIGI_VERSION);
+    let mut rl = Editor::<()>::new();
+    loop {
+        let readline = rl.readline("🌴 ▶️ ");
+        match readline {
+            Ok(line) => {
+                rl.add_history_entry(line.as_str());
+                if let Some(effect) = parse_effect(line, stack.clone()) {
+                    effect.run(&DEFAULT_BACKEND, &output);
+                }
+            }
+            Err(ReadlineError::Interrupted) => {
+                println!("Buen biåhe!\n[CTRL-C]");
+                return;
+            }
+            Err(ReadlineError::Eof) => {
+                println!("Buen biåhe!\n[CTRL-D]");
+                return;
+            }
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break;
+            }
+        }
+    }
+}
+
+fn parse_effect(line: String, stack: String) -> Option<StackEffect> {
+    let term = line.split_whitespace().next().unwrap_or("");
+
+    if COMPLETE_TERMS.contains(&term) {
+        return Some(StackEffect::Complete { stack });
+    }
+    if HEAD_TERMS.contains(&term) {
+        let n = line
+            .split_whitespace()
+            .nth(1)
+            .map(|s| usize::from_str(s).ok())
+            .flatten()
+            .unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
+        return Some(StackEffect::Head { stack, n });
+    } else if PUSH_TERMS.contains(&term) {
+        let content = line.split_whitespace().skip(1).collect();
+        return Some(StackEffect::Push { stack, content });
     }
 
-    let (effect, effect_fc) = args.command.unwrap().into_effect_and_fc(stack);
-
-    let output = args.fc.into_fallback_for(effect_fc);
-
-    effect.run(&DEFAULT_BACKEND, &output);
+    eprintln!("Oops, I don't know {:?} yet.", term);
+    None
 }
 
 #[derive(Parser)]
@@ -44,13 +110,26 @@ struct Cli {
     stack: Option<String>,
 
     #[clap(subcommand)]
-    command: Option<Command>,
+    mode: Option<Mode>,
+}
+
+#[derive(Subcommand)]
+enum Mode {
+    /// Run in an interactive mode
+    #[clap(visible_alias = "i")]
+    Interactive {
+        #[clap(flatten)]
+        fc: FormatConfig,
+    },
+
+    #[clap(flatten)]
+    Command(Command),
 }
 
 #[derive(Subcommand)]
 enum Command {
     /// Move the current item to "<STACK>_history" and mark as completed
-    #[clap(visible_aliases = &["done", "finish", "fulfill"])]
+    #[clap(visible_aliases = &COMPLETE_TERMS[1..])]
     Complete {
         #[clap(flatten)]
         fc: FormatConfig,
@@ -78,18 +157,11 @@ enum Command {
     },
 
     /// List the first N items (default is 10)
-    #[clap(visible_aliases = &["top", "first"])]
+    #[clap(visible_aliases = &HEAD_TERMS[1..])]
     Head {
         /// The number of items to display
         n: Option<usize>,
 
-        #[clap(flatten)]
-        fc: FormatConfig,
-    },
-
-    /// Run in an interactive mode
-    #[clap(visible_alias = "i")]
-    Interactive {
         #[clap(flatten)]
         fc: FormatConfig,
     },
@@ -161,7 +233,7 @@ enum Command {
     },
 
     /// Create a new item
-    #[clap(visible_aliases = &["create", "add", "do", "start", "new"])]
+    #[clap(visible_aliases = &PUSH_TERMS[1..])]
     Push {
         // The content to add as an item. Multiple arguments will be interpreted as a single string
         content: Vec<String>,
@@ -205,7 +277,6 @@ impl Command {
                 let n = n.unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
                 (StackEffect::Head { n, stack }, fc)
             }
-            Command::Interactive { fc: _ } => (unimplemented!()),
             Command::IsEmpty { fc } => (StackEffect::IsEmpty { stack }, fc),
             Command::List { fc } => (StackEffect::ListAll { stack }, fc),
             Command::ListStacks { fc } => (StackEffect::ListStacks, fc),
