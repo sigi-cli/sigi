@@ -16,8 +16,29 @@ const DEFAULT_BACKEND: Backend = Backend::HomeDir;
 const DEFAULT_SHORT_LIST_LIMIT: usize = 10;
 
 const COMPLETE_TERMS: [&str; 4] = ["complete", "done", "finish", "fulfill"];
+const COUNT_TERMS: [&str; 3] = ["count", "size", "length"];
+const DELETE_TERMS: [&str; 5] = ["delete", "pop", "remove", "cancel", "drop"];
+const DELETE_ALL_TERMS: [&str; 6] = [
+    "delete-all",
+    "purge",
+    "pop-all",
+    "remove-all",
+    "cancel-all",
+    "drop-all",
+];
 const HEAD_TERMS: [&str; 3] = ["head", "top", "first"];
+const IS_EMPTY_TERMS: [&str; 2] = ["is-empty", "empty"];
+const LIST_TERMS: [&str; 4] = ["ls", "snoop", "show", "all"];
+const LIST_STACKS_TERMS: [&str; 2] = ["list-stacks", "stacks"];
+const MOVE_TERM: &str = "move";
+const MOVE_ALL_TERM: &str = "move-all";
+const NEXT_TERMS: [&str; 4] = ["next", "later", "cycle", "bury"];
+const PEEK_TERMS: [&str; 2] = ["peek", "show"];
+const PICK_TERM: &str = "pick";
 const PUSH_TERMS: [&str; 6] = ["push", "create", "add", "do", "start", "new"];
+const ROT_TERMS: [&str; 2] = ["rot", "rotate"];
+const SWAP_TERM: &str = "swap";
+const TAIL_TERMS: [&str; 3] = ["tail", "bottom", "last"];
 
 pub fn run() {
     let args = Cli::parse();
@@ -44,8 +65,9 @@ pub fn run() {
 
 // TODO: Handle output formats well. Right now it's gross
 // TODO: help/?, q/quit/exit
-// TODO: other sigi effects
 // TODO: clear (i.e. clear screen)
+// TODO: change-stack (i.e. change working stack)
+// TODO: pagination
 // TODO: tests
 fn interact(stack: String, output: OutputFormat) {
     println!("sigi {}", SIGI_VERSION);
@@ -55,7 +77,8 @@ fn interact(stack: String, output: OutputFormat) {
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                if let Some(effect) = parse_effect(line, stack.clone()) {
+                let tokens = line.split_ascii_whitespace().collect();
+                if let Some(effect) = parse_effect(tokens, stack.clone()) {
                     effect.run(&DEFAULT_BACKEND, &output);
                 }
             }
@@ -75,26 +98,89 @@ fn interact(stack: String, output: OutputFormat) {
     }
 }
 
-fn parse_effect(line: String, stack: String) -> Option<StackEffect> {
-    let term = line.split_whitespace().next().unwrap_or("");
+fn parse_effect(tokens: Vec<&str>, stack: String) -> Option<StackEffect> {
+    let term = tokens.get(0).unwrap_or(&"");
 
-    if COMPLETE_TERMS.contains(&term) {
-        return Some(StackEffect::Complete { stack });
-    }
-    if HEAD_TERMS.contains(&term) {
-        let n = line
-            .split_whitespace()
-            .nth(1)
+    let parse_n = || {
+        tokens
+            .get(1)
             .map(|s| usize::from_str(s).ok())
             .flatten()
-            .unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
+            .unwrap_or(DEFAULT_SHORT_LIST_LIMIT)
+    };
+
+    if COMPLETE_TERMS.contains(term) {
+        return Some(StackEffect::Complete { stack });
+    }
+    if COUNT_TERMS.contains(term) {
+        return Some(StackEffect::Count { stack });
+    }
+    if DELETE_TERMS.contains(term) {
+        return Some(StackEffect::Delete { stack });
+    }
+    if DELETE_ALL_TERMS.contains(term) {
+        return Some(StackEffect::DeleteAll { stack });
+    }
+    if HEAD_TERMS.contains(term) {
+        let n = parse_n();
         return Some(StackEffect::Head { stack, n });
-    } else if PUSH_TERMS.contains(&term) {
-        let content = line.split_whitespace().skip(1).collect();
+    }
+    if IS_EMPTY_TERMS.contains(term) {
+        return Some(StackEffect::IsEmpty { stack });
+    }
+    if LIST_TERMS.contains(term) {
+        return Some(StackEffect::ListAll { stack });
+    }
+    if LIST_STACKS_TERMS.contains(term) {
+        return Some(StackEffect::ListStacks);
+    }
+    if &MOVE_TERM == term {
+        if let Some(dest) = tokens.get(1) {
+            let dest = dest.to_string();
+            return Some(StackEffect::Move { stack, dest });
+        }
+        eprintln!("No destination stack was provided");
+        return None;
+    }
+    if &MOVE_ALL_TERM == term {
+        if let Some(dest) = tokens.get(1) {
+            let dest = dest.to_string();
+            return Some(StackEffect::MoveAll { stack, dest });
+        }
+        eprintln!("No destination stack was provided");
+        return None;
+    }
+    if NEXT_TERMS.contains(term) {
+        return Some(StackEffect::Next { stack });
+    }
+    if PEEK_TERMS.contains(term) {
+        return Some(StackEffect::Peek { stack });
+    }
+    if &PICK_TERM == term {
+        let indices = tokens
+            .iter()
+            .map(|s| usize::from_str(s).ok())
+            .flatten()
+            .collect();
+        return Some(StackEffect::Pick { stack, indices });
+    }
+    if PUSH_TERMS.contains(term) {
+        // FIXME: This is convenient, but normalizes whitespace. (E.g. multiple spaces always collapsed, tabs to spaces, etc)
+        let content = tokens[1..].join(" ");
         return Some(StackEffect::Push { stack, content });
     }
+    if ROT_TERMS.contains(term) {
+        return Some(StackEffect::Rot { stack });
+    }
+    if &SWAP_TERM == term {
+        return Some(StackEffect::Swap { stack });
+    }
+    if TAIL_TERMS.contains(term) {
+        let n = parse_n();
+        return Some(StackEffect::Tail { stack, n });
+    }
 
-    eprintln!("Oops, I don't know {:?} yet.", term);
+    eprintln!("Oops, I don't know {:?}", term);
     None
 }
 
@@ -136,21 +222,21 @@ enum Command {
     },
 
     /// Print the total number of items in the stack
-    #[clap(visible_aliases = &["size", "length"])]
+    #[clap(visible_aliases = &COUNT_TERMS[1..])]
     Count {
         #[clap(flatten)]
         fc: FormatConfig,
     },
 
     /// Move the current item to "<STACK>_history" and mark as deleted
-    #[clap(visible_aliases = &["pop", "remove", "cancel", "drop"])]
+    #[clap(visible_aliases = &DELETE_TERMS[1..])]
     Delete {
         #[clap(flatten)]
         fc: FormatConfig,
     },
 
     /// Move all items to "<STACK>_history" and mark as deleted
-    #[clap(visible_aliases = &["purge", "pop-all", "remove-all", "cancel-all", "drop-all"])]
+    #[clap(visible_aliases = &DELETE_ALL_TERMS[1..])]
     DeleteAll {
         #[clap(flatten)]
         fc: FormatConfig,
@@ -168,21 +254,21 @@ enum Command {
 
     /// Print "true" if stack has zero items, or print "false" (and exit with a
     /// nonzero exit code) if the stack does have items
-    #[clap(visible_aliases = &["empty"])]
+    #[clap(visible_aliases = &IS_EMPTY_TERMS[1..])]
     IsEmpty {
         #[clap(flatten)]
         fc: FormatConfig,
     },
 
     /// List all items
-    #[clap(visible_aliases = &["ls", "snoop", "show", "all"])]
+    #[clap(visible_aliases = &LIST_TERMS[1..])]
     List {
         #[clap(flatten)]
         fc: FormatConfig,
     },
 
     /// List all stacks
-    #[clap(visible_aliases = &["stacks"])]
+    #[clap(visible_aliases = &LIST_STACKS_TERMS[1..])]
     ListStacks {
         #[clap(flatten)]
         fc: FormatConfig,
@@ -211,14 +297,14 @@ enum Command {
     },
 
     /// Cycle to the next item; the current item becomes last
-    #[clap(visible_aliases = &["later", "cycle", "bury"])]
+    #[clap(visible_aliases = &NEXT_TERMS[1..])]
     Next {
         #[clap(flatten)]
         fc: FormatConfig,
     },
 
     /// Show the first item. This is the default behavior when no command is given
-    #[clap(visible_aliases = &["show"])]
+    #[clap(visible_aliases = &PEEK_TERMS[1..])]
     Peek {
         #[clap(flatten)]
         fc: FormatConfig,
@@ -243,7 +329,7 @@ enum Command {
     },
 
     /// Rotate the three most-current items
-    #[clap(visible_aliases = &["rotate"])]
+    #[clap(visible_aliases = &ROT_TERMS[1..])]
     Rot {
         #[clap(flatten)]
         fc: FormatConfig,
@@ -256,7 +342,7 @@ enum Command {
     },
 
     /// List the last N items (default is 10)
-    #[clap(visible_aliases = &["bottom", "last"])]
+    #[clap(visible_aliases = &TAIL_TERMS[1..])]
     Tail {
         /// The number of items to display
         n: Option<usize>,
