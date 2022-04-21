@@ -44,18 +44,17 @@ The following additional commands are available:
 // TODO: pagination/scrollback?
 // TODO: tests
 pub fn interact(stack: String, output: OutputFormat) {
-    println!("sigi {}", SIGI_VERSION);
-    println!(
-        "Type \"quit\", \"q\", or \"exit\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
-    );
-    println!("Type \"?\" for quick help, or \"help\" for a more verbose help message.");
-    println!();
+    output.when_for_humans(|| {
+        println!("sigi {}", SIGI_VERSION);
+        println!(
+            "Type \"quit\", \"q\", or \"exit\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
+        );
+        println!("Type \"?\" for quick help, or \"help\" for a more verbose help message.");
+        println!();
+    });
 
     let mut rl = Editor::<()>::new();
-    let prompt = match output {
-        OutputFormat::Human(_) => HUMAN_PROMPT,
-        _ => "",
-    };
+    let prompt = output.for_human_or_programmatic(|| HUMAN_PROMPT, || "");
 
     loop {
         match rl.readline(prompt) {
@@ -195,10 +194,10 @@ fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Optio
         return Some(StackEffect::Tail { stack, n });
     }
 
-    match output {
-        OutputFormat::Human(_) => println!("Ooops, I don't know {:?}", term),
-        _ => output.log(vec!["unknown-command"], vec![vec![term]]),
-    };
+    output.for_human_or_programmatic(
+        || println!("Ooops, I don't know {:?}", term),
+        || output.log(vec!["unknown-command"], vec![vec![term]]),
+    );
 
     None
 }

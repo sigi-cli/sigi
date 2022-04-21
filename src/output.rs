@@ -32,6 +32,24 @@ impl OutputFormat {
         dt.to_rfc2822()
     }
 
+    /// Do some action (probably: printing) only when the output is intended for a human.
+    pub fn when_for_humans(&self, f: impl FnOnce()) {
+        self.for_human_or_programmatic(f, || ());
+    }
+
+    /// Choose either a function to enact (probably: a printing/formatting choice) when the output
+    /// is intended for a human (first argument) or some programmatic format (second argument).
+    pub fn for_human_or_programmatic<A>(
+        &self,
+        for_human: impl FnOnce() -> A,
+        for_programmatic: impl FnOnce() -> A,
+    ) -> A {
+        match self {
+            OutputFormat::Human(_) => for_human(),
+            _ => for_programmatic(),
+        }
+    }
+
     pub fn log(&self, labels: Vec<&str>, values: Vec<Vec<&str>>) {
         if let OutputFormat::Silent = self {
             return;
