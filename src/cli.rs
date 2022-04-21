@@ -6,7 +6,7 @@ use std::str::FromStr;
 use std::{error, fmt};
 
 mod interact;
-use interact::interact;
+use interact::*;
 
 /// The current version of the CLI. (As defined in Cargo.toml)
 pub const SIGI_VERSION: &str = std::env!("CARGO_PKG_VERSION");
@@ -16,6 +16,7 @@ const DEFAULT_FORMAT: OutputFormat = OutputFormat::Human(NoiseLevel::Normal);
 const DEFAULT_BACKEND: Backend = Backend::HomeDir;
 const DEFAULT_SHORT_LIST_LIMIT: usize = 10;
 
+// === Glossary ===
 const COMPLETE_TERMS: [&str; 4] = ["complete", "done", "finish", "fulfill"];
 const COUNT_TERMS: [&str; 3] = ["count", "size", "length"];
 const DELETE_TERMS: [&str; 5] = ["delete", "pop", "remove", "cancel", "drop"];
@@ -40,6 +41,7 @@ const PUSH_TERMS: [&str; 6] = ["push", "create", "add", "do", "start", "new"];
 const ROT_TERMS: [&str; 2] = ["rot", "rotate"];
 const SWAP_TERM: &str = "swap";
 const TAIL_TERMS: [&str; 3] = ["tail", "bottom", "last"];
+// === /glossary ===
 
 pub fn run() {
     let args = Cli::parse();
@@ -65,7 +67,7 @@ pub fn run() {
 }
 
 #[derive(Parser)]
-#[clap(name = "sigi", version = SIGI_VERSION)]
+#[clap(name = "sigi", version = SIGI_VERSION, after_help = INTERACT_INSTRUCTIONS, after_long_help = INTERACT_LONG_INSTRUCTIONS)]
 /// An organizing tool for terminal lovers who hate organizing
 struct Cli {
     #[clap(flatten)]

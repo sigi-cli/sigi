@@ -1,51 +1,107 @@
 use super::*;
 use crate::effects::StackEffect;
 use crate::output::OutputFormat;
+use clap::CommandFactory;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use std::str::FromStr;
 
-// TODO: help/?, q/quit/exit
+const HUMAN_PROMPT: &str = "🌴 ▶️ ";
+
+pub const INTERACT_INSTRUCTIONS: &str = "INTERACTIVE MODE:
+
+Use subcommands in interactive mode directly. \
+No OPTIONS (flags) are understood in interactive mode.
+
+The following additional commands are available:
+    ?               Show the short version of \"help\"
+    quit/q/exit     Quit interactive mode";
+
+pub const INTERACT_LONG_INSTRUCTIONS: &str = "INTERACTIVE MODE:
+
+Use subcommands in interactive mode directly. For example:
+
+    🌴 ▶️ push a new thing
+    Created: a new thing
+    🌴 ▶️ peek
+    Now: a new thing
+    🌴 ▶️ delete
+    Deleted: a new thing
+    Now: nothing
+    🌴 ▶️ exit
+    exit: Buen biåhe!
+
+No OPTIONS (flags) are understood in interactive mode.
+
+The following additional commands are available:
+    ?
+            Show the short version of \"help\"
+    quit/q/exit
+            Quit interactive mode";
+
 // TODO: clear (i.e. clear screen)
 // TODO: change-stack (i.e. change working stack)
 // TODO: pagination/scrollback?
 // TODO: tests
 pub fn interact(stack: String, output: OutputFormat) {
     println!("sigi {}", SIGI_VERSION);
+    println!(
+        "Type \"quit\", \"q\", or \"exit\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
+    );
+    println!("Type \"?\" for quick help, or \"help\" for a more verbose help message.");
+    println!();
+
     let mut rl = Editor::<()>::new();
+    let prompt = match output {
+        OutputFormat::Human(_) => HUMAN_PROMPT,
+        _ => "",
+    };
+
     loop {
-        let readline = match output {
-            OutputFormat::Human(_) => rl.readline("🌴 ▶️ "),
-            _ => rl.readline(""),
-        };
-        match readline {
+        match rl.readline(prompt) {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                let tokens = line.split_ascii_whitespace().collect();
-                if let Some(effect) = parse_effect(tokens, stack.clone(), output) {
-                    effect.run(&DEFAULT_BACKEND, &output);
+                let tokens = line.split_ascii_whitespace().collect::<Vec<_>>();
+
+                if let Some(term) = tokens.get(0) {
+                    match term.to_ascii_lowercase().as_str() {
+                        "?" => Cli::command().print_help().unwrap(),
+                        "help" => Cli::command().print_long_help().unwrap(),
+                        "exit" | "quit" | "q" => {
+                            output.log(
+                                vec!["exit-reason", "exit-message"],
+                                vec![vec![term, "Buen biåhe!"]],
+                            );
+                            break;
+                        }
+                        _ => {
+                            if let Some(effect) = parse_effect(tokens, stack.clone(), output) {
+                                effect.run(&DEFAULT_BACKEND, &output);
+                            }
+                        }
+                    }
                 }
             }
             Err(ReadlineError::Interrupted) => {
                 output.log(
-                    vec!["exit-message", "reason"],
-                    vec![vec!["Buen biåhe", "CTRL-C"]],
+                    vec!["exit-reason", "exit-message"],
+                    vec![vec!["CTRL-C", "Buen biåhe!"]],
                 );
                 break;
             }
             Err(ReadlineError::Eof) => {
                 output.log(
-                    vec!["exit-message", "reason"],
-                    vec![vec!["Buen biåhe", "CTRL-D"]],
+                    vec!["exit-reason", "exit-message"],
+                    vec![vec!["CTRL-D", "Buen biåhe!"]],
                 );
                 break;
             }
             Err(err) => {
                 output.log(
-                    vec!["exit-message", "reason"],
+                    vec!["exit-message", "exit-reason"],
                     vec![vec!["Error"], vec![&format!("{:?}", err)]],
                 );
-                break;
+                std::process::exit(1);
             }
         }
     }
