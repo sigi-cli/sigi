@@ -110,6 +110,37 @@ tail
 List the last N items [aliases: bottom, last]
 .\"
 .\" ================================
+.\" Note to self: preconv can do utf8 -> troff escapes.
+.\"
+.SH INTERACTIVE MODE
+Use subcommands in interactive mode directly. For example:
+.RS
+.EX
+\t\[u1F334] \[u25B6]\[uFE0F] push a new thing
+Created: a new thing
+\[u1F334] \[u25B6]\[uFE0F] peek
+Now: a new thing
+\[u1F334] \[u25B6]\[uFE0F] delete
+Deleted: a new thing
+Now: nothing
+\[u1F334] \[u25B6]\[uFE0F] exit
+exit: Buen bi\[u00E5]he!
+.EE
+.RE
+.PP
+No OPTIONS (flags) are understood in interactive mode.
+.PP
+The following additional commands are available:
+.RS
+.TP
+?
+Show the short version of \"help\"
+.TP
+quit/q/exit
+Quit interactive mode
+.RE
+.\"
+.\" ================================
 .\"
 .SH EXAMPLES, CONTRIBUTING, AND SUPPORT
 See: https://github.com/hiljusti/sigi
