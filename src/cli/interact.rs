@@ -6,7 +6,7 @@ use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use std::str::FromStr;
 
-const HUMAN_PROMPT: &str = "🌴 ▶️ ";
+const HUMAN_PROMPT: &str = "🌴 ▶ ";
 
 pub const INTERACT_INSTRUCTIONS: &str = "INTERACTIVE MODE:
 
@@ -21,14 +21,14 @@ pub const INTERACT_LONG_INSTRUCTIONS: &str = "INTERACTIVE MODE:
 
 Use subcommands in interactive mode directly. For example:
 
-    🌴 ▶️ push a new thing
+    🌴 ▶ push a new thing
     Created: a new thing
-    🌴 ▶️ peek
+    🌴 ▶ peek
     Now: a new thing
-    🌴 ▶️ delete
+    🌴 ▶ delete
     Deleted: a new thing
     Now: nothing
-    🌴 ▶️ exit
+    🌴 ▶ exit
     exit: Buen biåhe!
 
 No OPTIONS (flags) are understood in interactive mode.
