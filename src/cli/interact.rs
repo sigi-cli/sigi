@@ -61,47 +61,43 @@ pub fn interact(stack: String, output: OutputFormat) {
         ""
     };
 
+    let print_goodbye_msg = |reason| {
+        output.log(
+            vec!["exit-reason", "exit-message"],
+            vec![vec![reason, "Buen biåhe!"]],
+        )
+    };
+
     loop {
         match rl.readline(prompt) {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                let tokens = line.split_ascii_whitespace().collect::<Vec<_>>();
 
-                if let Some(term) = tokens.get(0) {
-                    let term = term.to_ascii_lowercase();
-                    match term.as_str() {
-                        "?" => Cli::command().print_help().unwrap(),
-                        "help" => Cli::command().print_long_help().unwrap(),
-                        "exit" | "quit" | "q" => {
-                            output.log(
-                                vec!["exit-reason", "exit-message"],
-                                vec![vec![&term, "Buen biåhe!"]],
-                            );
-                            break;
-                        }
-                        _ => {
-                            if let Some(effect) = parse_effect(tokens, stack.clone(), output) {
-                                effect.run(&DEFAULT_BACKEND, &output);
-                            } else {
-                                output
-                                    .log(vec!["term", "error"], vec![vec![&term, "unknown term"]]);
-                            }
-                        }
+                use ParseResult::*;
+                match parse_line(&line, stack.clone(), output) {
+                    ShortHelp => Cli::command().print_help().unwrap(),
+                    LongHelp => Cli::command().print_long_help().unwrap(),
+                    Exit(term) => {
+                        print_goodbye_msg(&term);
+                        break;
                     }
-                }
+                    DoEffect(effect) => effect.run(&DEFAULT_BACKEND, &output),
+                    NoContent => (),
+                    Unknown(term) => {
+                        if output.is_nonquiet_for_humans() {
+                            println!("Oops, I don't know {:?}", term);
+                        } else {
+                            output.log(vec!["term", "error"], vec![vec![&term, "unknown term"]]);
+                        };
+                    }
+                };
             }
             Err(ReadlineError::Interrupted) => {
-                output.log(
-                    vec!["exit-reason", "exit-message"],
-                    vec![vec!["CTRL-C", "Buen biåhe!"]],
-                );
+                print_goodbye_msg("CTRL-C");
                 break;
             }
             Err(ReadlineError::Eof) => {
-                output.log(
-                    vec!["exit-reason", "exit-message"],
-                    vec![vec!["CTRL-D", "Buen biåhe!"]],
-                );
+                print_goodbye_msg("CTRL-D");
                 break;
             }
             Err(err) => {
@@ -112,6 +108,35 @@ pub fn interact(stack: String, output: OutputFormat) {
                 std::process::exit(1);
             }
         }
+    }
+}
+
+enum ParseResult {
+    ShortHelp,
+    LongHelp,
+    Exit(String),
+    DoEffect(StackEffect),
+    NoContent,
+    Unknown(String),
+}
+
+fn parse_line(line: &str, stack: String, output: OutputFormat) -> ParseResult {
+    let tokens = line.split_ascii_whitespace().collect::<Vec<_>>();
+
+    if tokens.is_empty() {
+        return ParseResult::NoContent;
+    }
+
+    let term = tokens.get(0).unwrap().to_ascii_lowercase();
+
+    match term.as_str() {
+        "?" => ParseResult::ShortHelp,
+        "help" => ParseResult::LongHelp,
+        "exit" | "quit" | "q" => ParseResult::Exit(term),
+        _ => match parse_effect(tokens, stack, output) {
+            Some(effect) => ParseResult::DoEffect(effect),
+            None => ParseResult::Unknown(term),
+        },
     }
 }
 
@@ -152,15 +177,19 @@ fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Optio
         return Some(StackEffect::ListStacks);
     }
     if &MOVE_TERM == term {
-        if let Some(dest) = tokens.get(1) {
-            let dest = dest.to_string();
-            return Some(StackEffect::Move { stack, dest });
-        }
-        output.log(
-            vec!["error"],
-            vec![vec!["No destination stack was provided"]],
-        );
-        return None;
+        match tokens.get(1) {
+            Some(dest) => {
+                let dest = dest.to_string();
+                return Some(StackEffect::Move { stack, dest });
+            }
+            None => {
+                output.log(
+                    vec!["error"],
+                    vec![vec!["No destination stack was provided"]],
+                );
+                return None;
+            }
+        };
     }
     if &MOVE_ALL_TERM == term {
         if let Some(dest) = tokens.get(1) {
@@ -202,12 +231,6 @@ fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Optio
         let n = parse_n();
         return Some(StackEffect::Tail { stack, n });
     }
-
-    if output.is_nonquiet_for_humans() {
-        println!("Oops, I don't know {:?}", term);
-    } else {
-        output.log(vec!["unknown-command"], vec![vec![term]]);
-    };
 
     None
 }
