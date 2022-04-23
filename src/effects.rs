@@ -95,7 +95,9 @@ fn complete_latest_item(stack: String, backend: &Backend, output: &OutputFormat)
         }
     }
 
-    output.when_for_humans(|| peek_latest_item(stack, backend, output));
+    if output.is_nonquiet_for_humans() {
+        peek_latest_item(stack, backend, output);
+    }
 }
 
 fn delete_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
@@ -123,7 +125,9 @@ fn delete_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
         }
     }
 
-    output.when_for_humans(|| peek_latest_item(stack, backend, output));
+    if output.is_nonquiet_for_humans() {
+        peek_latest_item(stack, backend, output);
+    }
 }
 
 fn delete_all_items(stack: String, backend: &Backend, output: &OutputFormat) {
@@ -286,10 +290,13 @@ fn peek_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
 
         match top_item {
             Some(contents) => output_it(vec![vec!["Now", contents]]),
-            None => output.for_human_or_programmatic(
-                || output_it(vec![vec!["Now", "NOTHING"]]),
-                || output_it(vec![]),
-            ),
+            None => {
+                if output.is_nonquiet_for_humans() {
+                    output_it(vec![vec!["Now", "NOTHING"]])
+                } else {
+                    output_it(vec![])
+                }
+            }
         }
     }
 }
@@ -371,15 +378,16 @@ fn list_range(range: ListRange, backend: &Backend, output: &OutputFormat) {
             .take(limit)
             .map(|(i, item)| {
                 // Pad human output numbers to line up nicely with "Now".
-                let position = output.for_human_or_programmatic(
-                    || match i {
+                let position = if output.is_nonquiet_for_humans() {
+                    match i {
                         0 => "Now".to_string(),
                         1..=9 => format!("  {}", i),
                         10..=99 => format!(" {}", i),
                         _ => i.to_string(),
-                    },
-                    || i.to_string(),
-                );
+                    }
+                } else {
+                    i.to_string()
+                };
 
                 let created = item
                     .history
@@ -395,7 +403,9 @@ fn list_range(range: ListRange, backend: &Backend, output: &OutputFormat) {
         let labels = vec!["position", "item", "created"];
 
         if lines.is_empty() {
-            output.when_for_humans(|| output.log(labels, vec![vec!["Now", "NOTHING"]]));
+            if output.is_nonquiet_for_humans() {
+                output.log(labels, vec![vec!["Now", "NOTHING"]]);
+            }
             return;
         }
 

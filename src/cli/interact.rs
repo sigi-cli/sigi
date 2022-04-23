@@ -43,18 +43,23 @@ The following additional commands are available:
 // TODO: change-stack (i.e. change working stack)
 // TODO: pagination/scrollback?
 // TODO: tests
+// TODO: refactor & clean
 pub fn interact(stack: String, output: OutputFormat) {
-    output.when_for_humans(|| {
+    if output.is_nonquiet_for_humans() {
         println!("sigi {}", SIGI_VERSION);
         println!(
             "Type \"quit\", \"q\", or \"exit\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
         );
         println!("Type \"?\" for quick help, or \"help\" for a more verbose help message.");
         println!();
-    });
+    };
 
     let mut rl = Editor::<()>::new();
-    let prompt = output.for_human_or_programmatic(|| HUMAN_PROMPT, || "");
+    let prompt = if output.is_nonquiet_for_humans() {
+        HUMAN_PROMPT
+    } else {
+        ""
+    };
 
     loop {
         match rl.readline(prompt) {
@@ -63,19 +68,23 @@ pub fn interact(stack: String, output: OutputFormat) {
                 let tokens = line.split_ascii_whitespace().collect::<Vec<_>>();
 
                 if let Some(term) = tokens.get(0) {
-                    match term.to_ascii_lowercase().as_str() {
+                    let term = term.to_ascii_lowercase();
+                    match term.as_str() {
                         "?" => Cli::command().print_help().unwrap(),
                         "help" => Cli::command().print_long_help().unwrap(),
                         "exit" | "quit" | "q" => {
                             output.log(
                                 vec!["exit-reason", "exit-message"],
-                                vec![vec![term, "Buen biåhe!"]],
+                                vec![vec![&term, "Buen biåhe!"]],
                             );
                             break;
                         }
                         _ => {
                             if let Some(effect) = parse_effect(tokens, stack.clone(), output) {
                                 effect.run(&DEFAULT_BACKEND, &output);
+                            } else {
+                                output
+                                    .log(vec!["term", "error"], vec![vec![&term, "unknown term"]]);
                             }
                         }
                     }
@@ -194,10 +203,11 @@ fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Optio
         return Some(StackEffect::Tail { stack, n });
     }
 
-    output.for_human_or_programmatic(
-        || println!("Ooops, I don't know {:?}", term),
-        || output.log(vec!["unknown-command"], vec![vec![term]]),
-    );
+    if output.is_nonquiet_for_humans() {
+        println!("Ooops, I don't know {:?}", term);
+    } else {
+        output.log(vec!["unknown-command"], vec![vec![term]]);
+    };
 
     None
 }
