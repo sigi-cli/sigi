@@ -204,7 +204,7 @@ fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Optio
     }
 
     if output.is_nonquiet_for_humans() {
-        println!("Ooops, I don't know {:?}", term);
+        println!("Oops, I don't know {:?}", term);
     } else {
         output.log(vec!["unknown-command"], vec![vec![term]]);
     };
