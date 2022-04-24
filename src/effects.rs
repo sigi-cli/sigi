@@ -27,24 +27,25 @@ pub enum StackEffect {
 
 impl StackEffect {
     pub fn run(self, backend: &Backend, output: &OutputFormat) {
+        use StackEffect::*;
         match self {
-            StackEffect::Push { stack, content } => push_content(stack, content, backend, output),
-            StackEffect::Complete { stack } => complete_latest_item(stack, backend, output),
-            StackEffect::Delete { stack } => delete_latest_item(stack, backend, output),
-            StackEffect::DeleteAll { stack } => delete_all_items(stack, backend, output),
-            StackEffect::Pick { stack, indices } => pick_indices(stack, indices, backend, output),
-            StackEffect::Move { stack, dest } => move_latest_item(stack, dest, backend, output),
-            StackEffect::MoveAll { stack, dest } => move_all_items(stack, dest, backend, output),
-            StackEffect::Swap { stack } => swap_latest_two_items(stack, backend, output),
-            StackEffect::Rot { stack } => rotate_latest_three_items(stack, backend, output),
-            StackEffect::Next { stack } => next_to_latest(stack, backend, output),
-            StackEffect::Peek { stack } => peek_latest_item(stack, backend, output),
-            StackEffect::ListAll { stack } => list_all_items(stack, backend, output),
-            StackEffect::ListStacks => list_stacks(backend, output),
-            StackEffect::Head { stack, n } => list_n_latest_items(stack, n, backend, output),
-            StackEffect::Tail { stack, n } => list_n_oldest_items(stack, n, backend, output),
-            StackEffect::Count { stack } => count_all_items(stack, backend, output),
-            StackEffect::IsEmpty { stack } => is_empty(stack, backend, output),
+            Push { stack, content } => push_content(stack, content, backend, output),
+            Complete { stack } => complete_latest_item(stack, backend, output),
+            Delete { stack } => delete_latest_item(stack, backend, output),
+            DeleteAll { stack } => delete_all_items(stack, backend, output),
+            Pick { stack, indices } => pick_indices(stack, indices, backend, output),
+            Move { stack, dest } => move_latest_item(stack, dest, backend, output),
+            MoveAll { stack, dest } => move_all_items(stack, dest, backend, output),
+            Swap { stack } => swap_latest_two_items(stack, backend, output),
+            Rot { stack } => rotate_latest_three_items(stack, backend, output),
+            Next { stack } => next_to_latest(stack, backend, output),
+            Peek { stack } => peek_latest_item(stack, backend, output),
+            ListAll { stack } => list_all_items(stack, backend, output),
+            ListStacks => list_stacks(backend, output),
+            Head { stack, n } => list_n_latest_items(stack, n, backend, output),
+            Tail { stack, n } => list_n_oldest_items(stack, n, backend, output),
+            Count { stack } => count_all_items(stack, backend, output),
+            IsEmpty { stack } => is_empty(stack, backend, output),
         }
     }
 }

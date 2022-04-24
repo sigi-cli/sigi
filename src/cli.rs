@@ -236,32 +236,33 @@ enum Command {
 
 impl Command {
     fn into_effect_and_fc(self, stack: String) -> (StackEffect, FormatConfig) {
+        use StackEffect::*;
         match self {
-            Command::Complete { fc } => (StackEffect::Complete { stack }, fc),
-            Command::Count { fc } => (StackEffect::Count { stack }, fc),
-            Command::Delete { fc } => (StackEffect::Delete { stack }, fc),
-            Command::DeleteAll { fc } => (StackEffect::DeleteAll { stack }, fc),
+            Command::Complete { fc } => (Complete { stack }, fc),
+            Command::Count { fc } => (Count { stack }, fc),
+            Command::Delete { fc } => (Delete { stack }, fc),
+            Command::DeleteAll { fc } => (DeleteAll { stack }, fc),
             Command::Head { n, fc } => {
                 let n = n.unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
-                (StackEffect::Head { n, stack }, fc)
+                (Head { n, stack }, fc)
             }
-            Command::IsEmpty { fc } => (StackEffect::IsEmpty { stack }, fc),
-            Command::List { fc } => (StackEffect::ListAll { stack }, fc),
-            Command::ListStacks { fc } => (StackEffect::ListStacks, fc),
-            Command::Move { dest, fc } => (StackEffect::Move { stack, dest }, fc),
-            Command::MoveAll { dest, fc } => (StackEffect::MoveAll { stack, dest }, fc),
-            Command::Next { fc } => (StackEffect::Next { stack }, fc),
-            Command::Peek { fc } => (StackEffect::Peek { stack }, fc),
-            Command::Pick { ns, fc } => (StackEffect::Pick { stack, indices: ns }, fc),
+            Command::IsEmpty { fc } => (IsEmpty { stack }, fc),
+            Command::List { fc } => (ListAll { stack }, fc),
+            Command::ListStacks { fc } => (ListStacks, fc),
+            Command::Move { dest, fc } => (Move { stack, dest }, fc),
+            Command::MoveAll { dest, fc } => (MoveAll { stack, dest }, fc),
+            Command::Next { fc } => (Next { stack }, fc),
+            Command::Peek { fc } => (Peek { stack }, fc),
+            Command::Pick { ns, fc } => (Pick { stack, indices: ns }, fc),
             Command::Push { content, fc } => {
                 let content = content.join(" ");
-                (StackEffect::Push { stack, content }, fc)
+                (Push { stack, content }, fc)
             }
-            Command::Rot { fc } => (StackEffect::Rot { stack }, fc),
-            Command::Swap { fc } => (StackEffect::Swap { stack }, fc),
+            Command::Rot { fc } => (Rot { stack }, fc),
+            Command::Swap { fc } => (Swap { stack }, fc),
             Command::Tail { n, fc } => {
                 let n = n.unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
-                (StackEffect::Tail { n, stack }, fc)
+                (Tail { n, stack }, fc)
             }
         }
     }
@@ -294,20 +295,24 @@ impl FormatConfig {
             quiet,
             format,
         } = self;
+
+        use NoiseLevel::*;
+        use OutputFormat::*;
+
         format
             .map(|format| match format {
-                ProgrammaticFormat::Csv => OutputFormat::Csv,
-                ProgrammaticFormat::Json => OutputFormat::Json,
-                ProgrammaticFormat::JsonCompact => OutputFormat::JsonCompact,
-                ProgrammaticFormat::Tsv => OutputFormat::Tsv,
+                ProgrammaticFormat::Csv => Csv,
+                ProgrammaticFormat::Json => Json,
+                ProgrammaticFormat::JsonCompact => JsonCompact,
+                ProgrammaticFormat::Tsv => Tsv,
             })
             .or_else(|| {
                 if verbose {
-                    Some(OutputFormat::Human(NoiseLevel::Verbose))
+                    Some(Human(Verbose))
                 } else if silent {
-                    Some(OutputFormat::Silent)
+                    Some(Silent)
                 } else if quiet {
-                    Some(OutputFormat::Human(NoiseLevel::Quiet))
+                    Some(Human(Quiet))
                 } else {
                     None
                 }
@@ -332,13 +337,17 @@ enum ProgrammaticFormat {
 
 impl FromStr for ProgrammaticFormat {
     type Err = UnknownFormat;
+
     fn from_str(format: &str) -> Result<Self, Self::Err> {
+        use ProgrammaticFormat::*;
+
         let format = format.to_ascii_lowercase();
+
         match format.as_str() {
-            "csv" => Ok(Self::Csv),
-            "json" => Ok(Self::Json),
-            "json-compact" => Ok(Self::JsonCompact),
-            "tsv" => Ok(Self::Tsv),
+            "csv" => Ok(Csv),
+            "json" => Ok(Json),
+            "json-compact" => Ok(JsonCompact),
+            "tsv" => Ok(Tsv),
             _ => Err(UnknownFormat { format }),
         }
     }
