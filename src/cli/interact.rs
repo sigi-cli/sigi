@@ -61,66 +61,70 @@ pub fn interact(stack: String, output: OutputFormat) {
         ""
     };
 
-    let print_goodbye_msg = |reason| {
-        output.log(
-            vec!["exit-reason", "exit-message"],
-            vec![vec![reason, "Buen biåhe!"]],
-        )
-    };
-
     loop {
-        match rl.readline(prompt) {
-            Ok(line) => {
-                rl.add_history_entry(line.as_str());
+        let line = rl.readline(prompt);
 
-                use ParseResult::*;
-                match parse_line(&line, stack.clone(), output) {
-                    ShortHelp => Cli::command().print_help().unwrap(),
-                    LongHelp => Cli::command().print_long_help().unwrap(),
-                    Exit(term) => {
-                        print_goodbye_msg(&term);
-                        break;
-                    }
-                    DoEffect(effect) => effect.run(&DEFAULT_BACKEND, &output),
-                    NoContent => (),
-                    Unknown(term) => {
-                        if output.is_nonquiet_for_humans() {
-                            println!("Oops, I don't know {:?}", term);
-                        } else {
-                            output.log(vec!["term", "error"], vec![vec![&term, "unknown term"]]);
-                        };
-                    }
-                };
-            }
-            Err(ReadlineError::Interrupted) => {
-                print_goodbye_msg("CTRL-C");
+        if let Ok(line) = &line {
+            rl.add_history_entry(line);
+        }
+
+        use ParseResult::*;
+        match parse_line(line, stack.clone(), output) {
+            ShortHelp => Cli::command().print_help().unwrap(),
+            LongHelp => Cli::command().print_long_help().unwrap(),
+            DoEffect(effect) => effect.run(&DEFAULT_BACKEND, &output),
+            NoContent => (),
+            Exit(reason) => {
+                print_goodbye_msg(&reason, output);
                 break;
             }
-            Err(ReadlineError::Eof) => {
-                print_goodbye_msg("CTRL-D");
-                break;
-            }
-            Err(err) => {
+            Error(err) => {
                 output.log(
                     vec!["exit-message", "exit-reason"],
                     vec![vec!["Error"], vec![&format!("{:?}", err)]],
                 );
-                std::process::exit(1);
             }
-        }
+            Unknown(term) => {
+                if output.is_nonquiet_for_humans() {
+                    println!("Oops, I don't know {:?}", term);
+                } else {
+                    output.log(vec!["term", "error"], vec![vec![&term, "unknown term"]]);
+                };
+            }
+        };
     }
+}
+
+fn print_goodbye_msg(reason: &str, output: OutputFormat) {
+    output.log(
+        vec!["exit-reason", "exit-message"],
+        vec![vec![reason, "Buen biåhe!"]],
+    );
 }
 
 enum ParseResult {
     ShortHelp,
     LongHelp,
-    Exit(String),
     DoEffect(StackEffect),
     NoContent,
+    Exit(String),
+    Error(ReadlineError),
     Unknown(String),
 }
 
-fn parse_line(line: &str, stack: String, output: OutputFormat) -> ParseResult {
+fn parse_line(
+    line: Result<String, ReadlineError>,
+    stack: String,
+    output: OutputFormat,
+) -> ParseResult {
+    match line {
+        Err(ReadlineError::Interrupted) => return ParseResult::Exit("CTRL-C".to_string()),
+        Err(ReadlineError::Eof) => return ParseResult::Exit("CTRL-D".to_string()),
+        Err(err) => return ParseResult::Error(err),
+        _ => (),
+    };
+
+    let line = line.unwrap();
     let tokens = line.split_ascii_whitespace().collect::<Vec<_>>();
 
     if tokens.is_empty() {
