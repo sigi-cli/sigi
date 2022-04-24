@@ -15,6 +15,7 @@ No OPTIONS (flags) are understood in interactive mode.
 
 The following additional commands are available:
     ?               Show the short version of \"help\"
+    stack           Change to the specified stack
     quit/q/exit     Quit interactive mode";
 
 pub const INTERACT_LONG_INSTRUCTIONS: &str = "INTERACTIVE MODE:
@@ -36,6 +37,8 @@ No OPTIONS (flags) are understood in interactive mode.
 The following additional commands are available:
     ?
             Show the short version of \"help\"
+    stack
+            Change to the specified stack
     quit/q/exit
             Quit interactive mode";
 
@@ -44,15 +47,8 @@ The following additional commands are available:
 // TODO: pagination/scrollback?
 // TODO: tests
 // TODO: refactor & clean
-pub fn interact(stack: String, output: OutputFormat) {
-    if output.is_nonquiet_for_humans() {
-        println!("sigi {}", SIGI_VERSION);
-        println!(
-            "Type \"quit\", \"q\", or \"exit\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
-        );
-        println!("Type \"?\" for quick help, or \"help\" for a more verbose help message.");
-        println!();
-    };
+pub fn interact(original_stack: String, output: OutputFormat) {
+    print_welcome_msg(output);
 
     let mut rl = Editor::<()>::new();
     let prompt = if output.is_nonquiet_for_humans() {
@@ -60,6 +56,8 @@ pub fn interact(stack: String, output: OutputFormat) {
     } else {
         ""
     };
+
+    let mut stack = original_stack;
 
     loop {
         let line = rl.readline(prompt);
@@ -69,20 +67,31 @@ pub fn interact(stack: String, output: OutputFormat) {
         }
 
         use ParseResult::*;
-        match parse_line(line, stack.clone(), output) {
+        match parse_line(line, stack.clone()) {
             ShortHelp => Cli::command().print_help().unwrap(),
             LongHelp => Cli::command().print_long_help().unwrap(),
             DoEffect(effect) => effect.run(&DEFAULT_BACKEND, &output),
+            UseStack(new_stack) => {
+                stack = new_stack;
+                output.log(vec!["update", "stack"], vec![vec!["Active stack", &stack]]);
+            }
             NoContent => (),
             Exit(reason) => {
                 print_goodbye_msg(&reason, output);
                 break;
             }
-            Error(err) => {
+            MissingArgument(msg) => {
+                output.log(
+                    vec!["argument", "error"],
+                    vec![vec![&msg, "missing argument"]],
+                );
+            }
+            Error(msg) => {
                 output.log(
                     vec!["exit-message", "exit-reason"],
-                    vec![vec!["Error"], vec![&format!("{:?}", err)]],
+                    vec![vec!["Error"], vec![&msg]],
                 );
+                return;
             }
             Unknown(term) => {
                 if output.is_nonquiet_for_humans() {
@@ -92,6 +101,17 @@ pub fn interact(stack: String, output: OutputFormat) {
                 };
             }
         };
+    }
+}
+
+fn print_welcome_msg(output: OutputFormat) {
+    if output.is_nonquiet_for_humans() {
+        println!("sigi {}", SIGI_VERSION);
+        println!(
+            "Type \"quit\", \"q\", or \"exit\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
+        );
+        println!("Type \"?\" for quick help, or \"help\" for a more verbose help message.");
+        println!();
     }
 }
 
@@ -106,21 +126,19 @@ enum ParseResult {
     ShortHelp,
     LongHelp,
     DoEffect(StackEffect),
+    UseStack(String),
     NoContent,
     Exit(String),
-    Error(ReadlineError),
+    MissingArgument(String),
+    Error(String),
     Unknown(String),
 }
 
-fn parse_line(
-    line: Result<String, ReadlineError>,
-    stack: String,
-    output: OutputFormat,
-) -> ParseResult {
+fn parse_line(line: Result<String, ReadlineError>, stack: String) -> ParseResult {
     match line {
         Err(ReadlineError::Interrupted) => return ParseResult::Exit("CTRL-C".to_string()),
         Err(ReadlineError::Eof) => return ParseResult::Exit("CTRL-D".to_string()),
-        Err(err) => return ParseResult::Error(err),
+        Err(err) => return ParseResult::Error(format!("{:?}", err)),
         _ => (),
     };
 
@@ -137,14 +155,25 @@ fn parse_line(
         "?" => ParseResult::ShortHelp,
         "help" => ParseResult::LongHelp,
         "exit" | "quit" | "q" => ParseResult::Exit(term),
-        _ => match parse_effect(tokens, stack, output) {
-            Some(effect) => ParseResult::DoEffect(effect),
-            None => ParseResult::Unknown(term),
+        "stack" => match tokens.get(1) {
+            Some(stack) => ParseResult::UseStack(stack.to_string()),
+            None => ParseResult::MissingArgument("stack name".to_string()),
+        },
+        _ => match parse_effect(tokens, stack) {
+            ParseEffectResult::Effect(effect) => ParseResult::DoEffect(effect),
+            ParseEffectResult::NotEffect(parse_res) => parse_res,
+            ParseEffectResult::Unknown => ParseResult::Unknown(term),
         },
     }
 }
 
-fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Option<StackEffect> {
+enum ParseEffectResult {
+    Effect(StackEffect),
+    NotEffect(ParseResult),
+    Unknown,
+}
+
+fn parse_effect(tokens: Vec<&str>, stack: String) -> ParseEffectResult {
     let term = tokens.get(0).unwrap_or(&"");
 
     let parse_n = || {
@@ -155,88 +184,89 @@ fn parse_effect(tokens: Vec<&str>, stack: String, output: OutputFormat) -> Optio
             .unwrap_or(DEFAULT_SHORT_LIST_LIMIT)
     };
 
+    use ParseEffectResult::*;
     use StackEffect::*;
 
     if COMPLETE_TERMS.contains(term) {
-        return Some(Complete { stack });
+        return Effect(Complete { stack });
     }
     if COUNT_TERMS.contains(term) {
-        return Some(Count { stack });
+        return Effect(Count { stack });
     }
     if DELETE_TERMS.contains(term) {
-        return Some(Delete { stack });
+        return Effect(Delete { stack });
     }
     if DELETE_ALL_TERMS.contains(term) {
-        return Some(DeleteAll { stack });
+        return Effect(DeleteAll { stack });
     }
     if HEAD_TERMS.contains(term) {
         let n = parse_n();
-        return Some(Head { stack, n });
+        return Effect(Head { stack, n });
     }
     if IS_EMPTY_TERMS.contains(term) {
-        return Some(IsEmpty { stack });
+        return Effect(IsEmpty { stack });
     }
     if LIST_TERMS.contains(term) {
-        return Some(ListAll { stack });
+        return Effect(ListAll { stack });
     }
     if LIST_STACKS_TERMS.contains(term) {
-        return Some(ListStacks);
+        return Effect(ListStacks);
     }
-    if &MOVE_TERM == term {
+    if MOVE_TERMS.contains(term) {
         match tokens.get(1) {
             Some(dest) => {
                 let dest = dest.to_string();
-                return Some(Move { stack, dest });
+                return Effect(Move { stack, dest });
             }
             None => {
-                output.log(
-                    vec!["error"],
-                    vec![vec!["No destination stack was provided"]],
-                );
-                return None;
+                return NotEffect(ParseResult::MissingArgument(
+                    "destination stack".to_string(),
+                ));
             }
         };
     }
-    if &MOVE_ALL_TERM == term {
-        if let Some(dest) = tokens.get(1) {
-            let dest = dest.to_string();
-            return Some(MoveAll { stack, dest });
-        }
-        output.log(
-            vec!["error"],
-            vec![vec!["No destination stack was provided"]],
-        );
-        return None;
+    if MOVE_ALL_TERMS.contains(term) {
+        match tokens.get(1) {
+            Some(dest) => {
+                let dest = dest.to_string();
+                return Effect(MoveAll { stack, dest });
+            }
+            None => {
+                return NotEffect(ParseResult::MissingArgument(
+                    "destination stack".to_string(),
+                ));
+            }
+        };
     }
     if NEXT_TERMS.contains(term) {
-        return Some(Next { stack });
+        return Effect(Next { stack });
     }
     if PEEK_TERMS.contains(term) {
-        return Some(Peek { stack });
+        return Effect(Peek { stack });
     }
-    if &PICK_TERM == term {
+    if PICK_TERMS.contains(term) {
         let indices = tokens
             .iter()
             .map(|s| usize::from_str(s).ok())
             .flatten()
             .collect();
-        return Some(Pick { stack, indices });
+        return Effect(Pick { stack, indices });
     }
     if PUSH_TERMS.contains(term) {
         // FIXME: This is convenient, but normalizes whitespace. (E.g. multiple spaces always collapsed, tabs to spaces, etc)
         let content = tokens[1..].join(" ");
-        return Some(Push { stack, content });
+        return Effect(Push { stack, content });
     }
     if ROT_TERMS.contains(term) {
-        return Some(Rot { stack });
+        return Effect(Rot { stack });
     }
-    if &SWAP_TERM == term {
-        return Some(Swap { stack });
+    if SWAP_TERMS.contains(term) {
+        return Effect(Swap { stack });
     }
     if TAIL_TERMS.contains(term) {
         let n = parse_n();
-        return Some(Tail { stack, n });
+        return Effect(Tail { stack, n });
     }
 
-    None
+    Unknown
 }

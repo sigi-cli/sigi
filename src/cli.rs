@@ -30,16 +30,16 @@ const DELETE_ALL_TERMS: [&str; 6] = [
 ];
 const HEAD_TERMS: [&str; 3] = ["head", "top", "first"];
 const IS_EMPTY_TERMS: [&str; 2] = ["is-empty", "empty"];
-const LIST_TERMS: [&str; 4] = ["ls", "snoop", "show", "all"];
+const LIST_TERMS: [&str; 5] = ["list", "ls", "snoop", "show", "all"];
 const LIST_STACKS_TERMS: [&str; 2] = ["list-stacks", "stacks"];
-const MOVE_TERM: &str = "move";
-const MOVE_ALL_TERM: &str = "move-all";
+const MOVE_TERMS: [&str; 1] = ["move"];
+const MOVE_ALL_TERMS: [&str; 1] = ["move-all"];
 const NEXT_TERMS: [&str; 4] = ["next", "later", "cycle", "bury"];
 const PEEK_TERMS: [&str; 2] = ["peek", "show"];
-const PICK_TERM: &str = "pick";
+const PICK_TERMS: [&str; 1] = ["pick"];
 const PUSH_TERMS: [&str; 6] = ["push", "create", "add", "do", "start", "new"];
 const ROT_TERMS: [&str; 2] = ["rot", "rotate"];
-const SWAP_TERM: &str = "swap";
+const SWAP_TERMS: [&str; 1] = ["swap"];
 const TAIL_TERMS: [&str; 3] = ["tail", "bottom", "last"];
 // === /glossary ===
 
@@ -157,7 +157,7 @@ enum Command {
     },
 
     /// Move current item to another stack
-    #[clap(arg_required_else_help = true)]
+    #[clap(arg_required_else_help = true, visible_aliases = &MOVE_TERMS[1..])]
     Move {
         #[clap(name = "destination")]
         /// The stack that will get the source stack's current item
@@ -168,7 +168,7 @@ enum Command {
     },
 
     /// Move all items to another stack
-    #[clap(arg_required_else_help = true)]
+    #[clap(arg_required_else_help = true, visible_aliases = &MOVE_ALL_TERMS[1..])]
     MoveAll {
         #[clap(name = "destination")]
         /// The stack that will get all the source stack's items
@@ -193,6 +193,7 @@ enum Command {
     },
 
     /// Move items to the top of stack by their number
+    #[clap(visible_aliases = &PICK_TERMS[1..])]
     Pick {
         ns: Vec<usize>,
 
@@ -218,6 +219,7 @@ enum Command {
     },
 
     /// Swap the two most-current items
+    #[clap(visible_aliases = &SWAP_TERMS[1..])]
     Swap {
         #[clap(flatten)]
         fc: FormatConfig,

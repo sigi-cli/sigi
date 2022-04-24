@@ -11,7 +11,7 @@ board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
 
 ```
-sigi 3.2.1
+sigi 3.2.2
 An organizing tool for terminal lovers who hate organizing
 
 USAGE:
@@ -61,6 +61,7 @@ Use subcommands in interactive mode directly. No OPTIONS (flags) are understood 
 
 The following additional commands are available:
     ?               Show the short version of "help"
+    stack           Change to the specified stack
     quit/q/exit     Quit interactive mode
 ```
 
