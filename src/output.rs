@@ -1,5 +1,29 @@
 use chrono::{DateTime, Local};
 
+/// The general idea in this module is to take a table-ish output and render it in common formats.
+///
+/// ```text
+/// labels: [a, b, c]
+/// values:[[1, 2, 3],
+///         [4, 5, 6]]
+/// ```
+///
+/// For example, as json:
+/// ```json
+/// [
+///     {
+///         "a": "1",
+///         "b": "2",
+///         "c": "3"
+///     },
+///     {
+///         "a": "4",
+///         "b": "5",
+///         "c": "6"
+///     }
+/// ]
+/// ```
+
 /// Output formats supported by Sigi.
 #[derive(Clone, Copy, PartialEq)]
 pub enum OutputFormat {
@@ -13,6 +37,8 @@ pub enum OutputFormat {
     JsonCompact,
     /// Print nothing at all.
     Silent,
+    /// Print only on printing actions.
+    TerseText,
     /// Tab-separated values.
     Tsv,
 }
@@ -40,8 +66,23 @@ impl OutputFormat {
         }
     }
 
+    // TODO: Vec to slice: Vec<&str> -> &[&str] and Vec<Vec<&str>> -> &[&[&str]]
+    // TODO: Or... some better intermediate format
+    pub fn log_always(&self, labels: Vec<&str>, values: Vec<Vec<&str>>) {
+        if let OutputFormat::TerseText = self {
+            quiet_print(values);
+        } else {
+            self.log(labels, values);
+        }
+    }
+
+    // TODO: Vec to slice: Vec<&str> -> &[&str] and Vec<Vec<&str>> -> &[&[&str]]
+    // TODO: Or... some better intermediate format
     pub fn log(&self, labels: Vec<&str>, values: Vec<Vec<&str>>) {
         if let OutputFormat::Silent = self {
+            return;
+        }
+        if let OutputFormat::TerseText = self {
             return;
         }
 
@@ -79,12 +120,7 @@ impl OutputFormat {
                         }
                     });
                 }
-                NoiseLevel::Quiet => values.into_iter().for_each(|line| {
-                    // Print only second value (item) separated by a single space.
-                    if let Some(message) = line.get(1) {
-                        println!("{}", message);
-                    }
-                }),
+                NoiseLevel::Quiet => quiet_print(values),
             },
             OutputFormat::Json => {
                 let keys = labels;
@@ -115,6 +151,9 @@ impl OutputFormat {
             OutputFormat::Silent => {
                 unreachable!("[BUG] Sigi should always exit outputting before this point.")
             }
+            OutputFormat::TerseText => {
+                unreachable!("[BUG] Sigi should always exit outputting before this point.")
+            }
             OutputFormat::Tsv => {
                 let print_tsv = join_and_print("\t");
                 print_tsv(labels);
@@ -122,6 +161,17 @@ impl OutputFormat {
             }
         }
     }
+}
+
+fn quiet_print(values: Vec<Vec<&str>>) {
+    values.into_iter().for_each(|line| {
+        // Print only second value (item) separated by a single space.
+        if let Some(message) = line.get(1) {
+            println!("{}", message);
+        } else if let Some(message) = line.get(0) {
+            println!("{}", message);
+        }
+    })
 }
 
 fn join_and_print(sep: &str) -> impl Fn(Vec<&str>) {

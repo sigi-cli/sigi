@@ -174,7 +174,9 @@ fn pick_indices(stack: String, indices: Vec<usize>, backend: &Backend, output: &
 
         backend.save(&stack, items).unwrap();
 
-        list_n_latest_items(stack, seen.len(), backend, output);
+        if output.is_nonquiet_for_humans() {
+            list_n_latest_items(stack, seen.len(), backend, output);
+        }
     }
 }
 
@@ -236,8 +238,9 @@ fn swap_latest_two_items(stack: String, backend: &Backend, output: &OutputFormat
 
         backend.save(&stack, items).unwrap();
 
-        // Now show the first two items in their new order.
-        list_n_latest_items(stack, 2, backend, output);
+        if output.is_nonquiet_for_humans() {
+            list_n_latest_items(stack, 2, backend, output);
+        }
     }
 }
 
@@ -260,7 +263,9 @@ fn rotate_latest_three_items(stack: String, backend: &Backend, output: &OutputFo
 
         backend.save(&stack, items).unwrap();
 
-        list_n_latest_items(stack, 3, backend, output);
+        if output.is_nonquiet_for_humans() {
+            list_n_latest_items(stack, 3, backend, output);
+        }
     }
 }
 
@@ -275,7 +280,9 @@ fn next_to_latest(stack: String, backend: &Backend, output: &OutputFormat) {
 
         backend.save(&stack, items).unwrap();
 
-        peek_latest_item(stack, backend, output);
+        if output.is_nonquiet_for_humans() {
+            peek_latest_item(stack, backend, output);
+        }
     }
 }
 
@@ -287,7 +294,7 @@ fn peek_latest_item(stack: String, backend: &Backend, output: &OutputFormat) {
     if let Ok(items) = backend.load(&stack) {
         let top_item = items.last().map(|i| i.contents.as_str());
 
-        let output_it = |it| output.log(vec!["position", "item"], it);
+        let output_it = |it| output.log_always(vec!["position", "item"], it);
 
         match top_item {
             Some(contents) => output_it(vec![vec!["Now", contents]]),
@@ -309,22 +316,26 @@ fn count_all_items(stack: String, backend: &Backend, output: &OutputFormat) {
 
     if let Ok(items) = backend.load(&stack) {
         let len = items.len().to_string();
-        output.log(vec!["items"], vec![vec![&len]])
+        output.log_always(vec!["items"], vec![vec![&len]])
     }
 }
 
 fn is_empty(stack: String, backend: &Backend, output: &OutputFormat) {
     if let Ok(items) = backend.load(&stack) {
         if !items.is_empty() {
-            output.log(vec!["empty"], vec![vec!["false"]]);
+            output.log_always(vec!["empty"], vec![vec!["false"]]);
             // Exit with a failure (nonzero status) when not empty.
             // This helps people who do shell scripting do something like:
             //     while ! sigi -t $stack is-empty ; do <ETC> ; done
             // TODO: It would be better modeled as an error, if anyone uses as a lib this will surprise.
-            std::process::exit(1);
+            if let OutputFormat::TerseText = output {
+                return;
+            } else {
+                std::process::exit(1);
+            }
         }
     }
-    output.log(vec!["empty"], vec![vec!["true"]]);
+    output.log_always(vec!["empty"], vec![vec!["true"]]);
 }
 
 fn list_stacks(backend: &Backend, output: &OutputFormat) {
@@ -332,7 +343,7 @@ fn list_stacks(backend: &Backend, output: &OutputFormat) {
         let mut stacks = stacks;
         stacks.sort();
         let strs = stacks.iter().map(|stack| vec![stack.as_str()]).collect();
-        output.log(vec!["stack"], strs);
+        output.log_always(vec!["stack"], strs);
     }
 }
 
@@ -416,7 +427,7 @@ fn list_range(range: ListRange, backend: &Backend, output: &OutputFormat) {
             .map(|line| line.iter().map(|s| s.as_str()).collect())
             .collect();
 
-        output.log(labels, lines);
+        output.log_always(labels, lines);
     }
 }
 

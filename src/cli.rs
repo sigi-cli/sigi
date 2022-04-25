@@ -63,6 +63,7 @@ pub fn run() {
             let output = args.fc.into_fallback_for(fc);
             interact(stack, output);
         }
+        Some(Mode::ReadStdin) => interact(stack, OutputFormat::TerseText),
     };
 }
 
@@ -89,6 +90,12 @@ enum Mode {
         #[clap(flatten)]
         fc: FormatConfig,
     },
+
+    /// Read input lines from standard input. Same commands as interactive
+    /// mode, but only prints for printing commands. Intended for use in unix
+    /// pipes
+    #[clap(name = "-")]
+    ReadStdin,
 
     #[clap(flatten)]
     Command(Command),
@@ -124,7 +131,7 @@ enum Command {
         fc: FormatConfig,
     },
 
-    /// List the first N items (default is 10)
+    /// Print the first N items (default is 10)
     #[clap(visible_aliases = &HEAD_TERMS[1..])]
     Head {
         /// The number of items to display
@@ -142,14 +149,14 @@ enum Command {
         fc: FormatConfig,
     },
 
-    /// List all items
+    /// Print all items
     #[clap(visible_aliases = &LIST_TERMS[1..])]
     List {
         #[clap(flatten)]
         fc: FormatConfig,
     },
 
-    /// List all stacks
+    /// Print all stacks
     #[clap(visible_aliases = &LIST_STACKS_TERMS[1..])]
     ListStacks {
         #[clap(flatten)]
@@ -185,7 +192,7 @@ enum Command {
         fc: FormatConfig,
     },
 
-    /// Show the first item. This is the default behavior when no command is given
+    /// Print the first item. This is the default CLI behavior when no command is given
     #[clap(visible_aliases = &PEEK_TERMS[1..])]
     Peek {
         #[clap(flatten)]
@@ -225,7 +232,7 @@ enum Command {
         fc: FormatConfig,
     },
 
-    /// List the last N items (default is 10)
+    /// Print the last N items (default is 10)
     #[clap(visible_aliases = &TAIL_TERMS[1..])]
     Tail {
         /// The number of items to display
