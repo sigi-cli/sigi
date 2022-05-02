@@ -1,5 +1,5 @@
-use std::process::{Command, Output, Stdio};
 use std::io::{Read, Write};
+use std::process::{Command, Output, Stdio};
 
 pub const SIGI_PATH: &str = std::env!("CARGO_BIN_EXE_sigi");
 
@@ -14,11 +14,13 @@ pub fn sigi(stack: &str, args: &[&str]) -> SigiOutput {
 }
 
 pub fn piping(lines: &[&str]) -> SigiInput {
-    SigiInput { stdin: lines.iter().map(|s| s.to_string()).collect() }
+    SigiInput {
+        stdin: lines.iter().map(|s| s.to_string()).collect(),
+    }
 }
 
 pub struct SigiInput {
-    stdin: Vec<String>
+    stdin: Vec<String>,
 }
 
 impl SigiInput {
@@ -35,7 +37,11 @@ impl SigiInput {
             .spawn()
             .expect("Error running process");
 
-        process.stdin.expect("Error sending stdin to sigi").write_all(stdin.as_bytes()).unwrap();
+        process
+            .stdin
+            .expect("Error sending stdin to sigi")
+            .write_all(stdin.as_bytes())
+            .unwrap();
 
         let mut stdout = String::new();
         process.stdout.unwrap().read_to_string(&mut stdout).unwrap();
@@ -46,7 +52,7 @@ impl SigiInput {
         SigiOutput {
             status: SigiStatus::Unknown,
             stdout,
-            stderr
+            stderr,
         }
     }
 }
@@ -84,7 +90,8 @@ impl SigiOutput {
 
     pub fn assert_stdout_eq(&self, expected_stdout: &str) {
         assert_eq!(
-            &self.stdout, expected_stdout,
+            &self.stdout,
+            expected_stdout,
             "sigi stdout did not exactly match expectation.\n{}",
             self.stdout_for_errors()
         );
@@ -107,7 +114,8 @@ impl SigiOutput {
             .enumerate()
             .for_each(|(i, (actual, expected))| {
                 assert_eq!(
-                    &actual, expected,
+                    &actual,
+                    expected,
                     "sigi stdout did not match expected output `{}` on line {}\n{}",
                     expected_lines.join("\n"),
                     i,
@@ -130,22 +138,37 @@ impl SigiOutput {
     }
 
     pub fn assert_stderr_empty(&self) {
-        assert_eq!(&self.stderr, "", "sigi stderr was expected to be empty.\n{}", self.stderr_for_errors());
+        assert_eq!(
+            &self.stderr,
+            "",
+            "sigi stderr was expected to be empty.\n{}",
+            self.stderr_for_errors()
+        );
     }
 
     fn stdout_for_errors(&self) -> String {
-        format!("===\nstdout:\n===\n{}\n===\n", self.stdout.lines().collect::<Vec<_>>().join("\n"))
+        format!(
+            "===\nstdout:\n===\n{}\n===\n",
+            self.stdout.lines().collect::<Vec<_>>().join("\n")
+        )
     }
 
     fn stderr_for_errors(&self) -> String {
-        format!("===\nstderr:\n===\n{}\n===\n", self.stderr.lines().collect::<Vec<_>>().join("\n"))
+        format!(
+            "===\nstderr:\n===\n{}\n===\n",
+            self.stderr.lines().collect::<Vec<_>>().join("\n")
+        )
     }
 }
 
 impl From<Output> for SigiOutput {
     fn from(output: Output) -> SigiOutput {
         SigiOutput {
-            status: if output.status.success() { SigiStatus::Success } else { SigiStatus::Failure },
+            status: if output.status.success() {
+                SigiStatus::Success
+            } else {
+                SigiStatus::Failure
+            },
             stdout: String::from_utf8(output.stdout).expect("Couldn't read stdout"),
             stderr: String::from_utf8(output.stderr).expect("Couldn't read stderr"),
         }
