@@ -11,7 +11,7 @@ board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
 
 ```
-sigi 3.2.2
+sigi 3.3.0
 An organizing tool for terminal lovers who hate organizing
 
 USAGE:
@@ -29,6 +29,8 @@ OPTIONS:
     -V, --version            Print version information
 
 SUBCOMMANDS:
+    -              Read input lines from standard input. Same commands as interactive mode, but
+                       only prints for printing commands. Intended for use in unix pipes
     complete       Move the current item to "<STACK>_history" and mark as completed [aliases:
                        done, finish, fulfill]
     count          Print the total number of items in the stack [aliases: size, length]
@@ -36,24 +38,24 @@ SUBCOMMANDS:
                        remove, cancel, drop]
     delete-all     Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-
                        all, remove-all, cancel-all, drop-all]
-    head           List the first N items (default is 10) [aliases: top, first]
+    head           Print the first N items (default is 10) [aliases: top, first]
     help           Print this message or the help of the given subcommand(s)
     interactive    Run in an interactive mode [aliases: i]
     is-empty       Print "true" if stack has zero items, or print "false" (and exit with a
                        nonzero exit code) if the stack does have items [aliases: empty]
-    list           List all items [aliases: snoop, show, all]
-    list-stacks    List all stacks [aliases: stacks]
+    list           Print all items [aliases: ls, snoop, show, all]
+    list-stacks    Print all stacks [aliases: stacks]
     move           Move current item to another stack
     move-all       Move all items to another stack
     next           Cycle to the next item; the current item becomes last [aliases: later, cycle,
                        bury]
-    peek           Show the first item. This is the default behavior when no command is given
-                       [aliases: show]
+    peek           Print the first item. This is the default CLI behavior when no command is
+                       given [aliases: show]
     pick           Move items to the top of stack by their number
     push           Create a new item [aliases: create, add, do, start, new]
     rot            Rotate the three most-current items [aliases: rotate]
     swap           Swap the two most-current items
-    tail           List the last N items (default is 10) [aliases: bottom, last]
+    tail           Print the last N items (default is 10) [aliases: bottom, last]
 
 INTERACTIVE MODE:
 
@@ -68,7 +70,7 @@ The following additional commands are available:
 # The big idea
 
 _Sigi_ is the [Chamorro](https://en.wikipedia.org/wiki/Chamorro_language) word
-for _continue_. I hope it will help you to get on with your life, by helping
+for _continue_. I hope this will help you to get on with your life, by helping
 you prioritize better, forget less, get some stuff done, and relax. 🌴
 
 There's [a limit](https://wiki.c2.com/?SevenPlusOrMinusTwo) to human memory, and

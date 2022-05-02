@@ -1,4 +1,4 @@
-.TH sigi 1 "April 21, 2022" "version 3.2.2" "USER COMMANDS"
+.TH sigi 1 "April 21, 2022" "version 3.3.0" "USER COMMANDS"
 .\"
 .SH NAME
 sigi \- An organizing tool for terminal lovers who hate organizing
@@ -17,7 +17,7 @@ encouraged to organize your various stacks.
 .I Sigi
 is the Chamorro word for
 .I continue.
-I hope it will help you to plan more, forget less, get things done, and relax.
+I hope this will help you to plan more, forget less, get things done, and relax.
 .\"
 .\" ================================
 .\"
@@ -55,6 +55,10 @@ below.)
 .\"
 .SH SUBCOMMANDS
 .TP
+-
+Read input lines from standard input. Same commands as interactive mode, but
+only prints for printing commands. Intended for use in unix pipes
+.TP
 complete
 Move the current item to "<STACK>_history" and mark as completed [aliases: done, finish, fulfill]
 .TP
@@ -68,19 +72,22 @@ delete-all
 Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-all, remove-all, cancel-all, drop-all]
 .TP
 head N
-List the first N items [aliases: top, first]
+Print the first N items [aliases: top, first]
 .TP
 help
 Prints a help message or the help of the given subcommand(s)
+.TP
+interactive
+Run in an interactive mode [aliases: i]
 .TP
 is-empty
 Prints "true" if stack has zero items, or prints "false" (fails with a nonzero exit code) if the stack does have items [aliases: empty]
 .TP
 list
-List all items [aliases: ls, snoop, show, all]
+Print all items [aliases: ls, snoop, show, all]
 .TP
 list-stacks
-List all stacks [aliases: stacks]
+Print all stacks [aliases: stacks]
 .TP
 move
 Move current item to another stack
@@ -92,7 +99,7 @@ next
 Cycle to the next item; the current item becomes last [aliases: later, cycle, bury]
 .TP
 peek
-Show the first item. (This is the default behavior when no command is given) [aliases: show]
+Print the first item. (This is the default behavior when no command is given) [aliases: show]
 .TP
 pick
 Move items to the top of stack by their number
@@ -107,7 +114,7 @@ swap
 Swap the two most-current items
 .TP
 tail
-List the last N items [aliases: bottom, last]
+Print the last N items [aliases: bottom, last]
 .\"
 .\" ================================
 .\" Note to self: preconv can do utf8 -> troff escapes.
