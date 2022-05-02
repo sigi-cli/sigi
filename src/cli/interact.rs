@@ -136,8 +136,8 @@ enum ParseResult {
 
 fn parse_line(line: Result<String, ReadlineError>, stack: String) -> ParseResult {
     match line {
-        Err(ReadlineError::Interrupted) => return ParseResult::Exit("CTRL-C".to_string()),
-        Err(ReadlineError::Eof) => return ParseResult::Exit("CTRL-D".to_string()),
+        Err(ReadlineError::Interrupted) => return ParseResult::Exit("Ctrl+c".to_string()),
+        Err(ReadlineError::Eof) => return ParseResult::Exit("Ctrl+d".to_string()),
         Err(err) => return ParseResult::Error(format!("{:?}", err)),
         _ => (),
     };
