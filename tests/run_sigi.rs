@@ -251,3 +251,11 @@ fn assert_stderr_empty() {
 
     output.assert_stderr_empty();
 }
+
+#[test]
+fn sigi_piping_basic() {
+    let res = piping(&[]).into_sigi("_integ::basic", &["interactive"]);
+    assert_eq!(res.status, SigiStatus::Unknown);
+    res.assert_stdout_line_starts_with("sigi 3.3");
+    res.assert_stderr_empty();
+}
