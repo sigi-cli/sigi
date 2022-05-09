@@ -169,13 +169,14 @@ Creating: Alien race lives backwards through time.
 `sigi` understands the programmer-familiar `push` and `pop` idioms. It can be
 used for simple, persistent, small-scale stack use-cases.
 
-`sigi` is not intending to be highly performant. While no limits are enforced,
-it would not handle high, concurrent throughput well. It also isn't suitable
-for enormous amounts of data. For something beefier with stack semantics,
-check out Redis.
-
 Using the `--quiet` (or `-q`) flag is recommended for shell scripts, as it
-leaves out any leading labels or symbols.
+leaves out any leading labels or symbols. If used with a pipe, it's recommended
+to use the `-` subcommand to read from standard input and only print if the
+action requested is a printing action (like `list`).
+
+`sigi` is pretty fast: sub-millisecond for basic use cases. That said, it is
+not intended to handle large amounts of data, or concurrent throughput. For
+something beefier with stack semantics, check out Redis.
 
 # Installing
 
