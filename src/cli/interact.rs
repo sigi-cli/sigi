@@ -15,6 +15,7 @@ No OPTIONS (flags) are understood in interactive mode.
 
 The following additional commands are available:
     ?               Show the short version of \"help\"
+    clear           Clear the terminal screen
     stack           Change to the specified stack
     quit/q/exit     Quit interactive mode";
 
@@ -37,16 +38,15 @@ No OPTIONS (flags) are understood in interactive mode.
 The following additional commands are available:
     ?
             Show the short version of \"help\"
+    clear   
+            Clear the terminal screen
     stack
             Change to the specified stack
     quit/q/exit
             Quit interactive mode";
 
-// TODO: clear (i.e. clear screen)
-// TODO: change-stack (i.e. change working stack)
 // TODO: pagination/scrollback?
-// TODO: tests
-// TODO: refactor & clean
+// TODO: more comprehensive tests
 pub fn interact(original_stack: String, output: OutputFormat) {
     print_welcome_msg(output);
 
@@ -70,6 +70,7 @@ pub fn interact(original_stack: String, output: OutputFormat) {
         match parse_line(line, stack.clone()) {
             ShortHelp => Cli::command().print_help().unwrap(),
             LongHelp => Cli::command().print_long_help().unwrap(),
+            Clear => clearscreen::clear().expect("Failed to clear screen"),
             DoEffect(effect) => effect.run(&DEFAULT_BACKEND, &output),
             UseStack(new_stack) => {
                 stack = new_stack;
@@ -125,6 +126,7 @@ fn print_goodbye_msg(reason: &str, output: OutputFormat) {
 enum ParseResult {
     ShortHelp,
     LongHelp,
+    Clear,
     DoEffect(StackEffect),
     UseStack(String),
     NoContent,
@@ -154,6 +156,7 @@ fn parse_line(line: Result<String, ReadlineError>, stack: String) -> ParseResult
     match term.as_str() {
         "?" => ParseResult::ShortHelp,
         "help" => ParseResult::LongHelp,
+        "clear" => ParseResult::Clear,
         "exit" | "quit" | "q" => ParseResult::Exit(term),
         "stack" => match tokens.get(1) {
             Some(stack) => ParseResult::UseStack(stack.to_string()),
