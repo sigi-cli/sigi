@@ -315,16 +315,14 @@ impl FormatConfig {
                 ProgrammaticFormat::JsonCompact => JsonCompact,
                 ProgrammaticFormat::Tsv => Tsv,
             })
-            .or_else(|| {
-                if verbose {
-                    Some(Human(Verbose))
-                } else if silent {
-                    Some(Silent)
-                } else if quiet {
-                    Some(Human(Quiet))
-                } else {
-                    None
-                }
+            .or(if verbose {
+                Some(Human(Verbose))
+            } else if silent {
+                Some(Silent)
+            } else if quiet {
+                Some(Human(Quiet))
+            } else {
+                None
             })
     }
 

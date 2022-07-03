@@ -182,8 +182,7 @@ fn parse_effect(tokens: Vec<&str>, stack: String) -> ParseEffectResult {
     let parse_n = || {
         tokens
             .get(1)
-            .map(|s| usize::from_str(s).ok())
-            .flatten()
+            .and_then(|s| usize::from_str(s).ok())
             .unwrap_or(DEFAULT_SHORT_LIST_LIMIT)
     };
 
@@ -250,8 +249,7 @@ fn parse_effect(tokens: Vec<&str>, stack: String) -> ParseEffectResult {
     if PICK_TERMS.contains(term) {
         let indices = tokens
             .iter()
-            .map(|s| usize::from_str(s).ok())
-            .flatten()
+            .filter_map(|s| usize::from_str(s).ok())
             .collect();
         return Effect(Pick { stack, indices });
     }
