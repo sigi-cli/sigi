@@ -25,7 +25,7 @@ use chrono::{DateTime, Local};
 /// ```
 
 /// Output formats supported by Sigi.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum OutputFormat {
     /// Comma-separated values.
     Csv,
@@ -44,7 +44,7 @@ pub enum OutputFormat {
 }
 
 /// How much noise (verbosity) should be used when printing to standard output.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum NoiseLevel {
     Verbose,
     Normal,
@@ -96,11 +96,11 @@ impl OutputFormat {
                 NoiseLevel::Verbose => {
                     values.into_iter().for_each(|line| match line.len() {
                         0 => (),
-                        1 => println!("{}", line.get(0).unwrap()),
-                        2 => println!("{}: {}", line.get(0).unwrap(), line.get(1).unwrap()),
+                        1 => println!("{}", line.first().unwrap()),
+                        2 => println!("{}: {}", line.first().unwrap(), line.get(1).unwrap()),
                         _ => println!(
                             "{}: {} ({})",
-                            line.get(0).unwrap(),
+                            line.first().unwrap(),
                             line.get(1).unwrap(),
                             line.iter()
                                 .skip(2)
@@ -113,9 +113,9 @@ impl OutputFormat {
                 NoiseLevel::Normal => {
                     // Print only first two values e.g. (num, item) separated by a single space.
                     values.into_iter().for_each(|line| {
-                        if let (Some(label), Some(item)) = (line.get(0), line.get(1)) {
+                        if let (Some(label), Some(item)) = (line.first(), line.get(1)) {
                             println!("{}: {}", label, item);
-                        } else if let Some(info) = line.get(0) {
+                        } else if let Some(info) = line.first() {
                             println!("{}", info);
                         }
                     });
@@ -168,7 +168,7 @@ fn quiet_print(values: Vec<Vec<&str>>) {
         // Print only second value (item) separated by a single space.
         if let Some(message) = line.get(1) {
             println!("{}", message);
-        } else if let Some(message) = line.get(0) {
+        } else if let Some(message) = line.first() {
             println!("{}", message);
         }
     })

@@ -50,7 +50,7 @@ The following additional commands are available:
 pub fn interact(original_stack: String, output: OutputFormat) {
     print_welcome_msg(output);
 
-    let mut rl = Editor::<()>::new();
+    let mut rl = Editor::<()>::new().expect("Unable to create readline.");
     let prompt = if output.is_nonquiet_for_humans() {
         HUMAN_PROMPT
     } else {
@@ -151,7 +151,7 @@ fn parse_line(line: Result<String, ReadlineError>, stack: String) -> ParseResult
         return ParseResult::NoContent;
     }
 
-    let term = tokens.get(0).unwrap().to_ascii_lowercase();
+    let term = tokens.first().unwrap().to_ascii_lowercase();
 
     match term.as_str() {
         "?" => ParseResult::ShortHelp,
@@ -177,7 +177,7 @@ enum ParseEffectResult {
 }
 
 fn parse_effect(tokens: Vec<&str>, stack: String) -> ParseEffectResult {
-    let term = tokens.get(0).unwrap_or(&"");
+    let term = tokens.first().unwrap_or(&"");
 
     let parse_n = || {
         tokens
