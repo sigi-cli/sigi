@@ -6,6 +6,6 @@ use run_sigi::sigi;
 fn sigi_version() {
     let res = sigi("_integ::version", &["--version"]);
     res.assert_success();
-    res.assert_stdout_line_starts_with("sigi 3.4");
+    res.assert_stdout_line_starts_with("sigi 3.5");
     res.assert_stderr_empty();
 }

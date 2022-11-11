@@ -647,7 +647,7 @@ dependencies = [
 
 [[package]]
 name = "sigi"
-version = "3.4.3"
+version = "3.5.0"
 dependencies = [
  "chrono",
  "clap",

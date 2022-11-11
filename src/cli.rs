@@ -68,177 +68,177 @@ pub fn run() {
 }
 
 #[derive(Parser)]
-#[clap(name = "sigi", version = SIGI_VERSION, after_help = INTERACT_INSTRUCTIONS, after_long_help = INTERACT_LONG_INSTRUCTIONS)]
+#[command(name = "sigi", version = SIGI_VERSION, after_help = INTERACT_INSTRUCTIONS, after_long_help = INTERACT_LONG_INSTRUCTIONS)]
 /// An organizing tool for terminal lovers who hate organizing
 struct Cli {
-    #[clap(flatten)]
+    #[command(flatten)]
     fc: FormatConfig,
 
-    #[clap(short='t', long, visible_aliases = &["topic", "about", "namespace"])]
+    #[arg(short='t', long, visible_aliases = &["topic", "about", "namespace"])]
     /// Manage items in a specific stack
     stack: Option<String>,
 
-    #[clap(subcommand)]
+    #[command(subcommand)]
     mode: Option<Mode>,
 }
 
 #[derive(Subcommand)]
 enum Mode {
     /// Run in an interactive mode
-    #[clap(visible_alias = "i")]
+    #[command(visible_alias = "i")]
     Interactive {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Read input lines from standard input. Same commands as interactive
     /// mode, but only prints for printing commands. Intended for use in unix
     /// pipes
-    #[clap(name = "-")]
+    #[command(name = "-")]
     ReadStdin,
 
-    #[clap(flatten)]
+    #[command(flatten)]
     Command(Command),
 }
 
 #[derive(Subcommand)]
 enum Command {
     /// Move the current item to "<STACK>_history" and mark as completed
-    #[clap(visible_aliases = &COMPLETE_TERMS[1..])]
+    #[command(visible_aliases = &COMPLETE_TERMS[1..])]
     Complete {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Print the total number of items in the stack
-    #[clap(visible_aliases = &COUNT_TERMS[1..])]
+    #[command(visible_aliases = &COUNT_TERMS[1..])]
     Count {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Move the current item to "<STACK>_history" and mark as deleted
-    #[clap(visible_aliases = &DELETE_TERMS[1..])]
+    #[command(visible_aliases = &DELETE_TERMS[1..])]
     Delete {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Move all items to "<STACK>_history" and mark as deleted
-    #[clap(visible_aliases = &DELETE_ALL_TERMS[1..])]
+    #[command(visible_aliases = &DELETE_ALL_TERMS[1..])]
     DeleteAll {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Print the first N items (default is 10)
-    #[clap(visible_aliases = &HEAD_TERMS[1..])]
+    #[command(visible_aliases = &HEAD_TERMS[1..])]
     Head {
         /// The number of items to display
         n: Option<usize>,
 
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Print "true" if stack has zero items, or print "false" (and exit with a
     /// nonzero exit code) if the stack does have items
-    #[clap(visible_aliases = &IS_EMPTY_TERMS[1..])]
+    #[command(visible_aliases = &IS_EMPTY_TERMS[1..])]
     IsEmpty {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Print all items
-    #[clap(visible_aliases = &LIST_TERMS[1..])]
+    #[command(visible_aliases = &LIST_TERMS[1..])]
     List {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Print all stacks
-    #[clap(visible_aliases = &LIST_STACKS_TERMS[1..])]
+    #[command(visible_aliases = &LIST_STACKS_TERMS[1..])]
     ListStacks {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Move current item to another stack
-    #[clap(arg_required_else_help = true, visible_aliases = &MOVE_TERMS[1..])]
+    #[command(arg_required_else_help = true, visible_aliases = &MOVE_TERMS[1..])]
     Move {
-        #[clap(name = "destination")]
+        #[arg(name = "destination")]
         /// The stack that will get the source stack's current item
         dest: String,
 
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Move all items to another stack
-    #[clap(arg_required_else_help = true, visible_aliases = &MOVE_ALL_TERMS[1..])]
+    #[command(arg_required_else_help = true, visible_aliases = &MOVE_ALL_TERMS[1..])]
     MoveAll {
-        #[clap(name = "destination")]
+        #[arg(name = "destination")]
         /// The stack that will get all the source stack's items
         dest: String,
 
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Cycle to the next item; the current item becomes last
-    #[clap(visible_aliases = &NEXT_TERMS[1..])]
+    #[command(visible_aliases = &NEXT_TERMS[1..])]
     Next {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Print the first item. This is the default CLI behavior when no command is given
-    #[clap(visible_aliases = &PEEK_TERMS[1..])]
+    #[command(visible_aliases = &PEEK_TERMS[1..])]
     Peek {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Move items to the top of stack by their number
-    #[clap(visible_aliases = &PICK_TERMS[1..])]
+    #[command(visible_aliases = &PICK_TERMS[1..])]
     Pick {
         ns: Vec<usize>,
 
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Create a new item
-    #[clap(visible_aliases = &PUSH_TERMS[1..])]
+    #[command(visible_aliases = &PUSH_TERMS[1..])]
     Push {
         // The content to add as an item. Multiple arguments will be interpreted as a single string
         content: Vec<String>,
 
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Rotate the three most-current items
-    #[clap(visible_aliases = &ROT_TERMS[1..])]
+    #[command(visible_aliases = &ROT_TERMS[1..])]
     Rot {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Swap the two most-current items
-    #[clap(visible_aliases = &SWAP_TERMS[1..])]
+    #[command(visible_aliases = &SWAP_TERMS[1..])]
     Swap {
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 
     /// Print the last N items (default is 10)
-    #[clap(visible_aliases = &TAIL_TERMS[1..])]
+    #[command(visible_aliases = &TAIL_TERMS[1..])]
     Tail {
         /// The number of items to display
         n: Option<usize>,
 
-        #[clap(flatten)]
+        #[command(flatten)]
         fc: FormatConfig,
     },
 }
@@ -279,19 +279,19 @@ impl Command {
 
 #[derive(Args)]
 struct FormatConfig {
-    #[clap(short, long)]
+    #[arg(short, long)]
     /// Omit any leading labels or symbols. Recommended for use in shell scripts
     quiet: bool,
 
-    #[clap(short, long)]
+    #[arg(short, long)]
     /// Omit any output at all
     silent: bool,
 
-    #[clap(short, long, visible_alias = "noisy")]
+    #[arg(short, long, visible_alias = "noisy")]
     /// Print more information, like when an item was created
     verbose: bool,
 
-    #[clap(short, long)]
+    #[arg(short, long)]
     /// Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose.
     format: Option<ProgrammaticFormat>,
 }
@@ -334,7 +334,6 @@ impl FormatConfig {
 }
 
 #[derive(ValueEnum, Clone)]
-#[clap()]
 enum ProgrammaticFormat {
     Csv,
     Json,
