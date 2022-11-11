@@ -113,6 +113,9 @@ impl SigiOutput {
             .zip(expected_lines.iter())
             .enumerate()
             .for_each(|(i, (actual, expected))| {
+                if *expected == "*" {
+                    return;
+                }
                 assert_eq!(
                     &actual,
                     expected,
