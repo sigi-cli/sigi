@@ -11,55 +11,45 @@ board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
 
 ```
-sigi 3.4.3
+$ sigi -h
 An organizing tool for terminal lovers who hate organizing
 
-USAGE:
-    sigi [OPTIONS] [SUBCOMMAND]
+Usage: sigi [OPTIONS] [COMMAND]
 
-OPTIONS:
-    -f, --format <FORMAT>    Use a programmatic format. Options include [csv, json, json-compact,
-                             tsv]. Not compatible with quiet/silent/verbose
-    -h, --help               Print help information
-    -q, --quiet              Omit any leading labels or symbols. Recommended for use in shell
-                             scripts
-    -s, --silent             Omit any output at all
-    -t, --stack <STACK>      Manage items in a specific stack [aliases: topic, about, namespace]
-    -v, --verbose            Print more information, like when an item was created [aliases: noisy]
-    -V, --version            Print version information
+Commands:
+  interactive  Run in an interactive mode [aliases: i]
+  -            Read input lines from standard input. Same commands as interactive mode, but only prints for printing commands. Intended for use in unix pipes
+  complete     Move the current item to "<STACK>_history" and mark as completed [aliases: done, finish, fulfill]
+  count        Print the total number of items in the stack [aliases: size, length]
+  delete       Move the current item to "<STACK>_history" and mark as deleted [aliases: pop, remove, cancel, drop]
+  delete-all   Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-all, remove-all, cancel-all, drop-all]
+  head         Print the first N items (default is 10) [aliases: top, first]
+  is-empty     Print "true" if stack has zero items, or print "false" (and exit with a nonzero exit code) if the stack does have items [aliases: empty]
+  list         Print all items [aliases: ls, snoop, all]
+  list-stacks  Print all stacks [aliases: stacks]
+  move         Move current item to another stack
+  move-all     Move all items to another stack
+  next         Cycle to the next item; the current item becomes last [aliases: later, cycle, bury]
+  peek         Print the first item. This is the default CLI behavior when no command is given [aliases: show]
+  pick         Move items to the top of stack by their number
+  push         Create a new item [aliases: create, add, do, start, new]
+  rot          Rotate the three most-current items [aliases: rotate]
+  swap         Swap the two most-current items
+  tail         Print the last N items (default is 10) [aliases: bottom, last]
+  help         Print this message or the help of the given subcommand(s)
 
-SUBCOMMANDS:
-    -              Read input lines from standard input. Same commands as interactive mode, but
-                       only prints for printing commands. Intended for use in unix pipes
-    complete       Move the current item to "<STACK>_history" and mark as completed [aliases:
-                       done, finish, fulfill]
-    count          Print the total number of items in the stack [aliases: size, length]
-    delete         Move the current item to "<STACK>_history" and mark as deleted [aliases: pop,
-                       remove, cancel, drop]
-    delete-all     Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-
-                       all, remove-all, cancel-all, drop-all]
-    head           Print the first N items (default is 10) [aliases: top, first]
-    help           Print this message or the help of the given subcommand(s)
-    interactive    Run in an interactive mode [aliases: i]
-    is-empty       Print "true" if stack has zero items, or print "false" (and exit with a
-                       nonzero exit code) if the stack does have items [aliases: empty]
-    list           Print all items [aliases: ls, snoop, show, all]
-    list-stacks    Print all stacks [aliases: stacks]
-    move           Move current item to another stack
-    move-all       Move all items to another stack
-    next           Cycle to the next item; the current item becomes last [aliases: later, cycle,
-                       bury]
-    peek           Print the first item. This is the default CLI behavior when no command is
-                       given [aliases: show]
-    pick           Move items to the top of stack by their number
-    push           Create a new item [aliases: create, add, do, start, new]
-    rot            Rotate the three most-current items [aliases: rotate]
-    swap           Swap the two most-current items
-    tail           Print the last N items (default is 10) [aliases: bottom, last]
+Options:
+  -q, --quiet            Omit any leading labels or symbols. Recommended for use in shell scripts
+  -s, --silent           Omit any output at all
+  -v, --verbose          Print more information, like when an item was created [aliases: noisy]
+  -f, --format <FORMAT>  Use a programmatic format. Options include [csv, json, json-compact, tsv]. Not compatible with quiet/silent/verbose [possible values: csv, json, json-compact, tsv]
+  -t, --stack <STACK>    Manage items in a specific stack [aliases: topic, about, namespace]
+  -h, --help             Print help information (use `--help` for more detail)
+  -V, --version          Print version information
 
 INTERACTIVE MODE:
 
-Use subcommands in interactive mode directly. No OPTIONS (flags) are understood in interactive mode.
+Use subcommands in interactive mode directly. No OPTIONS (flags) are understood in interactive mode. The ; character can be used to separate commands.
 
 The following additional commands are available:
     ?               Show the short version of "help"
