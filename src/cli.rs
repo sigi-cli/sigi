@@ -1,7 +1,7 @@
 use crate::data::Backend;
 use crate::effects::StackEffect;
 use crate::output::{NoiseLevel, OutputFormat};
-use clap::{ArgEnum, Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::str::FromStr;
 use std::{error, fmt};
 
@@ -333,8 +333,8 @@ impl FormatConfig {
     }
 }
 
-#[derive(ArgEnum, Clone)]
-#[clap(arg_enum)]
+#[derive(ValueEnum, Clone)]
+#[clap()]
 enum ProgrammaticFormat {
     Csv,
     Json,
