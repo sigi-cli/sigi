@@ -30,7 +30,7 @@ const DELETE_ALL_TERMS: [&str; 6] = [
 ];
 const HEAD_TERMS: [&str; 3] = ["head", "top", "first"];
 const IS_EMPTY_TERMS: [&str; 2] = ["is-empty", "empty"];
-const LIST_TERMS: [&str; 5] = ["list", "ls", "snoop", "show", "all"];
+const LIST_TERMS: [&str; 4] = ["list", "ls", "snoop", "all"];
 const LIST_STACKS_TERMS: [&str; 2] = ["list-stacks", "stacks"];
 const MOVE_TERMS: [&str; 1] = ["move"];
 const MOVE_ALL_TERMS: [&str; 1] = ["move-all"];
