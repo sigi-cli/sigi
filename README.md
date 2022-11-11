@@ -198,10 +198,10 @@ Please package it up for your Linux/BSD/etc distribution.
 
 # Contributing and support
 
-Please [open an issue](https://github.com/hiljusti/sigi/issues) if you see
+Please [open an issue](https://github.com/sigi-cli/sigi/issues) if you see
 bugs or have ideas!
 
-I'm looking for people to use [the `sigi` wiki](https://github.com/hiljusti/sigi/wiki)
+I'm looking for people to use [the `sigi` wiki](https://github.com/sigi-cli/sigi/wiki)
 to share their tips, tricks, and examples.
 
 Thanks for checking it out!

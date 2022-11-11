@@ -2,7 +2,7 @@
 //!
 //! The CLI and usage is documented briefly on the main GitHub project here:
 //!
-//! - https://github.com/hiljusti/sigi
+//! - https://github.com/sigi-cli/sigi
 //!
 //! Its "database" is currently little more than json files, and handles only
 //! String values. It can work for research or small loads, but would be
