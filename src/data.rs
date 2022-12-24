@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::io::ErrorKind;
-use std::{env, fs, path::Path};
+use std::{fs, path::Path};
+
+use directories::ProjectDirs;
 
 // TODO: Alternate backends:
 //       - Redis
@@ -123,9 +125,8 @@ fn list_stacks_from_homedir() -> Result<Vec<String>, impl Error> {
 }
 
 fn sigi_path() -> String {
-    let home = env::var("HOME").or_else(|_| env::var("HOMEDRIVE")).unwrap();
-    let path = format!("{}/.local/share/sigi", home);
-    Path::new(&path).to_string_lossy().to_string()
+    let path = ProjectDirs::from("rs", "sigi-cli", "sigi").unwrap();
+    path.data_dir().to_string_lossy().to_string()
 }
 
 fn sigi_file(filename: &str) -> String {
