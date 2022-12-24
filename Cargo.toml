@@ -24,6 +24,7 @@ opt-level = 'z'
 chrono = { version = "0.4", features = [ "serde", "unstable-locales" ] }
 clap = { version = "4.0", features = [ "derive" ] }
 clearscreen = "1.0"
+directories = "4.0"
 json = "0.12.4"
 rustyline = "10.0"
 serde = { version = "1.0", features = [ "derive" ] }
