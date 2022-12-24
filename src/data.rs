@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::io::ErrorKind;
-use std::{fs, path::Path};
+use std::{env, fs, path::PathBuf};
 
 use directories::ProjectDirs;
 
@@ -124,14 +124,27 @@ fn list_stacks_from_homedir() -> Result<Vec<String>, impl Error> {
     })
 }
 
+fn v1_sigi_path() -> PathBuf {
+    let home = env::var("HOME").or_else(|_| env::var("HOMEDRIVE")).unwrap();
+    let path = format!("{}/.local/share/sigi", home);
+    PathBuf::from(&path)
+}
+
 fn sigi_path() -> String {
-    let path = ProjectDirs::from("rs", "sigi-cli", "sigi").unwrap();
-    path.data_dir().to_string_lossy().to_string()
+    let sigi_base = ProjectDirs::from("org", "sigi-cli", "sigi").unwrap();
+    let sigi_path = sigi_base.data_dir();
+    let v1_path = v1_sigi_path();
+
+    if v1_path.exists() && !sigi_path.exists() {
+        fs::rename(v1_path, sigi_path).unwrap();
+    }
+
+    sigi_path.to_string_lossy().to_string()
 }
 
 fn sigi_file(filename: &str) -> String {
     let path = format!("{}/{}.json", sigi_path(), filename);
-    Path::new(&path).to_string_lossy().to_string()
+    PathBuf::from(&path).to_string_lossy().to_string()
 }
 
 /// A single stack item. Used for backwards compatibility with versions of Sigi v1.
