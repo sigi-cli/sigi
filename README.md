@@ -6,6 +6,8 @@
 
 `sigi` is an organizing tool for terminal lovers who hate organizing
 
+https://sigi-cli.org
+
 Use `sigi` as extra memory. Use it to toss your tasks, groceries, or the next
 board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
@@ -57,36 +59,6 @@ The following additional commands are available:
     stack           Change to the specified stack
     quit/q/exit     Quit interactive mode
 ```
-
-# The big idea
-
-_Sigi_ is the [Chamorro](https://en.wikipedia.org/wiki/Chamorro_language) word
-for _continue_. I hope this will help you to get on with your life, by helping
-you prioritize better, forget less, get some stuff done, and relax. 🌴
-
-There's [a limit](https://wiki.c2.com/?SevenPlusOrMinusTwo) to human memory, and
-remembering things uses up [willpower](https://www.penguinrandomhouse.com/books/307740/willpower-by-roy-f-baumeister-and-john-tierney/).
-I like working at a command line, and wanted a tool to free me up from trying to
-juggle tasks and ideas.
-
-On a more personal level, while I love beauty and craftsmanship and
-accomplishing things... I absolutely despise spending time organizing. A five
-factor personality evaluation rated me at 7% in the orderliness aspect of
-[conscientousness](https://en.wikipedia.org/wiki/Conscientiousness), which
-(among other things) means I am both less disturbed by chaos and more disturbed
-by order than 92% of humankind.
-
-`sigi` intends to be far _more_ flexible and messy, and far _less_ rigid and
-tidy, when compared to the plethora of personal and professional organizational
-tools that exist. It will let you write stuff down and look at that stuff when
-you want to. It's less like a Google/Outlook/Apple Calendar application and
-more like a pen-and-paper notebook.
-
-I also just find that stacks, and stack-based languages like
-[Forth](https://en.wikipedia.org/wiki/Forth_(programming_language)) and
-[Factor](https://factorcode.org) are a joy to play with. Also, they're a good
-fit for organization. Usually older things that aren't "done" or "deletable"
-are things that can wait more than whatever things are actively being juggled.
 
 # Examples
 
