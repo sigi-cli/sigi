@@ -3,7 +3,7 @@ use crate::effects::StackEffect;
 use crate::output::OutputFormat;
 use clap::CommandFactory;
 use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use rustyline::DefaultEditor;
 use std::str::FromStr;
 
 const HUMAN_PROMPT: &str = "🌴 ▶ ";
@@ -53,7 +53,7 @@ In interactive mode, the following additional commands are available:
 pub fn interact(original_stack: String, output: OutputFormat) {
     print_welcome_msg(output);
 
-    let mut rl = Editor::<()>::new().expect("Unable to create readline.");
+    let mut rl = DefaultEditor::new().expect("Unable to create readline.");
     let prompt = if output.is_nonquiet_for_humans() {
         HUMAN_PROMPT
     } else {
@@ -66,7 +66,7 @@ pub fn interact(original_stack: String, output: OutputFormat) {
         let line = rl.readline(prompt);
 
         if let Ok(line) = &line {
-            rl.add_history_entry(line);
+            rl.add_history_entry(line).unwrap();
         }
 
         use InteractAction::*;
