@@ -127,6 +127,25 @@ $ story-ideas add Alien race lives backwards through time.
 Creating: Alien race lives backwards through time.
 ```
 
+## `sigi` remote via ssh
+
+If you have a host you can access remotely, using a tool like
+[OpenSSH](https://www.openssh.com), you can also use sigi across machines.
+Consider using an alias like this:
+
+```
+$ alias home-todo='ssh -qt user@host.or.ip sigi --stack=home-todo'
+```
+
+> Protip: If you do a bunch of machine hopping via SSH, consider adding host
+aliases in [`$HOME/.ssh/config`](https://man.openbsd.org/ssh_config.5). I set
+these up something like this:
+    Host hq
+      User boonieppper
+      HostName 192.168.x.x
+      IdentityFile ~/.ssh/etc
+which allows for just running `ssh hq`, for example.
+
 ## `sigi` as a local stack-based database
 
 `sigi` understands the programmer-familiar `push` and `pop` idioms. It can be
