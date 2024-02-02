@@ -56,8 +56,8 @@ Use subcommands in interactive mode directly. No OPTIONS (flags) are understood 
 The following additional commands are available:
     ?               Show the short version of "help"
     clear           Clear the terminal screen
-    stack           Change to the specified stack
-    quit/q/exit     Quit interactive mode
+    use             Change to the specified stack [aliases: stack]
+    exit            Quit interactive mode [aliases: quit, q]
 ```
 
 # Examples

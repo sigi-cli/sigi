@@ -17,8 +17,8 @@ The ; character can be used to separate commands.
 The following additional commands are available:
     ?               Show the short version of \"help\"
     clear           Clear the terminal screen
-    stack           Change to the specified stack
-    quit/q/exit     Quit interactive mode";
+    use             Change to the specified stack [aliases: stack]
+    exit            Quit interactive mode [aliases: quit, q]";
 
 pub const INTERACT_LONG_INSTRUCTIONS: &str = "INTERACTIVE MODE:
 
@@ -43,10 +43,10 @@ In interactive mode, the following additional commands are available:
             Show the short version of \"help\"
     clear   
             Clear the terminal screen
-    stack
-            Change to the specified stack
-    quit/q/exit
-            Quit interactive mode";
+    use
+            Change to the specified stack [aliases: stack]
+    exit
+            Quit interactive mode [aliases: quit, q]";
 
 // TODO: pagination/scrollback?
 // TODO: more comprehensive tests
@@ -120,7 +120,7 @@ fn print_welcome_msg(output: OutputFormat) {
     if output.is_nonquiet_for_humans() {
         println!("sigi {}", SIGI_VERSION);
         println!(
-            "Type \"quit\", \"q\", or \"exit\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
+            "Type \"exit\", \"quit\", or \"q\" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"
         );
         println!("Type \"?\" for quick help, or \"help\" for a more verbose help message.");
         println!();
@@ -178,7 +178,7 @@ fn parse_line(line: String, stack: String) -> InteractAction {
         "help" => InteractAction::LongHelp,
         "clear" => InteractAction::Clear,
         "exit" | "quit" | "q" => InteractAction::Exit(term),
-        "stack" => match tokens.get(1) {
+        "use" | "stack" => match tokens.get(1) {
             Some(stack) => InteractAction::UseStack(stack.to_string()),
             None => InteractAction::MissingArgument("stack name".to_string()),
         },

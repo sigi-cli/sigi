@@ -7,7 +7,7 @@ fn sigi_interactive_preamble() {
     let res = sigi("_integ::interactive", &["interactive"]);
     res.assert_success();
     res.assert_stdout_line_starts_with("sigi 3.6");
-    res.assert_stdout_line_starts_with(r#"Type "quit", "q", or "exit" to quit"#);
+    res.assert_stdout_line_starts_with(r#"Type "exit", "quit", or "q" to quit"#);
     res.assert_stdout_line_starts_with(
         r#"Type "?" for quick help, or "help" for a more verbose help message"#,
     );
@@ -18,7 +18,7 @@ fn sigi_interactive_preamble() {
 fn sigi_interactive_basic() {
     let res = piping(&["push hello world"]).into_sigi("_integ::interactive", &["interactive"]);
     res.assert_stdout_line_starts_with("sigi 3.6");
-    res.assert_stdout_line_starts_with(r#"Type "quit", "q", or "exit" to quit"#);
+    res.assert_stdout_line_starts_with(r#"Type "exit", "quit", or "q" to quit"#);
     res.assert_stdout_line_starts_with(
         r#"Type "?" for quick help, or "help" for a more verbose help message"#,
     );
@@ -35,7 +35,7 @@ fn sigi_interactive_basic_semicolons() {
     res.assert_stderr_empty();
     res.assert_stdout_lines_eq(&[
         "*",
-        r#"Type "quit", "q", or "exit" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"#,
+        r#"Type "exit", "quit", or "q" to quit. (On Unixy systems, Ctrl+C or Ctrl+D also work)"#,
         r#"Type "?" for quick help, or "help" for a more verbose help message."#,
         "",
         "Created: goodbye",
