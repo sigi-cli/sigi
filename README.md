@@ -1,6 +1,7 @@
 [![crates.io version](https://img.shields.io/crates/v/sigi)](https://crates.io/crates/sigi)
 [![crates.io downloads](https://img.shields.io/crates/d/sigi?label=crates.io%20downloads)](https://crates.io/crates/sigi)
 [![docs.rs docs](https://docs.rs/mio/badge.svg)](https://docs.rs/sigi)
+[![discord badge](https://img.shields.io/discord/1141777454164365382?logo=discord)](https://discord.gg/Yehv682GJ4)
 
 # `sigi`
 
