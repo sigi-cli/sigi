@@ -3,11 +3,12 @@
 [![docs.rs docs](https://docs.rs/mio/badge.svg)](https://docs.rs/sigi)
 [![discord badge](https://img.shields.io/discord/1141777454164365382?logo=discord)](https://discord.gg/Yehv682GJ4)
 
-# `sigi`
+# Sigi CLI
+
+[<img src='https://sigi-cli.org/img/sigi.png' width='400'>](https://sigi-cli.org)
 
 `sigi` is an organizing tool for terminal lovers who hate organizing
 
-https://sigi-cli.org
 
 Use `sigi` as extra memory. Use it to toss your tasks, groceries, or the next
 board games you want to play onto a stack. Shell aliases are encouraged to
