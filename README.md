@@ -7,12 +7,13 @@
 
 # Sigi CLI
 
-
 `sigi` is an organizing tool for terminal lovers who hate organizing
 
 Use `sigi` as extra memory. Use it to toss your tasks, groceries, or the next
 board games you want to play onto a stack. Shell aliases are encouraged to
 organize your various stacks.
+
+---
 
 ```
 $ sigi -h
