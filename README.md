@@ -1,2 +1,1 @@
-TODO: Fill in some details
-
+[Sigi](https://sigi-cli.org) as packaged for FreeBSD
