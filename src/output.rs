@@ -1,28 +1,28 @@
-use chrono::{DateTime, Local};
+//! The general idea in this module is to take a table-ish output and render it in common formats.
+//!
+//! ```text
+//! labels: [a, b, c]
+//! values:[[1, 2, 3],
+//!         [4, 5, 6]]
+//! ```
+//!
+//! For example, as json:
+//! ```json
+//! [
+//!     {
+//!         "a": "1",
+//!         "b": "2",
+//!         "c": "3"
+//!     },
+//!     {
+//!         "a": "4",
+//!         "b": "5",
+//!         "c": "6"
+//!     }
+//! ]
+//! ```
 
-/// The general idea in this module is to take a table-ish output and render it in common formats.
-///
-/// ```text
-/// labels: [a, b, c]
-/// values:[[1, 2, 3],
-///         [4, 5, 6]]
-/// ```
-///
-/// For example, as json:
-/// ```json
-/// [
-///     {
-///         "a": "1",
-///         "b": "2",
-///         "c": "3"
-///     },
-///     {
-///         "a": "4",
-///         "b": "5",
-///         "c": "6"
-///     }
-/// ]
-/// ```
+use chrono::{DateTime, Local};
 
 /// Output formats supported by Sigi.
 #[derive(Clone, Copy, Eq, PartialEq)]
