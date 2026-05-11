@@ -1,4 +1,4 @@
-[<img align='right' src='https://sigi-cli.org/img/sigi.png' height='256' width='256'>](https://sigi-cli.org)
+[<img align='right' src='https://sigi.quest/img/sigi.png' height='256' width='256'>](https://sigi.quest)
 
 [![crates.io version](https://img.shields.io/crates/v/sigi)](https://crates.io/crates/sigi)
 [![crates.io downloads](https://img.shields.io/crates/d/sigi?label=crates.io%20downloads)](https://crates.io/crates/sigi)
