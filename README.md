@@ -29,6 +29,7 @@ Commands:
   delete       Move the current item to "<STACK>_history" and mark as deleted [aliases: pop, remove, cancel, drop]
   delete-all   Move all items to "<STACK>_history" and mark as deleted [aliases: purge, pop-all, remove-all, cancel-all, drop-all]
   edit         Edit the content of an item. Other metadata like creation date is left unchanged
+  enqueue      Create a new item at the bottom/beginning of the stack. Effectively allows queue behavior [aliases: enq, prepend]
   head         Print the first N items (default is 10) [aliases: top, first]
   is-empty     Print "true" if stack has zero items, or print "false" (and exit with a nonzero exit code) if the stack does have items [aliases: empty]
   list         Print all items [aliases: ls, snoop, all]

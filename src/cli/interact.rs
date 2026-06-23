@@ -226,6 +226,11 @@ fn parse_effect(tokens: Vec<&str>, stack: String) -> ParseEffectResult {
             index,
         });
     }
+    if ENQUEUE_TERMS.contains(term) {
+        // FIXME: This is convenient, but normalizes whitespace. Same semantics used in Push. (E.g. multiple spaces always collapsed, tabs to spaces, etc)
+        let content = tokens[1..].join(" ");
+        return Effect(Enqueue { stack, content });
+    }
     if HEAD_TERMS.contains(term) {
         let n = parse_n().unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
         return Effect(Head { stack, n });
@@ -279,7 +284,7 @@ fn parse_effect(tokens: Vec<&str>, stack: String) -> ParseEffectResult {
         return Effect(Pick { stack, indices });
     }
     if PUSH_TERMS.contains(term) {
-        // FIXME: This is convenient, but normalizes whitespace. (E.g. multiple spaces always collapsed, tabs to spaces, etc)
+        // FIXME: This is convenient, but normalizes whitespace. Same semantics used in Enqueue. (E.g. multiple spaces always collapsed, tabs to spaces, etc)
         let content = tokens[1..].join(" ");
         return Effect(Push { stack, content });
     }

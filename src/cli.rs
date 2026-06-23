@@ -32,6 +32,7 @@ const DELETE_ALL_TERMS: [&str; 6] = [
     "drop-all",
 ];
 const EDIT_TERMS: [&str; 1] = ["edit"];
+const ENQUEUE_TERMS: [&str; 3] = ["enqueue", "enq", "prepend"];
 const HEAD_TERMS: [&str; 3] = ["head", "top", "first"];
 const IS_EMPTY_TERMS: [&str; 2] = ["is-empty", "empty"];
 const LIST_TERMS: [&str; 4] = ["list", "ls", "snoop", "all"];
@@ -162,6 +163,16 @@ enum Command {
 
         /// The number of the item to edit. Default is the most recent item (0 index)
         n: Option<usize>,
+
+        #[command(flatten)]
+        fc: FormatConfig,
+    },
+
+    /// Create a new item at the bottom/beginning of the stack. Effectively allows queue behavior
+    #[command(visible_aliases = &ENQUEUE_TERMS[1..])]
+    Enqueue {
+        // The content to add as an item. Multiple arguments will be interpreted as a single string
+        content: Vec<String>,
 
         #[command(flatten)]
         fc: FormatConfig,
@@ -307,6 +318,10 @@ impl Command {
                 },
                 fc,
             ),
+            Command::Enqueue { content, fc } => {
+                let content = content.join(" ");
+                (Enqueue { stack, content }, fc)
+            }
             Command::Head { n, fc } => {
                 let n = n.unwrap_or(DEFAULT_SHORT_LIST_LIMIT);
                 (Head { n, stack }, fc)

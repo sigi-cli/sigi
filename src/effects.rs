@@ -14,6 +14,10 @@ pub enum StackEffect {
         stack: String,
         content: String,
     },
+    Enqueue {
+        stack: String,
+        content: String,
+    },
     Complete {
         stack: String,
         index: usize,
@@ -79,6 +83,7 @@ impl StackEffect {
         use StackEffect::*;
         match self {
             Push { stack, content } => push_content(stack, content, data_store, output),
+            Enqueue { stack, content } => enqueue_content(stack, content, data_store, output),
             Complete { stack, index } => complete_item(stack, index, data_store, output),
             Delete { stack, index } => delete_latest_item(stack, index, data_store, output),
             DeleteAll { stack } => delete_all_items(stack, data_store, output),
@@ -104,17 +109,40 @@ impl StackEffect {
     }
 }
 
+enum CreatePosition {
+    First,
+    Last,
+}
+
 fn push_content(stack: String, content: String, data_store: &DataStore, output: &OutputFormat) {
     let item = Item::new(&content);
     push_item(stack, item, data_store, output);
 }
 
+fn enqueue_content(stack: String, content: String, data_store: &DataStore, output: &OutputFormat) {
+    let item = Item::new(&content);
+    create_item(stack, item, CreatePosition::First, data_store, output);
+}
+
 fn push_item(stack: String, item: Item, data_store: &DataStore, output: &OutputFormat) {
+    create_item(stack, item, CreatePosition::Last, data_store, output)
+}
+
+fn create_item(
+    stack: String,
+    item: Item,
+    pos: CreatePosition,
+    data_store: &DataStore,
+    output: &OutputFormat,
+) {
     let contents = item.contents.clone();
 
     let items = if let Ok(items) = data_store.load(&stack) {
         let mut items = items;
-        items.push(item);
+        match pos {
+            CreatePosition::First => items.insert(0, item),
+            CreatePosition::Last => items.push(item),
+        }
         items
     } else {
         vec![item]
